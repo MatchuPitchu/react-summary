@@ -58,6 +58,46 @@
   }
   ```
 
+- JSX return of a component can only be one element, so React JSX requires one wrapper element
+
+  - problem: with lots of nested components, you could end with lots of unnecessary <div>'s (or other elements) which slow down the rendering performance and add no semantic meaning or structure to the page but are only there because of React's/JSX requirement
+
+  ```JavaScript
+  return (
+    <div>
+      // inside you can add more elements
+    </div>
+  )
+
+  // solution 1 - workaround: creating a helper wrapper component that returns only the children prop, i.e. what's between the wrapper in the component
+  const Wrapper = ({ children }) => {
+    return { children };
+  };
+
+  // other component
+  return (
+    <Wrapper>
+      // more elements ...
+    </Wrapper>
+  )
+
+  // recommanded built-in solution 2: using React.Fragment or shortcut <></> as empty wrapper component
+  import { Fragment } from 'react';
+
+  return (
+    <Fragment>
+      // ...
+    </Fragment>
+  )
+
+  // OR simply without importing
+  return (
+    <>
+      // ...
+    </>
+  )
+  ```
+
 - passing data from child to parent component with function that's passed inside props obj
 
   ```JavaScript
@@ -191,7 +231,7 @@
     };
     ```
 
-  - for me not preferred solution: use styled components package https://styled-components.com/
+  - my NOT preferred solution: use styled components package https://styled-components.com/
 
     ```JavaScript
     // a) install npm package
@@ -341,3 +381,92 @@ const App = () => {
   );
 }
 ```
+
+## React Portals of ReactDOM library
+
+- Example of deeply nested React Component `<MyModal />`
+
+  ```JavaScript
+  return (
+    <React.Fragment>
+      <MyModal />
+      <MyInputForm />
+    </React.Fragment>
+  )
+  ```
+
+  ```HTML
+  <!-- -> could be look like in real DOM like this -->
+  <section>
+    <h2>Some other content ... </h2>
+    <div class="my-modal">
+      <h2>Modal Title</h2>
+    </div>
+    <form>
+      <label>Username</label>
+      <input type="text" />
+    </form>
+  ```
+
+- semantically abd from "clean HTML structure" perspective, having this nested modal isn't ideal. It's an overlay to the entire page after all (that's similar fro side-drawers, other dialogs etc.)
+- portals good way to render wished component (-> like a modal) somewhere else, not so deeply nested, but on another place in the real DOM
+
+  - add div element(s) to index.html to hook into them later
+
+  ```HTML
+    <body>
+      <div id="backdrop-root"></div>
+      <div id="overlay-root"></div>
+      <div id="root"></div>
+    </body>
+  ```
+
+  - import ReactDOM in component(s) that should be rendered somewhere else, create normal wished components, use createPortal method to move rendering of this component(s) to another place
+
+  ```JavaScript
+  import ReactDOM from 'react-dom'; // import for createPortal method
+  import Card from './Card';
+  import Button from './Button';
+  import classes from './ErrorModal.module.css';
+
+  const Backdrop = ({ onConfirm }) => {
+    // backdrop overlay
+    return <div className={classes.backdrop} onClick={onConfirm}></div>;
+  };
+
+  const ModalOverlay = ({ title, message, onConfirm }) => {
+    return (
+      <Card className={classes.modal}>
+        <header className={classes.header}>
+          <h2>{title}</h2>
+        </header>
+        <div className={classes.content}>
+          <p>{message}</p>
+        </div>
+        <footer className={classes.actions}>
+          <Button onClick={onConfirm}>Okay</Button>
+        </footer>
+      </Card>
+    );
+  };
+
+  const ErrorModal = ({ title, message, onConfirm }) => {
+    // first argument in createPortal method is JSX React component that I wanna move somewhere
+    // -> important: pass props into this component;
+    // second argument is element in index.html that I get e.g. by id;
+    // now it doesn't matter where - in which deep nested component - I use Backdrop and Modal, it's always rendered attached to element with this id
+    return (
+      <>
+        {ReactDOM.createPortal(
+          <Backdrop onConfirm={onConfirm} />,
+          document.getElementById('backdrop-root')
+        )}
+        {ReactDOM.createPortal(
+          <ModalOverlay title={title} message={message} onConfirm={onConfirm} />,
+          document.getElementById('overlay-root')
+        )}
+      </>
+    );
+  };
+  export default ErrorModal;
+  ```
