@@ -119,6 +119,44 @@
   }
   ```
 
+## Hooks
+
+### useRef
+
+- first time a component is rendered, React sets value of a ref variable to a real DOM element (-> NOT the virtual DOM of React, so you should not manipulate it, only React should) that is rendered based on a JSX element with a ref attribute and connection to the wished variable
+- useful when you only want to read a value and never plan on changing anything, then you don't need useState
+
+  ```JavaScript
+  // Example with useRef instead of using useState
+  // BUT not a good use case, because inputs are now uncontrolled (-> with useState and two way binding they would be controlled) components
+  import { useRef } from 'react';
+
+  const MyComponent = () => {
+    const elRef = useRef();
+
+    const submitUserData = (e) => {
+      e.preventDefault();
+      const name = elRef.current.value;
+      console.log('Username: ' + name);
+      // reset input field -> normally DON'T manipulate real DOM, but here for resetting input fields it's admissible
+      elRef.current.value = '';
+    }
+
+    return (
+      <form onSubmit={submitUserData}>
+        <label htmlFor='username'>Username</label>
+        <input
+          id='username'
+          type='text'
+          // connect HTML element to a ref const created above with useRef hook
+          ref={elRef}
+        />
+        <button type='submit'>OK</button>
+      </form>
+    )
+  }
+  ```
+
 ## Rerendering of Components
 
 - every state update with the setState function triggers a rerendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
