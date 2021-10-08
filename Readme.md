@@ -121,7 +121,7 @@
 
 ## Hooks
 
-### useRef
+### useRef Hook
 
 - first time a component is rendered, React sets value of a ref variable to a real DOM element (-> NOT the virtual DOM of React, so you should not manipulate it, only React should) that is rendered based on a JSX element with a ref attribute and connection to the wished variable
 - useful when you only want to read a value and never plan on changing anything, then you don't need useState
@@ -134,7 +134,7 @@
   const MyComponent = () => {
     const elRef = useRef();
 
-    const submitUserData = (e) => {
+    const submitData = (e) => {
       e.preventDefault();
       const name = elRef.current.value;
       console.log('Username: ' + name);
@@ -143,7 +143,7 @@
     }
 
     return (
-      <form onSubmit={submitUserData}>
+      <form onSubmit={submitData}>
         <label htmlFor='username'>Username</label>
         <input
           id='username'
@@ -155,6 +155,51 @@
       </form>
     )
   }
+  ```
+
+### useEffect Hook for "side effects"
+
+- it's for tasks that must happen outside of the normal component evaluation and render cycle, especially since they might block or delay rendering (e.g. HTTP requests)
+- examples for side effects: store data in browser storage, send HTTP requests to backend servers, set and manage timers etc.
+- side effects cannot go directly as normal function into the component function because
+  - a) if side effect triggers state change that would trigger rerendering of component that would result in an infinitive loop
+  - b) side effects have there own rhythm when and how they receive data (HTTP requests)
+- `useEffect(() => { ... }, [ dependencies ])` -> this function is always executed AFTER every component evaluation and only IF the specified dependencies changed
+
+  - dependencies: add all "things" (variables, functions) that are used in the effect function if those "things" could change because your component (or some parent component) re-rendered
+
+  ```JavaScript
+    // Dummy example
+    import { useState, useEffect } from 'react';
+
+    let myTimer;
+
+    const MyComponent = ({timerDuration}) => {
+      const [timerIsActive, setTimerIsActive] = useState(false);
+
+      useEffect(() => {
+        if (!timerIsActive) {
+          setTimerIsActive(true);
+          myTimer = setTimeout(() => setTimerIsActive(false), timerDuration);
+        }
+      }, [timerIsActive, timerDuration]);
+    };
+  ```
+
+- Cleanup function: when you trigger an effect in useEffect (like timeout, intervall etc.) then you have to clean this effect in a return statement
+
+  - in example below, I debounce user input with setTimeout to trigger form validation only when user doesn't stroke a key for 500ms
+  - but I wanna have only 1 ongoing timer at a time
+  - so I have to use built-in clearTimeout function with saved const timerId
+  - cleanup function is now executed always BEFORE useEffect runs the text time
+
+  ```JavaScript
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setFormIsValid(enteredEmail.includes('@') && enteredPassword.trim().length > 6);
+    }, 500);
+    return () => clearTimeout(timerId);
+  }, [enteredEmail, enteredPassword]);
   ```
 
 ## Rerendering of Components
