@@ -191,7 +191,7 @@
   - in example below, I debounce user input with setTimeout to trigger form validation only when user doesn't stroke a key for 500ms
   - but I wanna have only 1 ongoing timer at a time
   - so I have to use built-in clearTimeout function with saved const timerId
-  - cleanup function is now executed always BEFORE useEffect runs the text time
+  - cleanup function is now executed always BEFORE useEffect runs the text time OR BEFORE the component is removed from the DOM (-> is unmounted)
 
   ```JavaScript
   useEffect(() => {
