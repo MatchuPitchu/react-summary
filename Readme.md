@@ -202,6 +202,105 @@
   }, [enteredEmail, enteredPassword]);
   ```
 
+### useReducer for State Management
+
+- for more complex state management `useReducer` can replace `useState`
+  - i.e. if you have multiple states, multiple ways of changing them or dependencies to other states, then useState often becomes hard or error-prone to use
+- useReducer is good option when you have to update a state that depends on another state (-> for example `setEmailIsValid(enteredEmail.includes('@'))`)
+- concept of useReducer:
+
+  - `const [state, dispatchFn] = useReducer(reducerFn, initialState, initFn)`
+  - state: state snapshot used in the component re-render/re-evaluation cycle
+  - dispatchFn: function that can be used to dispatch a new action (i.e. trigger an update of the state)
+  - reducerFn: a function that is triggerd automatically once an action is dispatched (via `dispatchFn()`) - it receives the latest state snapshot and should return the new, updated state (`(prevState, action) => newState`)
+  - initialState: optional you can set an initial state
+  - initFn: a function to set the inital state programmatically in case that the initial state is more complex (i.e. the result of an HTTP request)
+
+- example of useReducer
+
+  - function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
+
+  ```JavaScript
+  import { useState, useEffect, useReducer } from 'react';
+
+  import Card from '../UI/Card/Card';
+  import classes from './Login.module.css';
+  import Button from '../UI/Button/Button';
+
+  const emailReducer = (prevState, action) => {
+    // condition defined based on action parameter and a related wished state update return
+    if (action.type === 'USER_INPUT') {
+      return { value: action.val, isValid: action.val.includes('@') };
+    }
+    if (action.type === 'INPUT_BLUR') {
+      // it is guaranteed that prevState parameter is the last state snapshot
+      return { value: prevState.value, isValid: prevState.value.includes('@') };
+    }
+    return { value: '', isValid: false };
+  };
+
+  const Login = ({ onLogin }) => {
+    const [formIsValid, setFormIsValid] = useState(false);
+
+    const [emailState, dispatchEmail] = useReducer(
+      emailReducer, // reducer function
+      { value: '', isValid: null } // initial state
+    );
+
+    const { isValid: emailIsValid } = emailState;
+
+    useEffect(() => {
+      const timerId = setTimeout(() => setFormIsValid(emailIsValid), 500);
+      return () => clearTimeout(timerId);
+    }, [emailIsValid]);
+
+    const emailHandler = ({ target }) => {
+      // dispatchFn of useReducer to define an action;
+      // here I'm using an obj with type key that describes what happpens AND a payload (-> here a value the user entered)
+      dispatchEmail({ type: 'USER_INPUT', val: target.value });
+    };
+
+    const validateEmailHandler = () => {
+      dispatchEmail({
+        type: 'INPUT_BLUR', // action happens when focus is blurred, so I call type 'INPUT_BLUR'
+        // value definition not needed here for action definition
+      });
+    };
+
+    const submitHandler = (e) => {
+      e.preventDefault();
+      onLogin(emailState.value);
+    };
+
+  return (
+      <Card className={classes.login}>
+        <form onSubmit={submitHandler}>
+          <div
+            className={`${classes.control} ${
+              emailState.isValid === false ? classes.invalid : ''
+            }`}
+          >
+            <label htmlFor='email'>E-Mail</label>
+            <input
+              type='email'
+              id='email'
+              value={emailState.value}
+              onChange={emailHandler}
+              // onBlur is activated when input loses focus
+              onBlur={validateEmailHandler}
+            />
+          </div>
+          <div className={classes.actions}>
+            <Button type='submit' className={classes.btn} disabled={!formIsValid}>
+              Login
+            </Button>
+          </div>
+        </form>
+      </Card>
+    );
+  }
+  ```
+
 ## Rerendering of Components
 
 - every state update with the setState function triggers a rerendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
