@@ -205,16 +205,16 @@
 ### useReducer for State Management
 
 - for more complex state management `useReducer` can replace `useState`
-  - i.e. if you have multiple states, multiple ways of changing them or dependencies to other states, then useState often becomes hard or error-prone to use
-- useReducer is good option when you have to update a state that depends on another state (-> for example `setEmailIsValid(enteredEmail.includes('@'))`)
+  - e.g. if you have multiple states, multiple ways of changing them or dependencies to other states, then useState often becomes hard or error-prone to use
+  - useReducer is good option when you have to update a state that depends on another state (e.g. `setEmailIsValid(enteredEmail.includes('@'))`)
 - concept of useReducer:
 
   - `const [state, dispatchFn] = useReducer(reducerFn, initialState, initFn)`
   - state: state snapshot used in the component re-render/re-evaluation cycle
-  - dispatchFn: function that can be used to dispatch a new action (i.e. trigger an update of the state)
+  - dispatchFn: function that can be used to dispatch a new action (e.g. trigger an update of the state)
   - reducerFn: a function that is triggerd automatically once an action is dispatched (via `dispatchFn()`) - it receives the latest state snapshot and should return the new, updated state (`(prevState, action) => newState`)
   - initialState: optional you can set an initial state
-  - initFn: a function to set the inital state programmatically in case that the initial state is more complex (i.e. the result of an HTTP request)
+  - initFn: a function to set the inital state programmatically in case that the initial state is more complex (e.g. the result of an HTTP request)
 
 - example of useReducer
 
@@ -296,6 +296,173 @@
     );
   }
   ```
+
+#### useState vs useReducer
+
+- use useReducer when using useState becomes cumbersome or you're getting a lot of bugs/unintended behaviors
+- useState
+  - main state management "tool"
+  - great for independent simple pieces of state/data
+  - great if state updates are easy and limited to a few kinds of updates (-> if you don't have lots of different cases that will change the state, if you don't have an obj as state)
+- useReducer
+  - great if you have more complex state updates (-> different cases, different actions that change the state) you can write a reducer fn that contains more complex state updating logic
+  - should be considered if you have related pieces of state/data (i.e. form inputs that are related)
+
+### Context API & useContext Hook
+
+- context is a component-wide state storage
+
+- a) basic context setup:
+
+  - a basic context where I can pass data and functions to other components
+
+    ```JavaScript
+    // auth-context.js
+    import React from 'react';
+
+    // create an default(!) blueprint obj that contains components with an app wide state storage;
+    // this helps e.g. for autocompletion in VSC
+    const AuthContext = React.createContext({
+      isLoggedIn: false,
+      onLogout: () => {},
+    });
+
+    export default AuthContext;
+    ```
+
+  - provide context: wrap in JSX code all components that should be able to listen to the context
+
+    ```JavaScript
+    // App.js
+    import AuthContext from './context/auth-context';
+    // ...
+    const App = () => {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      // ... component logic
+      const logoutHandler = () => {
+        // ...
+      };
+
+      return (
+        <AuthContext.Provider
+          // all variables and functions listed here are available in all children components
+          value={{
+            isLoggedIn, // shorthand to "isLoggedIn: isLoggedIn", etc.
+            logoutHandler
+          }}
+        >
+          <MyComponent/>
+          <main>
+            <AnotherComponent />
+            <Home />
+          </main>
+        </AuthContext.Provider>
+      );
+    }
+    ```
+
+  - consume (or listen) to the context with useContext
+
+    ```JavaScript
+    import { useContext } from 'react';
+    import AuthContext from '../../context/auth-context';
+
+    const Navigation = () => {
+      // pass the pointer to the context obj into useContext
+      // create variables with destructuring
+      const { isLoggedIn, logoutHandler } = useContext(AuthContext);
+
+      return (
+        <nav>
+          <ul>
+            {isLoggedIn && (
+              <li>
+                <button onClick={logoutHandler}>Logout</button>
+              </li>
+            )}
+          </ul>
+        </nav>
+      );
+    };
+
+    export default Navigation;
+    ```
+
+- b) recommanded and more complex context setup: to pull out more logic out of specific components and create a saparate context management component
+
+  - context file:
+
+    ```JavaScript
+    // auth-context.js
+    import React, { useState, useEffect } from 'react';
+
+    const AuthContext = React.createContext({
+      isLoggedIn: false,
+      onLogout: () => {},
+      onLogin: (email, password) => {},
+    });
+
+    // create context component and export it as a named export;
+    // now I can use useState etc. and insert more logic into this component
+    export const AuthContextProvider = ({ children }) => {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+      useEffect(() => {
+        setIsLoggedIn(true);
+      }, []);
+
+      const logoutHandler = () => {
+        // ... logout logic
+        setIsLoggedIn(false);
+      };
+
+      const loginHandler = (email, password) => {
+        // ... login logic
+        setIsLoggedIn(true);
+      };
+
+      return (
+        <AuthContext.Provider
+          value={{
+            isLoggedIn, // shorthand to "isLoggedIn: isLoggedIn", etc.
+            logoutHandler,
+            loginHandler,
+          }}
+        >
+          {children}
+        </AuthContext.Provider>
+      );
+    };
+
+    export default AuthContext;
+    ```
+
+  - provide context: wrapp whole app into context provider component to make context accessible to all children components
+
+    ```JavaScript
+    // index.js
+    import ReactDOM from 'react-dom';
+
+    import './index.css';
+    import App from './App';
+    import { AuthContextProvider } from './context/auth-context';
+
+    ReactDOM.render(
+      <AuthContextProvider>
+        <App />
+      </AuthContextProvider>,
+      document.getElementById('root')
+    );
+    ```
+
+  - consume context with useContext (-> look above)
+
+- useContext vs props
+  - in short: props for configuration, context for state management accross components or the entire app
+  - in most cases, use props to pass data to components, because props let you configure components and make them reusable
+  - if you have smth which you would forward to lots of components AND you are forwarding it to a component that does smth very specific (-> like the navigation), but NOT smth that you will adapt often (-> like a button that you use in different situations and so you should be more flexible)
+  - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then Redux is option
+  - React Context shouldn't be used to replace ALL component communications and props: component should still be configurable via props AND short "prop chains" might not need any replacement
 
 ## Rerendering of Components
 
@@ -574,7 +741,7 @@ const App = () => {
   ```
 
   ```HTML
-  <!-- -> could be look like in real DOM like this -->
+  <!-- -> in real DOM could look like this -->
   <section>
     <h2>Some other content ... </h2>
     <div class="my-modal">
@@ -584,10 +751,11 @@ const App = () => {
       <label>Username</label>
       <input type="text" />
     </form>
+  </section>
   ```
 
-- semantically abd from "clean HTML structure" perspective, having this nested modal isn't ideal. It's an overlay to the entire page after all (that's similar fro side-drawers, other dialogs etc.)
-- portals good way to render wished component (-> like a modal) somewhere else, not so deeply nested, but on another place in the real DOM
+- semantically from "clean HTML structure" perspective, having this nested modal isn't ideal. It's an overlay to the entire page after all (that's similar for side-drawers, other dialogs etc.)
+- portals good way to render component (-> like a modal) somewhere else, not so deeply nested, but on another place in real DOM
 
   - add div element(s) to index.html to hook into them later
 
