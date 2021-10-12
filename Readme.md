@@ -255,7 +255,7 @@
     }, [emailIsValid]);
 
     const emailHandler = ({ target }) => {
-      // dispatchFn of useReducer to define an action;
+      // dispatchFn of useReducer to pass an "action" as an argument (-> look at parameter of emailReducer fn);
       // here I'm using an obj with type key that describes what happpens AND a payload (-> here a value the user entered)
       dispatchEmail({ type: 'USER_INPUT', val: target.value });
     };
@@ -269,17 +269,13 @@
 
     const submitHandler = (e) => {
       e.preventDefault();
-      onLogin(emailState.value);
+      onLogin(emailState.value); // OR another login logic
     };
 
-  return (
+    return (
       <Card className={classes.login}>
         <form onSubmit={submitHandler}>
-          <div
-            className={`${classes.control} ${
-              emailState.isValid === false ? classes.invalid : ''
-            }`}
-          >
+          <div className={`${classes.control} ${emailState.isValid === false ? classes.invalid : ''}`}>
             <label htmlFor='email'>E-Mail</label>
             <input
               type='email'
