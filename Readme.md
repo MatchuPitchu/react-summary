@@ -317,12 +317,12 @@
   - a basic context where I can pass data and functions to other components
 
     ```JavaScript
-    // auth-context.js
-    import React from 'react';
+    // AuthContext.js
+    import { createContext } from 'react';
 
-    // create an default(!) blueprint obj that contains components with an app wide state storage;
+    // create an default(!) obj that contains components with an app wide state storage;
     // this helps e.g. for autocompletion in VSC
-    const AuthContext = React.createContext({
+    const AuthContext = createContext({
       isLoggedIn: false,
       onLogout: () => {},
     });
@@ -334,7 +334,7 @@
 
     ```JavaScript
     // App.js
-    import AuthContext from './context/auth-context';
+    import AuthContext from './context/AuthContext';
     // ...
     const App = () => {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -365,7 +365,7 @@
 
     ```JavaScript
     import { useContext } from 'react';
-    import AuthContext from '../../context/auth-context';
+    import AuthContext from '../../context/AuthContext';
 
     const Navigation = () => {
       // pass the pointer to the context obj into useContext
@@ -393,10 +393,10 @@
   - context file:
 
     ```JavaScript
-    // auth-context.js
-    import React, { useState, useEffect } from 'react';
+    // AuthContext.js
+    import { useState, useEffect, createContext } from 'react';
 
-    const AuthContext = React.createContext({
+    const AuthContext = createContext({
       isLoggedIn: false,
       onLogout: () => {},
       onLogin: (email, password) => {},
@@ -424,7 +424,7 @@
       return (
         <AuthContext.Provider
           value={{
-            isLoggedIn, // shorthand to "isLoggedIn: isLoggedIn", etc.
+            isLoggedIn, // shorthand for "isLoggedIn: isLoggedIn", etc.
             logoutHandler,
             loginHandler,
           }}
@@ -445,7 +445,7 @@
 
     import './index.css';
     import App from './App';
-    import { AuthContextProvider } from './context/auth-context';
+    import { AuthContextProvider } from './context/AuthContext';
 
     ReactDOM.render(
       <AuthContextProvider>
@@ -457,12 +457,16 @@
 
   - consume context with useContext (-> look above)
 
-- useContext vs props
+- context vs props
   - in short: props for configuration, context for state management accross components or the entire app
-  - in most cases, use props to pass data to components, because props let you configure components and make them reusable
-  - if you have smth which you would forward to lots of components AND you are forwarding it to a component that does smth very specific (-> like the navigation), but NOT smth that you will adapt often (-> like a button that you use in different situations and so you should be more flexible)
-  - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then Redux is option
-  - React Context shouldn't be used to replace ALL component communications and props: component should still be configurable via props AND short "prop chains" might not need any replacement
+  - props
+    - in most cases, use props to pass data to components, because props let you configure components and make them reusable
+    - if you have smth that you will adapt often, like a button that you use in different situations and so you should be more flexible
+  - context
+    - if you have smth which you would forward to lots of components AND you are forwarding it to a component that does smth very specific or unique (-> like the navigation)
+    - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then Redux is option
+  - React Context shouldn't be used to replace ALL component communications and props
+  - a component should still be configurable via props AND short "prop chains" might not need any replacement
 
 ## Rerendering of Components
 
