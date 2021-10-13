@@ -339,14 +339,15 @@
 
   const emailReducer = (prevState, action) => {
     // condition defined based on action parameter and a related wished state update return
-    if (action.type === 'USER_INPUT') {
-      return { value: action.val, isValid: action.val.includes('@') };
+    switch (action.type) {
+      case 'USER_INPUT':
+        return { value: action.val, isValid: action.val.includes('@') };
+      case 'INPUT_BLUR':
+        // it is guaranteed that prevState parameter is the last state snapshot
+        return { value: prevState.value, isValid: prevState.value.includes('@') };
+      default:
+        return { value: '', isValid: false };
     }
-    if (action.type === 'INPUT_BLUR') {
-      // it is guaranteed that prevState parameter is the last state snapshot
-      return { value: prevState.value, isValid: prevState.value.includes('@') };
-    }
-    return { value: '', isValid: false };
   };
 
   const Login = ({ onLogin }) => {
