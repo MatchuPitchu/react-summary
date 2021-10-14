@@ -410,6 +410,40 @@
   - great if you have more complex state updates (-> different cases, different actions that change the state) you can write a reducer fn that contains more complex state updating logic
   - should be considered if you have related pieces of state/data (i.e. form inputs that are related)
 
+### useMemo Hook
+
+- [description comes later]
+- example for useMemo in combination with debounce fn from lodash library
+
+  - to avoid that every key entry leads to a server request, use debounce fn that single request is fired only once when user stops typing for one second
+  - wrap debounce fn in useMemo Hook to prevent React from creating a new reference in the `stack memory` to the debounce fn in the `heap memory` on every rerender
+
+  ```JavaScript
+  import { useMemo } from 'react';
+  import { debounce } from 'lodash';
+
+  const App = () => {
+    // state management ...
+
+    const handleChangeDebounced = useMemo(() => {
+      return debounce(() => {
+        // server request or whatever...
+      }, 1000);
+    }, []);
+
+    return (
+      <input
+        onChange={(event) => {
+          // update state ...
+
+          handleChangeDebounced(); // debounced handler
+        }}
+        value={value}
+      />
+    );
+  }
+  ```
+
 ### Context API & useContext Hook
 
 - context is a component-wide state storage
