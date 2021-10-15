@@ -532,15 +532,16 @@
     // AuthContext.js
     import { useState, useEffect, createContext } from 'react';
 
+    // initialize context with default data obj to have better autocompletion in VSC
     const AuthContext = createContext({
       isLoggedIn: false,
       onLogout: () => {},
       onLogin: (email, password) => {},
     });
 
-    // create context component and export it as a named export;
+    // create context component and export it as the default export;
     // now I can use useState etc. and insert more logic into this component
-    export const AuthContextProvider = ({ children }) => {
+    const AuthContextProvider = ({ children }) => {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
 
       useEffect(() => {
@@ -570,7 +571,7 @@
       );
     };
 
-    export default AuthContext;
+    export default AuthContextProvider;
     ```
 
   - provide context: wrapp whole app into context provider component to make context accessible to all children components
@@ -578,10 +579,9 @@
     ```JavaScript
     // index.js
     import ReactDOM from 'react-dom';
-
-    import './index.css';
+    import AuthContextProvider from './context/AuthContext';
     import App from './App';
-    import { AuthContextProvider } from './context/AuthContext';
+    import './index.css';
 
     ReactDOM.render(
       <AuthContextProvider>
