@@ -495,33 +495,6 @@
     }
     ```
 
-  - consume (or listen) to the context with useContext
-
-    ```JavaScript
-    import { useContext } from 'react';
-    import { AuthContext } from '../../context/AuthContext';
-
-    const Navigation = () => {
-      // pass the pointer to the context obj into useContext
-      // create variables with destructuring
-      const { isLoggedIn, logoutHandler } = useContext(AuthContext);
-
-      return (
-        <nav>
-          <ul>
-            {isLoggedIn && (
-              <li>
-                <button onClick={logoutHandler}>Logout</button>
-              </li>
-            )}
-          </ul>
-        </nav>
-      );
-    };
-
-    export default Navigation;
-    ```
-
 - b) recommanded and more complex context setup: to pull out more logic out of specific components and create a saparate context management component
 
   - context file:
@@ -590,7 +563,33 @@
     );
     ```
 
-  - consume context with useContext (-> look above)
+- a + b) consume (or listen) to the context with useContext
+
+  ```JavaScript
+  import { useContext } from 'react';
+  import { AuthContext } from '../../context/AuthContext';
+
+  const Navigation = () => {
+    // pass the pointer to the context obj into useContext
+    // create variables with destructuring;
+    // with useContext Hook, component will be reevaluate when context changes
+    const { isLoggedIn, logoutHandler } = useContext(AuthContext);
+
+    return (
+      <nav>
+        <ul>
+          {isLoggedIn && (
+            <li>
+              <button onClick={logoutHandler}>Logout</button>
+            </li>
+          )}
+        </ul>
+      </nav>
+    );
+  };
+
+  export default Navigation;
+  ```
 
 - context vs props
   - in short: props for configuration, context for state management accross components or the entire app
