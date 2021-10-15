@@ -456,14 +456,12 @@
     // AuthContext.js
     import { createContext } from 'react';
 
-    // create an default(!) obj that contains components with an app wide state storage;
-    // this helps e.g. for autocompletion in VSC
-    const AuthContext = createContext({
+    // initialize context with default data obj to have better autocompletion in VSC;
+    // later import { AuthContext } in all components where you need context data
+    export const AuthContext = createContext({
       isLoggedIn: false,
       onLogout: () => {},
     });
-
-    export default AuthContext;
     ```
 
   - provide context: wrap in JSX code all components that should be able to listen to the context
@@ -501,7 +499,7 @@
 
     ```JavaScript
     import { useContext } from 'react';
-    import AuthContext from '../../context/AuthContext';
+    import { AuthContext } from '../../context/AuthContext';
 
     const Navigation = () => {
       // pass the pointer to the context obj into useContext
@@ -532,8 +530,9 @@
     // AuthContext.js
     import { useState, useEffect, createContext } from 'react';
 
-    // initialize context with default data obj to have better autocompletion in VSC
-    const AuthContext = createContext({
+    // initialize context with default data obj to have better autocompletion in VSC;
+    // later import { AuthContext } in all components where you need context data
+    export const AuthContext = createContext({
       isLoggedIn: false,
       onLogout: () => {},
       onLogin: (email, password) => {},
