@@ -23,6 +23,107 @@
 
 - in React basic steps are done by the library; the developer describes rather on a higher level the end result of what should be displayed on the screen, in other words the desired target state(s), and React will figure out the actual JS DOM instructions (-> called `declarative approach`); in React the code of one application is splitted in multiple small components that are responsible for one clear task; so code stays maintainable and manageable; React library is doing the rendering and combining of the code
 
+## React - How it works - Virtual DOM & DOM Updates + State & State Updates
+
+- React `virtual DOM` determines how the component tree currently looks like and what it should look like after a state update
+- the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see)
+- React cares about components and updates `real DOM` if one of the following changes:
+  - `props`: data from a parent component to make components configurable and enable parent-child-component communication
+  - `state`: internal data of a component
+  - `context`: component-wide data
+- `Virtual DOM Diffing`: React re-evaluates a component whenever props, state or context changes, i.e. re-exectues component function and with this all child component functions, BUT changes to the `real DOM` are only made for differences between these evaluations
+
+  - a virtual comparison between previous and current state needs only few resources (-> happens in memory)
+  - reaching out the `real DOM` for rendering in the browser is expansive from a performance perspective
+
+  ```JSX
+  // prev evaluation result
+  <div>
+    <h1>Hello</h1>
+  </div>
+
+  // current evaluation result
+  <div>
+    <h1>Hello</h1>
+    <p>New line</p> // <p> is inserted in DOM (rest stays unchanged)
+  </div>
+  ```
+
+- use `React.memo()` to avoid unnessecary re-execution of a component
+
+  - then component is only re-executed if props really changed with new values -> works well with `primitive values`
+
+  - for `reference values` like objects/functions/arrays that you pass as props to child components comparison doesn't work, because with every re-execution the obj/fn/arr is recreated and so references are new and cannot be compared -> solution `useCallback Hook`
+
+  - Note: DON'T use React.memo() on every component; memo costs also performance because
+    React has to store prev state and compare it with current; to cut of a branch and avoid unnecessary re-render cylces on the entire branch, it's recommanded if:
+    - hugh component tree AND
+    - rare changes of props AND
+    - on a high level in the tree
+
+  ```JavaScript
+  // Examples - App.js
+  const App = () => {
+    const [show, setShow] = useState(false);
+    const [enable, setEnable] = useState(false);
+
+    const toggleBtn = useCallback(() => {
+      if (enable) setShow(prev => !prev);
+    }, [enable]);
+
+    const enableToggleBtn = useCallback(() => {
+      setEnable(true);
+    }, []);
+
+    console.log('APP Component running');
+
+    return (
+      <div>
+        {/* 1) conditional <p> in same component:
+        <div> parent node flashes, i.e. is updated after removing;
+        <p> node flashes, i.e. is added to real DOM after clicking toggle */}
+        {/* {show && <p>New line!</p>} */}
+
+        {/* 2) conditional rendering <p> in child component using props:
+        in my case <p> always stays in real DOM tree, so only <p> flashes;
+        beside child component, also App component is re-evaluated because
+        here state is managed */}
+        <Demo show={show} />
+
+        {/* 3) hard coded prop value (-> primitive value):
+        if click Toggle, nevertheless all child components along the node tree are
+        re-executed because state changes and the following re-evaluation of this component includes the return statement with <Demo /> etc. -> child components are
+        then like fn that are re-evaluated too, BUT NO updates in real DOM are
+        triggered because of NO changes */}
+        {/* <Demo show={false} /> */}
+
+        {/* 4) React.memo() to avoid unnecessary re-evaluation:
+        tell React only to re-evaluate child component if prop changes;
+        wrap child component in React.memo() -> export default React.memo(Demo);
+        then React looks at props that this component gets and compares current
+        value(s) to prev value(s) and if no changes then no re-evaluation of all child components */}
+        {/* <Demo show={false} /> */}
+
+        {/* 5) React.memo() in a child component with fn as props (-> reference value):
+        memo() has no cut off branch effect because on every re-execution
+        of the App Component, toggleBtn fn is newly recreated;
+        solution: useCallback Hook that stores a function in React internal storage across
+        component execution / re-evaluation -> so this function is NOT recreated with every execution and now remains the same for JS */}
+        <Button onClick={enableToggleBtn}>Enable Toggle Button</Button>
+        <Button onClick={toggleBtn}>Toggle</Button>
+      </div>
+    );
+  };
+
+  // Demo.js
+  const Demo = ({ show }) => {
+    console.log('DEMO Component running');
+    return <Paragraph>{show ? 'New line!' : ''}</Paragraph>;
+  };
+
+  export default React.memo(Demo); // for 4) in App.js
+  ```
+
 ## Building Single-Page Applications (SPAs) with React
 
 1. React can be used to control parts of HTML pages or entire pages (e.g. a sidebar) called widget approcach on a multi-page-app
@@ -409,6 +510,42 @@
 - useReducer
   - great if you have more complex state updates (-> different cases, different actions that change the state) you can write a reducer fn that contains more complex state updating logic
   - should be considered if you have related pieces of state/data (i.e. form inputs that are related)
+
+### useCallback Hook
+
+- stores a function in React internal storage across component execution / re-evaluation -> so this function is NOT recreated with every execution
+- advantage: function keeps the same reference in the `stack memory` that refers to the object in the `heap memory`;
+
+  - now you can e.g. use `export default React.memo(ChildComponentName)` in child component because you can compare functions if they are changed or not; if fn remains unchanged then no re-rendering of a certain child component
+
+- `const foo = useCallback(() => {}, [])`
+
+  - first argument: cb function -> a memoized version of it is stored by React
+  - second argument: dependency array
+    - memoized version of cb fn only changes if one of the dependencies has changed
+    - empty array means: cb fn wrapped into useCallback() will never change
+    - functions in JS are `closures` -> they close over the values that are available in there environment; so JS logs in all variables that are used in the fn (below: `enable`) and stores these variables for the fn definition
+    - list all variables, functions etc. - that could change - in dependency array, then in case memoized version of cb fn is recreated
+
+  ```JavaScript
+  const App = () => {
+    const [show, setShow] = useState(false);
+
+    const toggleBtn = useCallback(() => {
+      if (enable) setShow(prev => !prev);
+    }, [enable]);
+
+    return (
+        <div>
+          {/* if you use React.memo() in Button child component with fn as props (-> reference value):
+          memo() has no cut off branch effect because on every re-execution of the App Component,
+          toggleBtn fn is newly recreated -> solution: useCallback Hook */}
+          <Button onClick={toggleBtn}>Toggle</Button>
+        </div>
+      );
+    };
+  }
+  ```
 
 ### useMemo Hook
 
