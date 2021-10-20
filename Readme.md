@@ -95,8 +95,6 @@
         re-executed because state changes and the following re-evaluation of this component includes the return statement with <Demo /> etc. -> child components are
         then like fn that are re-evaluated too, BUT NO updates in real DOM are
         triggered because of NO changes */}
-        {/* <Demo show={false} /> */}
-
         {/* 4) React.memo() to avoid unnecessary re-evaluation:
         tell React only to re-evaluate child component if prop changes;
         wrap child component in React.memo() -> export default React.memo(Demo);
