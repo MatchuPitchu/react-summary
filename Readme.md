@@ -23,7 +23,9 @@
 
 - in React basic steps are done by the library; the developer describes rather on a higher level the end result of what should be displayed on the screen, in other words the desired target state(s), and React will figure out the actual JS DOM instructions (-> called `declarative approach`); in React the code of one application is splitted in multiple small components that are responsible for one clear task; so code stays maintainable and manageable; React library is doing the rendering and combining of the code
 
-## React - How it works - Virtual DOM & DOM Updates + State & State Updates
+## React - How it works
+
+### Virtual DOM & DOM Updates
 
 - React `virtual DOM` determines how the component tree currently looks like and what it should look like after a state update
 - the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see)
@@ -120,6 +122,25 @@
   };
 
   export default React.memo(Demo); // for 4) in App.js
+  ```
+
+### State & State Updates
+
+- React manages the state for you
+- when using useState() Hook, the default variable (like `useState(false)`) is stored internally by React and even if component is re-executed useState() is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
+- new state can only be set with the `setState` fn
+- state updates scheduling example:
+  1. `<MyComponent />` has current string state 'stateOne'
+  2. calling `setState('stateTwo')` schedules state update with data 'stateTwo' -> means NOT that current state changes instantly
+  3. order of state changes (when you have severals) is garanteed, but it could be that React executes first tasks with higher priority (-> e.g. input field where user is typing something in)
+  4. React will re-evaluate component fn AFTER the state change was processed (i.e. new state is active)
+- because of you can schedule multiple updates at the same time, use cb fn to update state if he depends on prev state (`setState(prev => prev + 1)`) to ensure that the latest state is used and NOT the last state when last the component was rendered
+- `state batching`: if you have multiple state updates lines of code after each other in a synchronous fn (without time delay, not asynchronous), React will batch those updates together into one scheduled state update
+  ```JavaScript
+  const myFunc = (data) => {
+    setNewState(data);
+    setShowBtn(false);
+  }
   ```
 
 ## Building Single-Page Applications (SPAs) with React
@@ -547,8 +568,65 @@
 
 ### useMemo Hook
 
-- [description comes later]
-- example for useMemo in combination with debounce fn from lodash library
+- while useCallback memoizes functions, useMemo memoizes other values (any kind of data that you wanna store)
+- memoizes data to avoid re-calculation of performance intensive tasks
+- `useMemo(() => {}, [])`
+
+  - first argument: cb function that returns what you want to store/memoizes
+  - second argument: array of dependencies to ensure that stored value is updated if value in array changes
+  - important like for React.memo(): NOT use it everywhere because it costs also performance and it needs space to store data
+
+- Example 1) for useMemo, useCallback and React.memo()
+
+  ```JavaScript
+  // App.js
+  const App = () => {
+    const [listTitle, setListTitle] = useState('My List');
+
+    const changeTitleHandler = useCallback(() => {
+      setListTitle('New title');
+    }, []);
+
+    // Notice: items array is always recreated with every re-execution of component
+    // because it's a reference value, it's technically never the same array,
+    // so you can use useMemo Hook to memoize it
+    const listItems = useMemo(() => [5, 3, 1, 10, 9], []);
+
+    return (
+      <div className='app'>
+        <DemoList title={listTitle} items={listItems} />
+        {/* Button uses React.memo() and fn that is passed via props uses useCallback, component never reruns */}
+        <Button onClick={changeTitleHandler}>Change List Title</Button>
+      </div>
+    );
+  };
+
+  // DemoList.js
+  const DemoList = ({ items, title }) => {
+    // Example should stand for a very performance intensive task
+    const sortedList = useMemo(() => {
+      console.log('ITEMS sorted');
+      return items.sort((a, b) => a - b);
+    }, [items]);
+
+    console.log('DEMOLIST running');
+
+    return (
+      <div className={classes.list}>
+        <h2>{title}</h2>
+        <ul>
+          {sortedList.map(item => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+  export default React.memo(DemoList);
+  ```
+
+- Example 2) for useMemo in combination with debounce fn from lodash library
 
   - to avoid that every key entry leads to a server request, use debounce fn that single request is fired only once when user stops typing for one second
   - wrap debounce fn in useMemo Hook to prevent React from creating a new reference in the `stack memory` to the debounce fn in the `heap memory` on every rerender
@@ -562,7 +640,7 @@
 
     const handleChangeDebounced = useMemo(() => {
       return debounce(() => {
-        // server request or whatever...
+        // server request or whatever -> returns finally data
       }, 1000);
     }, []);
 
