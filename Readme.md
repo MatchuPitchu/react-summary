@@ -53,7 +53,7 @@
 
 - use `React.memo()` to avoid unnessecary re-execution of a component
 
-  - then component is only re-executed if props really changed with new values -> works well with `primitive values`
+  - then component is only re-executed if props really changed and have new values -> works well with `primitive values`
 
   - for `reference values` like objects/functions/arrays that you pass as props to child components comparison doesn't work, because with every re-execution the obj/fn/arr is recreated and so references are new and cannot be compared -> solution `useCallback Hook`
 
@@ -108,7 +108,7 @@
         memo() has no cut off branch effect because on every re-execution
         of the App Component, toggleBtn fn is newly recreated;
         solution: useCallback Hook that stores a function in React internal storage across
-        component execution / re-evaluation -> so this function is NOT recreated with every execution and now remains the same for JS */}
+        component execution / re-evaluation -> so fn is NOT recreated with every execution and remains the same for JS */}
         <Button onClick={enableToggleBtn}>Enable Toggle Button</Button>
         <Button onClick={toggleBtn}>Toggle</Button>
       </div>
@@ -127,14 +127,14 @@
 ### State & State Updates
 
 - React manages the state for you
-- when using useState() Hook, the default variable (like `useState(false)`) is stored internally by React and even if component is re-executed useState() is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
-- new state can only be set with the `setState` fn
+- when using useState() Hook, the default variable (like `false` in `useState(false)`) is stored internally by React and even if component is re-executed useState() is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
+- new state can only be set with `setState` fn
 - state updates scheduling example:
-  1. `<MyComponent />` has current string state 'stateOne'
-  2. calling `setState('stateTwo')` schedules state update with data 'stateTwo' -> means NOT that current state changes instantly
+  1. `<MyComponent />` has current string state `stateOne`
+  2. calling `setState('stateTwo')` schedules state update with data `stateTwo` -> means NOT that current state changes instantly
   3. order of state changes (when you have severals) is garanteed, but it could be that React executes first tasks with higher priority (-> e.g. input field where user is typing something in)
   4. React will re-evaluate component fn AFTER the state change was processed (i.e. new state is active)
-- because of you can schedule multiple updates at the same time, use cb fn to update state if he depends on prev state (`setState(prev => prev + 1)`) to ensure that the latest state is used and NOT the last state when last the component was rendered
+- since you can schedule multiple updates at the same time, use cb fn to update state if it depends on prev state (`setState(prev => prev + 1)`) to ensure that the latest state is used and NOT the last state when last the component was rendered
 - `state batching`: if you have multiple state updates lines of code after each other in a synchronous fn (without time delay, not asynchronous), React will batch those updates together into one scheduled state update
   ```JavaScript
   const myFunc = (data) => {
@@ -532,10 +532,10 @@
 
 ### useCallback Hook
 
-- stores a function in React internal storage across component execution / re-evaluation -> so this function is NOT recreated with every execution
-- advantage: function keeps the same reference in the `stack memory` that refers to the object in the `heap memory`;
+- stores a function in React internal storage across component execution / re-evaluation -> then this fn is NOT recreated with every execution
+- advantage: fn keeps the same reference in the `stack memory` that refers to the object in the `heap memory`;
 
-  - now you can e.g. use `export default React.memo(ChildComponentName)` in child component because you can compare functions if they are changed or not; if fn remains unchanged then no re-rendering of a certain child component
+  - now you can e.g. use `export default React.memo(ChildComponentName)` in child component because you can compare if functions changed or not; if fn remains unchanged then no re-rendering of a certain child component
 
 - `const foo = useCallback(() => {}, [])`
 
@@ -544,7 +544,7 @@
     - memoized version of cb fn only changes if one of the dependencies has changed
     - empty array means: cb fn wrapped into useCallback() will never change
     - functions in JS are `closures` -> they close over the values that are available in there environment; so JS logs in all variables that are used in the fn (below: `enable`) and stores these variables for the fn definition
-    - list all variables, functions etc. - that could change - in dependency array, then in case memoized version of cb fn is recreated
+    - in dependency array: list all variables, functions etc. that could change, then in case memoized version of cb fn is recreated
 
   ```JavaScript
   const App = () => {
@@ -572,11 +572,11 @@
 - memoizes data to avoid re-calculation of performance intensive tasks
 - `useMemo(() => {}, [])`
 
-  - first argument: cb function that returns what you want to store/memoizes
+  - first argument: cb fn that `returns` what you want to store/memoizes
   - second argument: array of dependencies to ensure that stored value is updated if value in array changes
-  - important like for React.memo(): NOT use it everywhere because it costs also performance and it needs space to store data
+  - important like for `React.memo()`: NOT use it everywhere because it costs also performance and it needs space to store data
 
-- Example 1) for useMemo, useCallback and React.memo()
+- Example 1) for `useMemo`, `useCallback` and `React.memo()`
 
   ```JavaScript
   // App.js
@@ -603,7 +603,7 @@
 
   // DemoList.js
   const DemoList = ({ items, title }) => {
-    // Example should stand for a very performance intensive task
+    // Example stands for a very performance intensive task
     const sortedList = useMemo(() => {
       console.log('ITEMS sorted');
       return items.sort((a, b) => a - b);
@@ -626,7 +626,7 @@
   export default React.memo(DemoList);
   ```
 
-- Example 2) for useMemo in combination with debounce fn from lodash library
+  - Example 2) for useMemo in combination with debounce fn from `lodash library`
 
   - to avoid that every key entry leads to a server request, use debounce fn that single request is fired only once when user stops typing for one second
   - wrap debounce fn in useMemo Hook to prevent React from creating a new reference in the `stack memory` to the debounce fn in the `heap memory` on every rerender
