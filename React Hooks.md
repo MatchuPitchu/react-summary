@@ -743,3 +743,121 @@ const NewTask = ({ onAddTask }) => {
   );
 };
 ```
+
+## Example 3: useInput Hook to bundle logic for value states and handlers for input fields of form
+
+```JavaScript
+// useInput.js
+import { useState } from 'react';
+
+const useInput = (validateValue) => {
+  const [value, setValue] = useState('');
+  // controls if user touched already input field
+  const [touched, setTouched] = useState(false);
+
+  // receive fn via props that tells how to validate value
+  const valueValid = validateValue(value);
+  // hasError only relevant for visual feedback for user
+  const hasError = !valueValid && touched;
+
+  const valueChangeHandler = ({ target }) => setValue(target.value);
+  const inputBlurHandler = (e) => setTouched(true);
+
+  const reset = () => {
+    setValue('');
+    setTouched(false);
+  };
+
+  return {
+    value,
+    valueValid,
+    hasError,
+    valueChangeHandler,
+    inputBlurHandler,
+    reset,
+  };
+};
+
+// SimpleInput.js -> use case for useInput for name + email input field
+import useInput from '../hooks/useInput';
+
+const SimpleInput = () => {
+  // 4) use custom hook useInput to bunch logic together and use it for both inputs here
+  // destructuring and define aliases to variables
+  const {
+    value: name,
+    valueValid: nameValid,
+    hasError: nameInvalid,
+    valueChangeHandler: nameChangeHandler,
+    inputBlurHandler: nameBlurHandler,
+    reset: resetName,
+  } = useInput((name) => !!name.trim()); // pass anonymous arrow fn as param into custom hook -> there const value of hook is passed inside; !! converts variable to boolean
+
+  const {
+    value: email,
+    valueValid: emailValid,
+    hasError: emailInvalid,
+    valueChangeHandler: emailChangeHandler,
+    inputBlurHandler: emailBlurHandler,
+    reset: resetEmail,
+  } = useInput(
+    (email) =>
+      !!email.trim().match(
+        // RFC 2822 standard email validation
+        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
+      )
+  );
+
+  let formValid = false;
+  if (nameValid && emailValid) formValid = true;
+
+  const submitHandler = (e) => {
+    // avoid default behaviour that HTTP request is send to server which is serving the website;
+    // would reload page and restart React App
+    e.preventDefault();
+
+    // form validation
+    if (!formValid) return;
+
+    console.log('Name (useState): ' + name);
+    console.log('Email (useState): ' + email);
+
+    // reset input fields + field touched states
+    resetName();
+    resetEmail();
+  };
+
+  const nameInputClasses = nameInvalid ? 'form-control invalid' : 'form-control';
+  const emailInputClasses = emailInvalid ? 'form-control invalid' : 'form-control';
+
+  return (
+    <form onSubmit={submitHandler}>
+      <div className={nameInputClasses}>
+        <label htmlFor='name'>Your Name</label>
+        <input
+          type='text'
+          id='name'
+          value={name}
+          onChange={nameChangeHandler}
+          onBlur={nameBlurHandler}
+        />
+        {nameInvalid && <p className='error-text'>Name field is empty</p>}
+      </div>
+      <div className={emailInputClasses}>
+        <label htmlFor='email'>Your E-Mail</label>
+        <input
+          type='email'
+          id='email'
+          value={email}
+          onChange={emailChangeHandler}
+          onBlur={emailBlurHandler}
+        />
+        {emailInvalid && <p className='error-text'>E-Mail is invalid</p>}
+      </div>
+      <div className='form-actions'>
+        <button disabled={!formValid}>Submit</button>
+      </div>
+    </form>
+  );
+};
+```
