@@ -819,16 +819,15 @@ const SimpleInput = () => {
     // form validation
     if (!formValid) return;
 
-    console.log('Name (useState): ' + name);
-    console.log('Email (useState): ' + email);
+    console.log(`Name & Email: ${name} ${email}`);
 
     // reset input fields + field touched states
     resetName();
     resetEmail();
   };
 
-  const nameInputClasses = nameInvalid ? 'form-control invalid' : 'form-control';
-  const emailInputClasses = emailInvalid ? 'form-control invalid' : 'form-control';
+  const nameInputClasses = `form-control ${nameInvalid ? 'invalid' : ''}`;
+  const emailInputClasses = `form-control ${emailInvalid ? 'invalid' : ''}`;
 
   return (
     <form onSubmit={submitHandler}>
