@@ -77,6 +77,7 @@
 
   const Test = () => {
     const history = useHistory();
+    // somewhere invoked function
     const dummyFn = () => history.push('/products');
 
     return (
@@ -165,8 +166,9 @@
   import classes from './QuoteList.module.css';
 
   // sorting helper fn:
-  // if a.id ist größer als b.id, dann soll b vor a sortiert werden;
-  // if a.id ist kleiner als b.id, dann soll a vor b sortiert bleiben
+  // for ascending true or false, return means the same:
+  // return +1 means sort() sorts a to higher index than b;
+  // return -1 means sort() sorts a to lower index than b;
   const sortQuotes = (quotes, ascending) => {
     return quotes.sort((quoteA, quoteB) => {
       if (ascending) {
@@ -184,14 +186,21 @@
     // default JS class URLSearchParams that returns obj
     // that contains all query params key value pairs
     const queryParams = new URLSearchParams(location.search);
+    // evaluates to true or false
     const ascending = queryParams.get('sort') === 'asc';
 
     const sortedQuotes = sortQuotes(quotes, ascending);
 
     const changeSortingHandler = () => {
-      // if quotes are currently sorted ascendingly
-      // then new query param after click would be 'desc'
-      history.push(`/quotes?sort=${ascending ? 'desc' : 'asc'}`);
+      // 1) if quotes are currently sorted ascendingly
+      // then new query param after click would be 'desc';
+      // use location obj property pathname (-> here correspond to '/quotes')
+      // history.push(`${location.pathname}?sort=${ascending ? 'desc' : 'asc'}`);
+      // 2) alternative way of creating string paths for target destination
+      history.push({
+        pathname: location.pathname,
+        search: `sort=${ascending ? 'desc' : 'asc'}`,
+      });
     };
 
     return (
@@ -209,4 +218,202 @@
       </>
     );
   };
+  ```
+
+- more flexible routing code for `nested routes` with a) `useRouteMatch` hook and b) `rendering different content` based on URL path
+
+  - a) in nested routes you can use useRouteMatch hook obj to make nested route more flexible for changes in root route
+    - `path` - (string) path pattern used to match. Useful for building nested `<Route>s`
+    - `url` - (string) matched portion of the URL. Useful for building nested `<Link>s`
+  - b) Link is only visible when user is on exact path, after clicking on Link, it disappears
+
+  ```JavaScript
+  import { Route, Link, useRouteMatch } from 'react-router-dom';
+
+  const ChildComponent = () => {
+    const match = useRouteMatch();
+
+    return (
+      <>
+        <Route path={match.path} exact>
+          <Link to={`${match.url}/comments`}>
+            Load Comments
+          </Link>
+        </Route>
+        <Route path={`${match.path}/comments`}>
+          <Comments />
+        </Route>
+      </>
+    );
+  };
+  ```
+
+- Example for sending & getting data via HTTP with useHttp hook and own request fn library
+
+  ```JavaScript
+  // useHttp hook
+  import { useReducer, useCallback } from 'react';
+
+  const httpReducer = (state, action) => {
+    if (action.type === 'SEND') {
+      return {
+        data: null,
+        error: null,
+        status: 'pending',
+      };
+    }
+
+    if (action.type === 'SUCCESS') {
+      return {
+        data: action.resData,
+        error: null,
+        status: 'completed',
+      };
+    }
+
+    if (action.type === 'ERROR') {
+      return {
+        data: null,
+        error: action.errorMsg,
+        status: 'completed',
+      };
+    }
+
+    return state;
+  };
+
+  const useHttp = (requestFn, startWithPending = false) => {
+    const [httpState, dispatch] = useReducer(httpReducer, {
+      status: startWithPending ? 'pending' : null,
+      data: null,
+      error: null,
+    });
+
+    const sendRequest = useCallback(
+      async (requestData) => {
+        dispatch({ type: 'SEND' });
+        try {
+          const resData = await requestFn(requestData);
+          dispatch({ type: 'SUCCESS', resData });
+        } catch (error) {
+          dispatch({
+            type: 'ERROR',
+            errorMsg: error.message || 'Something went wrong!',
+          });
+        }
+      },
+      [requestFn]
+    );
+
+    // spread operator converts state object (which is returned from the reducer) into a comma separated list of key/value pairs;
+    // these key/value pairs are appended to the object returned from useHttp
+    return {
+      sendRequest,
+      ...httpState,
+    };
+  };
+
+  // api.js -> request functions library
+  const FIREBASE_DOMAIN = 'https://DUMMY.app';
+
+  export const getAllQuotes = async () => {
+    const res = await fetch(`${FIREBASE_DOMAIN}/quotes.json`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Could not fetch quotes.');
+
+    const transformedQuotes = [];
+    for (const key in data) {
+      const quoteObj = {
+        id: key,
+        ...data[key],
+      };
+      transformedQuotes.push(quoteObj);
+    }
+
+    return transformedQuotes;
+  };
+
+  export const getSingleQuote = async (quoteId) => {
+    const res = await fetch(`${FIREBASE_DOMAIN}/quotes/${quoteId}.json`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Could not fetch quote.');
+
+    const loadedQuote = {
+      id: quoteId,
+      ...data,
+    };
+
+    return loadedQuote;
+  };
+
+  export const addQuote = async (quoteData) => {
+    const res = await fetch(`${FIREBASE_DOMAIN}/quotes.json`, {
+      method: 'POST',
+      body: JSON.stringify(quoteData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Could not create quote.');
+
+    return null;
+  };
+
+  export const addComment = async (requestData) => {
+    const res = await fetch(`${FIREBASE_DOMAIN}/comments/${requestData.quoteId}.json`, {
+      method: 'POST',
+      body: JSON.stringify(requestData.commentData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Could not add comment.');
+
+    return { commentId: data.name };
+  };
+
+  export const getAllComments = async (quoteId) => {
+    const res = await fetch(`${FIREBASE_DOMAIN}/comments/${quoteId}.json`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Could not get comments.');
+
+    const transformedComments = [];
+    for (const key in data) {
+      const commentObj = {
+        id: key,
+        ...data[key],
+      };
+      transformedComments.push(commentObj);
+    }
+
+    return transformedComments;
+  };
+
+  // AllQuotes.js -> use case to get data with useHttp hook and request fn library
+  import { useEffect } from 'react';
+  import useHttp from '../hooks/useHttp';
+  import { getAllQuotes } from '../lib/api';
+  import LoadingSpinner from '../components/UI/LoadingSpinner';
+  import QuoteList from '../components/quotes/QuoteList';
+  import NoQuotesFound from '../components/quotes/NoQuotesFound';
+
+  const AllQuotes = () => {
+    // second arg is true to start in loading state when fetching data;
+    // destructured data array is named with alias loadedQuotes
+    const { sendRequest, status, error, data: loadedQuotes } = useHttp(getAllQuotes, true);
+
+    useEffect(() => {
+      sendRequest();
+      // add sendRequest fn as dependency, BUT will never change
+      // because of useCallback used in hook
+    }, [sendRequest]);
+
+    if (status === 'pending') return <LoadingSpinner />;
+    if (status === 'error') return <p className='centered focused'>{error}</p>;
+    if (status === 'complete' && loadedQuotes.length === 0) return <NoQuotesFound />;
+    return <QuoteList quotes={loadedQuotes} />;
+  };
+
   ```
