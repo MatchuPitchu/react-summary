@@ -423,9 +423,7 @@
 [Documentation for upgrading from v5](https://reactrouter.com/docs/en/v6/upgrading/v5)
 
 1. `<Routes>` replaces `<Switch>`
-1. have to wrap always `<Route>` components into `<Routes>`
-   components are not anymore wrapped into `<Route></Route>` ->
-   they're passed via element prop as JSX into `<Route>`
+1. have to wrap always `<Route>` components into `<Routes>` components are not anymore wrapped into `<Route></Route>` -> they're passed via element prop as JSX into `<Route>`
 1. `exact` prop AND its behavior no longer exists -> now Router looks always for exact matches
 1. if you want to imitate old behavior to render multiple `<Route>` components, then use `/*` (-> `<Route path='/products/_' />`); if URL path matches roots (here `/product`) then it's rendered
 1. BUT notice in context of point before: : internal algorithm of React Router was improved, that Router searches best fit for a path, so if two Routes available `<Route path='/products/*' />` and `<Route path='/products/:productId' />` it would pick the most exact or explicitly declared path, that means here the second one;
@@ -452,6 +450,7 @@
    - omit second arg if you wanna push path to browser history `navigate(-1)` -> navigates to previous or forward page (-x or x for xth page before or forward)
 
 ```JavaScript
+// Example React Router DOM v6
 // App.js
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
