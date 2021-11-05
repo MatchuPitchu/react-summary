@@ -8,7 +8,7 @@
   - only 1 initial HTML request & response, after JavaScript take over
   - Page (URL) changes are then handled by client-side (React) code -> changes visible content without fetching new HTML file
 
-## Using React-Router
+## Using React-Router v5 (for Updates v6 look below)
 
 - third party package [React Router]('https://reactrouter.com/')
 - helps to handle different paths on the page and render components for these
@@ -417,3 +417,80 @@
   };
 
   ```
+
+## React Router Version 6
+
+[Documentation for upgrading from v5](https://reactrouter.com/docs/en/v6/upgrading/v5)
+
+1. `<Routes>` replaces `<Switch>`
+1. have to wrap always `<Route>` components into `<Routes>`
+   components are not anymore wrapped into `<Route></Route>` ->
+   they're passed via element prop as JSX into `<Route>`
+1. `exact` prop AND its behavior no longer exists -> now Router looks always for exact matches
+1. if you want to imitate old behavior to render multiple `<Route>` components, then use `/*` (-> `<Route path='/products/_' />`); if URL path matches roots (here `/product`) then it's rendered
+1. BUT notice in context of point before: : internal algorithm of React Router was improved, that Router searches best fit for a path, so if two Routes available `<Route path='/products/*' />` and `<Route path='/products/:productId' />` it would pick the most exact or explicitly declared path, that means here the second one;
+1. in context of point before: order of Route components is no longer important;
+1. `<Navigate>` replaces `<Redirect>` -> add `replace` prop to `<Navigate>` when you wanna have real Redirect, otherwise link is only pushed to browser history
+1. Links and nested Routes have `relative paths` depending on the root path of the current component (-> you won't need custom path resolving with useRouteMatch hook anymore)
+1. `nested routes`:
+
+   - when using nested routes then at top level you have to add `/*` in path to tell React Router that the passed element is even displayed if there is no exact path match (-> since nested routes extend the whole path)
+   - nested routes are now relative paths, so only add extension of root path in child component
+   - nested routes could be defined in the child component as with v5 OR defined directly in the root component wrapped into the root `<Route>`;
+     - notice: nested route then still uses relative path;
+     - advantage to have all routes in one place;
+     - use `<Outlet>` component in child component to position nested route
+
+1. `useHistory` is replaced by `useNavigate` hook
+1. `activeClassName` no longer exists and is replaced by anonymous fn with parameter obj navData that has internally changed property isActive -> change from `<NavLink activeClassName={classes.active} to='/products'>` to `<NavLink className={(navData) => (navData.isActive ? classes.active : '')} to='/welcome'>`
+
+   ```JavaScript
+   const navigate = useNavigate();
+   navigate('/welcome', { replace: true });
+   ```
+
+   - omit second arg if you wanna push path to browser history `navigate(-1)` -> navigates to previous or forward page (-x or x for xth page before or forward)
+
+```JavaScript
+// App.js
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Header from './components/Header';
+import Welcome from './pages/Welcome';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+
+const App = () => {
+  return (
+    <div>
+      <Header />
+      <main>
+        <Routes>
+          <Route path='/' element={<Navigate replace to='/welcome' />} />
+          <Route path='/welcome/*' element={<Welcome />}>
+            <Route path='hello' element={<p>Welcome in the nested route</p>} />
+          </Route>
+          <Route path='/products' element={<Products />} />
+          <Route path='/products/:productId' element={<ProductDetail />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
+
+// Welcome.js
+import { Link, Outlet } from 'react-router-dom';
+
+const Welcome = () => {
+  return (
+    <section>
+      <h1>The Welcome Page</h1>
+      <Link to='hello'>Link to nested Route</Link>
+      {/* <Routes>
+        <Route path='/hello' element={<p>Welcome in the nested route</p>} />
+      </Routes> */}
+      <Outlet />
+    </section>
+  );
+};
+
+```
