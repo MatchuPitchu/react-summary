@@ -443,11 +443,12 @@
 1. `nested routes`:
 
    - when using nested routes then at top level you have to add `/*` in path to tell React Router that the passed element is even displayed if there is no exact path match (-> since nested routes extend the whole path)
-   - nested routes are now relative paths, so only add extension of root path in child component
+   - BUT ATTENTION: only `routes with descendant routes` (defined in other components) use a trailing `*` in their path to indicate they match deeply
    - nested routes could be defined in the child component as with v5 OR defined directly in the root component wrapped into the root `<Route>`;
      - notice: nested route then still uses relative path;
      - advantage to have all routes in one place;
      - use `<Outlet>` component in child component to position nested route
+   - nested routes are now relative paths, so only add extension of root path in child component
 
 1. `useHistory` is replaced by `useNavigate` hook
 1. `activeClassName` no longer exists and is replaced by anonymous fn with parameter obj navData that has internally changed property isActive -> change from `<NavLink activeClassName={classes.active} to='/products'>` to `<NavLink className={(navData) => (navData.isActive ? classes.active : '')} to='/welcome'>`
