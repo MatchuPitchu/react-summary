@@ -430,6 +430,16 @@
 1. in context of point before: order of Route components is no longer important;
 1. `<Navigate>` replaces `<Redirect>` -> add `replace` prop to `<Navigate>` when you wanna have real Redirect, otherwise link is only pushed to browser history
 1. Links and nested Routes have `relative paths` depending on the root path of the current component (-> you won't need custom path resolving with useRouteMatch hook anymore)
+
+   - relative path is defined without `/` whereas absolute path is defined with `/`
+
+     ```JavaScript
+        // relative path
+       <Link to={`${id}`}>
+       // absolute path
+       <Link to={`/quotes/${id}`}>
+     ```
+
 1. `nested routes`:
 
    - when using nested routes then at top level you have to add `/*` in path to tell React Router that the passed element is even displayed if there is no exact path match (-> since nested routes extend the whole path)
