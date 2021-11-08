@@ -53,7 +53,7 @@
 
   - v5: look at `<Redirect>` component
 
-- `Not Found 404` fallback page with wildcard `*` that matches every other incoming URL -> should come last that it not consume one of the above paths (NOT SURE! TRY OUT)
+- `Not Found 404` fallback page with wildcard `*` that matches every other incoming URL -> notice that `*` matches only all paths if they're not used by other `Route` components
 
 ```JavaScript
 // App.js
