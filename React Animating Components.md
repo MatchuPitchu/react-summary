@@ -14,7 +14,7 @@
 
 ## Animating React Components with third party libraries
 
-- [React Transition Group]('https://reactcommunity.org/react-transition-group/'):
+- [React Transition Group](https://reactcommunity.org/react-transition-group/):
 
   - exposes simple components useful for defining entering and exiting transitions with your own css classes -> in other words, it gives JS layer to orchestrate css animations
   - How to use?
@@ -211,7 +211,7 @@
     }
     ```
 
-- [React Motion - Animation Library]('https://github.com/chenglou/react-motion'): tries to emulate real world physics when executing animations
+- [React Motion - Animation Library](https://github.com/chenglou/react-motion): tries to emulate real world physics when executing animations
   - e.g. perhaps look if newer library available
-- [React Move]('https://react-move.js.org'): nice complex animations like charts
-- [React Router Transition]('https://github.com/maisano/react-router-transition'): set animations when routes are changing
+- [React Move](https://react-move.js.org): nice complex animations like charts
+- [React Router Transition](https://github.com/maisano/react-router-transition): set animations when routes are changing

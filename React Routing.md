@@ -12,7 +12,7 @@
 
 [Documentation for upgrading from v5](https://reactrouter.com/docs/en/v6/upgrading/v5)
 
-- third party package [React Router]('https://reactrouter.com/')
+- third party package [React Router](https://reactrouter.com/)
 - helps to handle different paths on the page and render components for these
 
 - `BrowserRouter` component: in `index.js` wrap App component to activate React Router
