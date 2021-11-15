@@ -192,7 +192,7 @@
   };
   ```
 
-- protected routes conditionally and redirect user on starting page if he types in a non existing path
+- protect routes conditionally and redirect user on starting page if he types in a non existing path
 
   ```JavaScript
   // App.js
