@@ -1,6 +1,6 @@
 # Multiple Pages in Single-Page App
 
-## What is Client-Side Routing?
+# What is Client-Side Routing?
 
 - if URL path changes, visible content changes
 - traditional way: different HTML files are requested and loaded
@@ -8,7 +8,7 @@
   - only 1 initial HTML request & response, after JavaScript take over
   - Page (URL) changes are then handled by client-side (React) code -> changes visible content without fetching new HTML file
 
-## Using React-Router v6 (examples v5 look below)
+# Using React-Router v6 (examples v5 look below)
 
 [Documentation for upgrading from v5](https://reactrouter.com/docs/en/v6/upgrading/v5)
 
@@ -248,7 +248,7 @@ const Welcome = () => {
   };
   ```
 
-### Example for sending & getting data via HTTP with useHttp hook and own request fn library
+# Example for sending & getting data via HTTP with useHttp hook and own request fn library
 
 ```JavaScript
 // useHttp hook
@@ -418,7 +418,7 @@ const AllQuotes = () => {
 
 ```
 
-## Using React-Router v5 (for Updates v6 look above)
+# Using React-Router v5 (for Updates v6 look above)
 
 - `BrowserRouter` component: in `index.js` wrap App component to activate React Router
 - `Route` is a component with props that allows to define certain path and component that should be rendered; ALL paths that match e.g. `/test` are rendered and became active (-> also e.g. `/test/abc`)

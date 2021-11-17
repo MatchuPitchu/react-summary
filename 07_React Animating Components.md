@@ -1,6 +1,6 @@
 # Animating React Apps & Components
 
-## CSS Animations & why they are sometimes not enough
+# CSS Animations & why they are sometimes not enough
 
 - normal CSS animated elements stays on the DOM, you can only hide them, move them outside viewport or change opacity
 - solution could be `conditional rendering` for animations:
@@ -12,7 +12,7 @@
     ```
   - solution: use third pary library `React Transition Group`
 
-## Animating React Components with third party libraries
+# Animating React Components with third party libraries
 
 - [React Transition Group](https://reactcommunity.org/react-transition-group/):
 

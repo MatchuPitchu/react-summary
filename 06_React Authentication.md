@@ -20,14 +20,14 @@
        - server sends token to client
        - client sends token along with requests to protected resources
 
-## Practice example with Firebase
+# Practice example with Firebase
 
 [Firebase Auth-REST-API]('https://firebase.google.com/docs/reference/rest/auth')
 
 - create project -> go to `Authentication` -> click on `Los geht's` -> choose `Sign-in method` `Email/Password` -> go to `Users` where you can add manually new users
 - Firebase API key: click on gear icon beside `Project Overview` -> go to `Project settings`
 
-### Authentication Example code
+## Authentication Example code
 
 - create authentication context to store states inside -> with auth persistence & auto-logout
 

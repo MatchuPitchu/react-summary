@@ -10,7 +10,7 @@
 - Traditionally, in web apps, you click a link and wait for a new page to load. You click a button and wait for some action to complete. In React, you don't wait for new pages to load or actions to start
 - with JS you can manipulate HTML structure (DOM) of a page -> that allows to change what user sees without sending a request to the server and waiting for new fetched HTML page
 
-## Vanilla JavaScript vs ReactJS
+# Vanilla JavaScript vs ReactJS
 
 - with Vanilla JS I have to give clear step-by-step instructions to JS, that means decribe every single step of a functionality (-> called `imperative approach`) which reaches its limits at some point AND developer has to take care of all details and has to do repetitive tasks
 
@@ -23,9 +23,9 @@
 
 - in React basic steps are done by the library; the developer describes rather on a higher level the end result of what should be displayed on the screen, in other words the desired target state(s), and React will figure out the actual JS DOM instructions (-> called `declarative approach`); in React the code of one application is splitted in multiple small components that are responsible for one clear task; so code stays maintainable and manageable; React library is doing the rendering and combining of the code
 
-## React - How it works
+# React - How it works
 
-### Virtual DOM & DOM Updates
+## Virtual DOM & DOM Updates
 
 - React `virtual DOM` determines how the component tree currently looks like and what it should look like after a state update
 - the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see)
@@ -124,7 +124,7 @@
   export default React.memo(Demo); // for 4) in App.js
   ```
 
-### State & State Updates
+## State & State Updates
 
 - React manages the state for you
 - when using useState() Hook, the default variable (like `false` in `useState(false)`) is stored internally by React and even if component is re-executed useState() is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
@@ -143,12 +143,12 @@
   }
   ```
 
-## Building Single-Page Applications (SPAs) with React
+# Building Single-Page Applications (SPAs) with React
 
 1. React can be used to control parts of HTML pages or entire pages (e.g. a sidebar) called widget approcach on a multi-page-app
 2. React can also be used to control the entire frontend of a web app called SPA approach (-> server only sends one HTML page, React takes over and controls UI)
 
-## React Components
+# React Components
 
 - components are a combination of HTML (structure), CSS (styling) and JavaScript (logic) code
 - components are reusable building blocks that allows a separation of concerns
@@ -239,7 +239,7 @@
   }
   ```
 
-## Rerendering of Components
+# Rerendering of Components
 
 - every state update with the setState function triggers a rerendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
 - that means with a reexecution of this instance, `const title` is assigned to the value that was updated before
@@ -254,7 +254,7 @@
     };
   ```
 
-## Two-way binding
+# Two-way binding
 
 - that means that you fetch data (e.g. of a form) and save it in a state variable when an input changes or is submitted AND at the same time this input has a value attribute which is binded to the state variable
 
@@ -288,7 +288,7 @@
 
 - when both the value as well as changes to the value are not handled in the component itself, but in the parent component, then this child component is called `controlled component`(-> which uses two-way binding)
 
-## Styling Components
+# Styling Components
 
 - create CSS file with same name as JS file
 - import css file into component
@@ -390,7 +390,7 @@
     `
     ```
 
-## Concept of "Composition" (-> "children props")
+# Concept of "Composition" (-> "children props")
 
 - when you have components with some identical CSS rules, you can build a wrapper container with the extracted wished CSS rules that should apply in general on multiple components
 
@@ -475,7 +475,7 @@
   }
   ```
 
-## JSX - How it's working under the hood
+# JSX - How it's working under the hood
 
 ```JavaScript
 // JSX return
@@ -502,7 +502,7 @@ const App = () => {
 }
 ```
 
-## React Portals of ReactDOM library
+# React Portals of ReactDOM library
 
 - Example of deeply nested React Component `<MyModal />`
 

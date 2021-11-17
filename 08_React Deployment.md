@@ -2,7 +2,7 @@
 
 ## Test Code
 
-- ...
+- look at `React Testing.md`
 
 ## Optimize Code
 

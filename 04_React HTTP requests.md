@@ -7,7 +7,7 @@
   - in context of HTTP requests `REST API` & `GraphQL API` are two different standards for how a server should expose its data
 - [HTTP response status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 
-## Tools
+# Tools
 
 - JavaScript built-in [`Fetch API`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
 - [`Axios` library](https://axios-http.com/): is a simple promise based HTTP client for the browser and node.js
