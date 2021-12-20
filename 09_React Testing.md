@@ -33,23 +33,23 @@
 
 ## Required or usefull Tools & Setup
 
-1. tool for running your tests and asserting the results: [Jest]('https://jestjs.io/') - a general JavaScript Testing Framework (-> not specific for React)
-1. tool for "simulating" (-> rendering) the React app/components: [React Testing Library]('https://testing-library.com/')
+1. [Jest]('https://jestjs.io/'): tool for test running -> finds and runs tests and determines whether tests pass or fail; a general JavaScript Testing Framework (-> not specific for React)
+1. [React Testing Library]('https://testing-library.com/'): provides virtual DOM for "simulating" (-> rendering) the React app/components
    > Both tools are already set up when using create-react-app
-1. tool for testing custom React hooks: [React Hooks Testing Library]('https://react-hooks-testing-library.com/')
+1. [React Hooks Testing Library]('https://react-hooks-testing-library.com/'): tool for testing custom React hooks
 
 # Testing React Components & Building Blocks
 
-- `npm test` starts testing script: tests are executed and file changes are watches -> i.e. tests are always re-executed immediately
+- `npm test` starts jest testing script: tests are executed and file changes are watches -> i.e. tests are always re-executed immediately
 - 3 "A"s of writing tests:
   - `Arrange`: set up test data, test conditions and test environment
   - `Act`: run logic that should be tested (e.g. execute fn)
-  - `Assert`: have a look inside the browser and compare execution results with expected results
+  - `Assert`: have a look inside the browser and compare received results with expected results
 - `test()` is globally available, receives 2 args:
   1. description of test (`string`) to identifie test in output
   1. anonymous fn containing testing code
-- `render(<MyComponent />)` renders entire component tree
-- `screen` is simulated browser:
+- `render(<App />)` creates virtual DOM (a simulated browser) for a JSX argument (-> a component and his entire component tree)
+- `screen` allows access virtual DOM:
   - types of methods in screen obj:
     - `get...` fns `throw error` if element is not found
     - `query...` fns `return null` if element is not found (DON'T throw error),
@@ -58,6 +58,12 @@
     - `true`: default
     - `false`: casing doesn't matter and match occurs also for substrings
     - example: `screen.getByText('Hello World', { exact: false })` -> without `exact: false`, `Hello World` wouldn't match `Hello World!`
+- `expect()` (-> Jest global fn starts assertion) with `matcher` method from Jest-DOM: e.g. `expect(linkElement).toBeInTheDocument()`
+- `jest-dom`:
+  - comes with create-react-app
+  - `src/setupTest.js` imports it before each test, makes matchers available
+  - DOM-based matchers: e.g. `toBeVisible()`, `toBeInTheDocument()`, `toBeChecked()`
+  - general matchers (that can apply to any node code): `toBe()`, `toHaveLength()`
 
 ```JavaScript
 // Example 1
