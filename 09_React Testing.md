@@ -1,3 +1,7 @@
+# Usefull Links
+
+> React Testing Library Tutorial: https://www.robinwieruch.de/react-testing-library/
+
 # Testing
 
 - `Manual Testing`: Developer writes code and previews and tests code manually in browser
@@ -38,7 +42,7 @@
 
 - `npm test` starts testing script: tests are executed and file changes are watches -> i.e. tests are always re-executed immediately
 - 3 "A"s of writing tests:
-  - `Arrange`: set up test test data, test conditions and test environment
+  - `Arrange`: set up test data, test conditions and test environment
   - `Act`: run logic that should be tested (e.g. execute fn)
   - `Assert`: have a look inside the browser and compare execution results with expected results
 - `test()` is globally available, receives 2 args:
@@ -213,3 +217,225 @@ describe('Async component', () => {
   });
 });
 ```
+
+# Advices for React Testing Library
+
+> https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
+
+- destructure what you need from `render`, because it returns a collection of utilities; don't use `wrapper` as the variable name for the return value from `render`
+
+  ```JavaScript
+  // ❌
+  const wrapper = render(<Example prop="1" />)
+  wrapper.rerender(<Example prop="2" />)
+
+  // ✅
+  const {rerender} = render(<Example prop="1" />)
+  rerender(<Example prop="2" />)
+  ```
+
+- don't use `cleanup` -> because cleanup happens automatically
+
+  ```JavaScript
+  // ❌
+  import {render, screen, cleanup} from '@testing-library/react'
+  afterEach(cleanup)
+
+  // ✅
+  import {render, screen} from '@testing-library/react'
+  ```
+
+- use `screen` for querying and debugging
+
+  ```JavaScript
+  // ❌
+  const {getByRole} = render(<Example />)
+  const errorMessageNode = getByRole('alert')
+
+  // ✅
+  render(<Example />)
+  const errorMessageNode = screen.getByRole('alert')
+  ```
+
+- install and use `@testing-library/jest-dom` for the right assertion -> because error messages that I get are much better
+
+  ```JavaScript
+  const button = screen.getByRole('button', {name: /disabled button/i})
+
+  // ❌
+  expect(button.disabled).toBe(true)
+  // error message:
+  //  expect(received).toBe(expected) // Object.is equality
+  //  Expected: true
+  //  Received: false
+
+  // ✅
+  expect(button).toBeDisabled()
+  // error message:
+  //   Received element is not disabled:
+  //     <button />
+  ```
+
+- learn when `act` is necessary, don't wrap things in `act` unnecessarily -> e.g. `render` and `fireEvent` are already wrapped in `act`
+
+  ```JavaScript
+  // ❌
+  act(() => {
+    render(<Example />)
+  })
+
+  const input = screen.getByRole('textbox', {name: /choose a fruit/i})
+  act(() => {
+    fireEvent.keyDown(input, {key: 'ArrowDown'})
+  })
+
+  // ✅
+  render(<Example />)
+  const input = screen.getByRole('textbox', {name: /choose a fruit/i})
+  fireEvent.keyDown(input, {key: 'ArrowDown'})
+  ```
+
+- use the right query; look at https://testing-library.com/docs/queries/about/#priority
+
+  ```JavaScript
+  // ❌
+  // assuming you've got this DOM to work with:
+  // <label>Username</label><input data-testid="username" />
+  screen.getByTestId('username')
+
+  // ✅
+  // change the DOM to be accessible by associating the label and setting the type
+  // <label for="username">Username</label><input id="username" type="text" />
+  screen.getByRole('textbox', {name: /username/i})
+  ```
+
+  - don't use `container` to query elements
+
+    ```JavaScript
+    // ❌
+    const {container} = render(<Example />)
+    const button = container.querySelector('.btn-primary')
+    expect(button).toHaveTextContent(/click me/i)
+
+    // ✅
+    render(<Example />)
+    screen.getByRole('button', {name: /click me/i})
+    ```
+
+  - query by the actual text rather than using test IDs etc.
+
+    ```JavaScript
+    // ❌
+    screen.getByTestId('submit-button')
+
+    // ✅
+    screen.getByRole('button', {name: /submit/i})
+    ```
+
+  - use `*ByRole` most of the time -> the `name` option allows you to query elements by their `Accessible Name`, it works even if element has text content split up by different elements
+
+    ```JavaScript
+    // assuming we've got this DOM structure to work with
+    // <button><span>Hello</span> <span>World</span></button>
+
+    screen.getByText(/hello world/i)
+    // ❌ fails with the following error:
+    // Unable to find an element with the text: /hello world/i. This could be
+    // because the text is broken up by multiple elements. In this case, you can
+    // provide a function for your text matcher to make your matcher more flexible.
+
+    screen.getByRole('button', {name: /hello world/i})
+    // ✅ works!
+    ```
+
+- Avoid adding unnecessary or incorrect accessibility attributes -> accessibility attributes should really only be used when semantic HTML doesn't satisfy your use case
+
+  - hint: to make `inputs` accessible via a `role`, specify `type` attribute
+
+  ```JavaScript
+  // ❌
+  render(<button role="button">Click me</button>)
+
+  // ✅
+  render(<button>Click me</button>)
+  ```
+
+- Use `@testing-library/user-event` over `fireEvent` where possible -> `userEvent` is built on top of `fireEvent`
+
+  - example: `fireEvent.change` triggers a single change event on input. However the `type` method triggers `keyDown`, `keyPress` and `keyUp` events for each character as well
+
+  ```JavaScript
+  // ❌
+  fireEvent.change(input, {target: {value: 'hello world'}})
+
+  // ✅
+  userEvent.type(input, 'hello world')
+  ```
+
+- Use `query*` variants only for asserting that element cannot found
+
+  ```JavaScript
+  // ❌
+  expect(screen.queryByRole('alert')).toBeInTheDocument()
+
+  // ✅
+  expect(screen.getByRole('alert')).toBeInTheDocument()
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  ```
+
+- use `find*` any time you want to query for something that should be available async -> `find*` queries use `waitFor` under the hood
+
+  ```JavaScript
+  // ❌
+  const submitButton = await waitFor(() =>
+    screen.getByRole('button', {name: /submit/i}),
+  )
+
+  // ✅
+  const submitButton = await screen.findByRole('button', {name: /submit/i})
+  ```
+
+- wait for a specific assertion inside `waitFor` and only put one assertion in a callback -> purpose of `waitFor` is to allow you to wait for a specific thing to happen that has a non-deterministic amount of time between the action you performed and the assertion passing
+
+  ```JavaScript
+  // ❌
+  await waitFor(() => {})
+  expect(window.fetch).toHaveBeenCalledWith('foo')
+  expect(window.fetch).toHaveBeenCalledTimes(1)
+
+  // ❌
+  await waitFor(() => {
+    expect(window.fetch).toHaveBeenCalledWith('foo')
+    expect(window.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  // ✅
+  await waitFor(() => expect(window.fetch).toHaveBeenCalledWith('foo'))
+  expect(window.fetch).toHaveBeenCalledTimes(1)
+  ```
+
+- put side-effects outside `waitFor` callbacks -> reserve callback for assertions only
+
+  ```JavaScript
+  // ❌
+  await waitFor(() => {
+    fireEvent.keyDown(input, {key: 'ArrowDown'})
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+  })
+
+  // ✅
+  fireEvent.keyDown(input, {key: 'ArrowDown'})
+  await waitFor(() => {
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+  })
+  ```
+
+- If you want to assert that something exists, make that assertion explicit and don't skip assertion
+
+  ```JavaScript
+  // ❌
+  screen.getByRole('alert', {name: /error/i})
+
+  // ✅
+  expect(screen.getByRole('alert', {name: /error/i})).toBeInTheDocument()
+  ```
