@@ -1,8 +1,11 @@
-# Usefull Links
+# React Testing with React Testing Library and Jest
 
-> React Testing Library Tutorial: https://www.robinwieruch.de/react-testing-library/
+## Usefull Links
 
-# Testing
+> Cheatsheet React Testing Library: <https://testing-library.com/docs/react-testing-library/cheatsheet/>
+> React Testing Library Tutorial: <https://www.robinwieruch.de/react-testing-library/>
+
+## Overview Testing
 
 - `Manual Testing`: Developer writes code and previews and tests code manually in browser
   - important to see what users will see
@@ -15,14 +18,17 @@
 - Different kinds of automated tests:
   - `Unit Tests`:
     - test the individual building blocks (-> functions, components) in isolation
-    - projects typically contain lots of unit tests
     - most common and important kind of test
+    - isolated test: you mock dependencies and test internals of a unit
+    - further from how users interact with website
+    - more likely to break with refactoring
   - `Integration Tests`:
     - test the combination of multiple building blocks (-> how components work together)
     - projects typically contain a couple of integration tests
     - React specific: in general not so easy to differentiate between integration and unit tests
     - important, but good to focus on unit tests in most cases
   - `End-to-End (e2e) Tests`:
+    - use actual browser and Server (e.g. with tools `Cypress`, `Selenium`)
     - test complete scenarios in your app as the user would experience them
     - projects typically contain only a few e2e tests
     - important but can also be done manually (partially)
@@ -31,39 +37,275 @@
   - unit tests = the smallest building blocks that make up your app
   - test success and error cases, test all possible scenarios (-> rare (but possible) results)
 
-## Required or usefull Tools & Setup
+## TDD (Test-Driven Development)
 
-1. [Jest]('https://jestjs.io/'): tool for test running -> finds and runs tests and determines whether tests pass or fail; a general JavaScript Testing Framework (-> not specific for React)
-1. [React Testing Library]('https://testing-library.com/'): provides virtual DOM for "simulating" (-> rendering) the React app/components
-   > Both tools are already set up when using create-react-app
+- write tests before writing code
+- then write code accodring to specifications set by tests
+- process:
+  1. write empty "shell" function in your file
+  1. write tests -> expect tests to fail
+  1. write code -> then tests pass
+
+## Tools & Setup
+
+> Jest and React Testing Library are already set up when using create-react-app
+
+1. [Jest]('https://jestjs.io/'):
+
+   - a general JavaScript Testing Framework (-> not specific for React)
+   - tool for test running -> finds and runs tests and determines whether tests pass or fail
+
+1. [React Testing Library]('https://testing-library.com/'):
+
+   - creates virtual DOM for "simulating" (-> rendering) the React app/components
+   - provides utilities for interacting with virtual DOM: searching (-> getBy\* etc.) and user actions
+   - allows testing without a browser
+
 1. [React Hooks Testing Library]('https://react-hooks-testing-library.com/'): tool for testing custom React hooks
 
-# Testing React Components & Building Blocks
+1. ESLint Plugins for React Testing Library and Jest DOM:
 
-- `npm test` starts jest testing script: tests are executed and file changes are watches -> i.e. tests are always re-executed immediately
+   - eslint is already installed when using create-react-app
+   - install Plugins: `npm i eslint-plugin-testing-library eslint-plugin-jest-dom`
+   - go to package.json, delete the following
+
+   ```JSON
+    "eslintConfig": {
+       "extends": [
+         "react-app",
+         "react-app/jest"
+       ]
+     },
+   ```
+
+   - create new `.eslintrc.json` in root folder and insert configuration:
+
+   ```JSON
+    {
+      "plugins": ["testing-library", "jest-dom"],
+      "extends": [
+        "react-app",
+        "react-app/jest",
+        "plugin:testing-library/react",
+        "plugin:jest-dom/recommended"
+      ]
+    }
+   ```
+
+   - example of rules and plugins (tutorial teacher udemy)
+
+   ```JSON
+    {
+      "extends": [
+        "airbnb",
+        "plugin:testing-library/recommended",
+        "plugin:testing-library/react",
+        "plugin:@typescript-eslint/recommended",
+        "react-app",
+        "react-app/jest",
+        "plugin:jsx-a11y/recommended",
+        "plugin:prettier/recommended"
+      ],
+      "settings": {
+        "import/resolver": {
+          "node": {
+            "extensions": [".js", ".jsx", ".ts", ".tsx"],
+            "paths": ["src"]
+          }
+        }
+      },
+      "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "jsx": true
+        }
+      },
+      "plugins": [
+        "testing-library",
+        "jest-dom",
+        "sonarjs",
+        "jsx-a11y",
+        "@typescript-eslint",
+        "simple-import-sort",
+        "prettier"
+      ],
+      "env": {
+        "browser": true,
+        "node": true,
+        "es6": true,
+        "jest": true
+      },
+      "rules": {
+        "import/no-extraneous-dependencies": [2, { "devDependencies": true }],
+        "testing-library/await-async-query": "error",
+        "testing-library/no-await-sync-query": "error",
+        "testing-library/no-debug": "warn",
+        "jest-dom/prefer-checked": "error",
+        "jest-dom/prefer-enabled-disabled": "error",
+        "jest-dom/prefer-required": "error",
+        "jest-dom/prefer-to-have-attribute": "error",
+        "react/prop-types": ["off"],
+        "sonarjs/cognitive-complexity": ["error", 5],
+        "max-lines-per-function": ["warn", 50],
+        "react/jsx-filename-extension": [1, { "extensions": [".tsx", ".jsx"] }],
+        "import/extensions": ["error", "never"],
+        "import/no-unresolved": 2,
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "sort-imports": "off",
+        "import/order": "off",
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": "error",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "react/react-in-jsx-scope": "off",
+        "prettier/prettier": "error",
+        "react/jsx-one-expression-per-line": "off",
+        "react/jsx-curly-newline": "off"
+      }
+    }
+   ```
+
+   - create new folder `.vscode` in root directory with file `settings.json` and insert:
+
+   ```JSON
+    {
+      // where to find custom config file
+      "eslint.options": {
+        "overrideConfigFile": ".eslintrc.json"
+      },
+      // which files to check with eslint
+      "eslint.validate": ["javascript", "javascriptreact"]
+    }
+   ```
+
+   - add `.vscode` and `.eslintcache` to `.gitignore`
+
+   > Add VSCode settings file to global VSCode settings: <https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations>
+
+## Testing React Components & Building Blocks
+
+- `npm test` react script starts jest in watch mode: tests are executed and file changes are watches
+
+  - watch mode:
+    - watches changes in files since last commit
+    - only run tests related to these files, unless you wanna run all test
+
 - 3 "A"s of writing tests:
+
   - `Arrange`: set up test data, test conditions and test environment
   - `Act`: run logic that should be tested (e.g. execute fn)
   - `Assert`: have a look inside the browser and compare received results with expected results
+
+- `describe()` fn is globally available to create `testing suite` to group tests
+
+  - 2 args: a) description string, b) anonymous fn that contains all test fns in the fn body
+  - `good practice`: test suite description and test fn description form nice sentences to understand the aim of a test
+
 - `test()` is globally available, receives 2 args:
+
   1. description of test (`string`) to identifie test in output
   1. anonymous fn containing testing code
+  1. test fails if error is thrown in fn (e.g. if assertions fail)
+
 - `render(<App />)` creates virtual DOM (a simulated browser) for a JSX argument (-> a component and his entire component tree)
-- `screen` allows access virtual DOM:
-  - types of methods in screen obj:
-    - `get...` fns `throw error` if element is not found
-    - `query...` fns `return null` if element is not found (DON'T throw error),
-    - `find...` fns `return a promise` (-> for asyncronous tasks if element is eventually on the screen)
-  - 2nd arg of methods is object with `{ exact: false/true }`
-    - `true`: default
-    - `false`: casing doesn't matter and match occurs also for substrings
-    - example: `screen.getByText('Hello World', { exact: false })` -> without `exact: false`, `Hello World` wouldn't match `Hello World!`
+
+- `screen` allows access the virtual DOM:
+
+  > Which query to use? <https://testing-library.com/docs/queries/about/#priority>
+
+  - types of query methods in screen obj:
+
+    - `getBy...`: returns element or `throw error` if element is not found
+    - `queryBy...`: returns element or `null` if element is not found (NOT throw error),
+      - when you are asserting that an element is NOT there: like `expect(screen.queryByText(/suchen/i)).toBeNull()`
+      - even though getBy... throws error if element is not found and `expect` statement wouldn't be reached, it's more readable and good practice to write direct assertion
+    - `findBy...`: returns `Promise`
+      - for async tasks if element is eventually on the screen or for second rendering of component if element is eventually on the screen
+    - search variants for multiple elements: return array of elements if found
+      - `getAllBy`: throws error if nothing found
+      - `queryAllBy`: returns empty array if nothing found
+      - `findAllBy`: returns Promise
+
+  - search types of query methods: use priority a) over b) over c)
+
+    - a) Accessible by every user
+      - getByText (most preferred - element text content)
+      - getByRole (most preferred - aria role)
+      - getByLabelText (label or aria-label text content)
+      - getByPlaceholderText (input placeholder value)
+      - getByDisplayValue (form element current value)
+    - b) Semantic Queries
+      - getByAltText (img alt attribute)
+      - getByTitle (title attribute or svg title tag)
+    - c) Test ID
+      - getByTestId (data-testid attribute on element)
+
+  - 2nd argument of query methods is options object
+
+    - example 1: `{ exact: false/true }`
+
+      ```JavaScript
+      // without `exact: false`, `Hello World` wouldn't match `Hello World!`
+      screen.getByText('Hello World', { exact: false })
+      // true: default
+      // false: casing doesn't matter and match occurs also for substrings
+      ```
+
+    - example 2: `{ name: /link text/i }`
+
+      ```JavaScript
+      // find element with role 'link' and accessibility name
+      screen.getByRole('link', { name: /link text/i})
+      ```
+
+- `role` of HTML element:
+
+  - some elements have built-in roles: button, a, input (when type is defined) etc.
+  - overview roles <https://www.w3.org/TR/html-aria/#docconformance>
+
+- `userEvent` to simulate user actions
+
+  - add multiple interaction methods: <https://github.com/testing-library/user-event>
+  - is to be prefered over `fireEvent`
+
 - `expect()` (-> Jest global fn starts assertion) with `matcher` method from Jest-DOM: e.g. `expect(linkElement).toBeInTheDocument()`
+
 - `jest-dom`:
+
   - comes with create-react-app
   - `src/setupTest.js` imports it before each test, makes matchers available
   - DOM-based matchers: e.g. `toBeVisible()`, `toBeInTheDocument()`, `toBeChecked()`
   - general matchers (that can apply to any node code): `toBe()`, `toHaveLength()`
+  - list of `custom matchers`: <https://github.com/testing-library/jest-dom>
+    - toBeInTheDocument (most common)
+    - toBeNull (most common)
+    - toBeDisabled
+    - toBeEnabled
+    - toBeEmptyDOMElement
+    - toBeInvalid
+    - toBeRequired
+    - toBeValid
+    - toBeVisible
+    - toContainElement
+    - toContainHTML
+    - toHaveAccessibleDescription
+    - toHaveAccessibleName
+    - toHaveAttribute
+    - toHaveClass
+    - toHaveFocus
+    - toHaveFormValues
+    - toHaveStyle
+    - toHaveTextContent
+    - toHaveValue
+    - toHaveDisplayValue
+    - toBeChecked
+    - toBePartiallyChecked
+    - toHaveErrorMessage
+    - toHaveDescription
+
+## Examples
 
 ```JavaScript
 // Example 1
@@ -75,22 +317,14 @@ test('renders learn react link', () => {
   // Arrange
   render(<App />);
 
-  // Act
-  // ...nothing
+  // Act: ...nothing
 
   // Assert
-  // identifie element by a text (-> Regex case insensitive with learn react);
+  // identifie element by a text (-> here: Regex case insensitive);
   const linkElement = screen.getByText(/learn react/i);
-  // expect is globally available;
-  // test succeeds if element is found and else fails
   expect(linkElement).toBeInTheDocument();
 });
 ```
-
-- `describe()` fn is globally available to create `testing suite` to group tests
-  - 2 args: a) description string, b) anonymous fn that contains all test fns in the fn body
-  - `good practice`: test suite description and test fn description form nice sentences to understand the aim of a test
-- `role` of HTML element: overview of all possible roles https://www.w3.org/TR/html-aria/#docconformance
 
 ```JavaScript
 // Example 2
@@ -158,16 +392,46 @@ describe('Greeting component', () => {
 });
 ```
 
-- async test
-  - problem: during development, DON'T send real HTTP requests to server:
-    - HTTP requests cause a lot of traffic when you have a lot of tests;
-    - POST/PUT requests would insert or change data in database
-  - solution: replace browser built-in fn with `mock function` (-> dummy fn that overwrites built-in fn)
-    - only test code that's written by you (-> `fetch`, `localStorage` etc. are built into browser, you rely on them);
-    - you want to test code and output of my component
+## Async Testing
+
+### waitForElementToBeRemoved()
+
+- use `waitForElementToBeRemoved` fn as assertion when you're waiting asynchronously that an element disappears from screen
 
 ```JavaScript
-// Example 3
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+test('popover appears on hovering', async () => {
+  render(<Form />);
+  // popover is hidden
+  const nullPopover = screen.queryByText(/this is a popover text/i);
+  expect(nullPopover).not.toBeInTheDocument();
+
+  // popover appears
+  const textToBeHovered = screen.getByText(/i let popover appear/i);
+  userEvent.hover(textToBeHovered);
+  const popover = screen.getByText(/this is a popover text/i);
+  // even though getByText throws error if element is not found and expect statement
+  // would not be reached, it's more readable and good practice to write direct assertion
+  expect(popover).toBeInTheDocument();
+
+  // popover disappears
+  userEvent.unhover(textToBeHovered);
+  await waitForElementToBeRemoved(() => screen.queryByText(/this is a popover text/i));
+});
+```
+
+### HTTP requests
+
+- problem: during development, DON'T send real HTTP requests to server:
+  - HTTP requests cause a lot of traffic when you have a lot of tests;
+  - POST/PUT requests would insert or change data in database
+- solution: replace browser built-in fn with `mock function` (-> dummy fn that overwrites built-in fn)
+  - only test code that's written by you (-> `fetch`, `localStorage` etc. are built into browser, you rely on them);
+  - you want to test code and output of my component
+
+```JavaScript
 // Async.js
 import { useEffect, useState } from 'react';
 
@@ -224,7 +488,7 @@ describe('Async component', () => {
 });
 ```
 
-# Advices for React Testing Library
+## Advices for React Testing Library
 
 > https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
 
