@@ -167,20 +167,7 @@
     }
    ```
 
-   - create new folder `.vscode` in root directory with file `settings.json` and insert:
-
-   ```JSON
-    {
-      // where to find custom config file
-      "eslint.options": {
-        "overrideConfigFile": ".eslintrc.json"
-      },
-      // which files to check with eslint
-      "eslint.validate": ["javascript", "javascriptreact"]
-    }
-   ```
-
-   - add `.vscode` and `.eslintcache` to `.gitignore`
+   - add `.eslintcache` to `.gitignore`
 
    > Add VSCode settings file to global VSCode settings: <https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations>
 
