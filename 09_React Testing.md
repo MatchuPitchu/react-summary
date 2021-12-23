@@ -409,7 +409,7 @@ test('popover appears on hovering', async () => {
 });
 ```
 
-### HTTP requests
+### HTTP requests with Mocks
 
 - problem: during development, DON'T send real HTTP requests to server:
   - HTTP requests cause a lot of traffic when you have a lot of tests;
@@ -418,66 +418,86 @@ test('popover appears on hovering', async () => {
   - only test code that's written by you (-> `fetch`, `localStorage` etc. are built into browser, you rely on them);
   - you want to test code and output of my component
 
+#### Using Mock Service Worker
+
+- using `Mock Service Worker` to intercept network calls and return specified responses
+
+  - `npm i msw`
+  - create handlers
+  - create test server that listens during tests
+    - server has to be reseted after each test
+
+- configure handlers with all wished HTTP requests of RestAPI
+  > <https://mswjs.io/docs/basics/response-resolver>
+
 ```JavaScript
-// Async.js
-import { useEffect, useState } from 'react';
+// ./mocks/handlers.js
+import { rest } from 'msw';
 
-const Async = () => {
-  const [posts, setPosts] = useState([]);
+// Handles RestAPI (-> rest)
+export const handlers = [
+  // HTTP method to mock (-> get, post etc.)
+  // full URL to mock (-> e.g. http://localhost:3030/users)
+  // response resolver function: req (request obj), res (fn to create response), ctx (utility to build response)
+  rest.get('http://localhost:3030/users', (req, res, ctx) => {
+    return res(
+      // simulate which data type I get back of server (-> here array)
+      ctx.json([
+        { name: 'matchu', imagePath: '/images/matchu.png' },
+        { name: 'pitchu', imagePath: '/images/pitchu.png' },
+      ])
+    );
+  }),
+];
+```
 
-  useEffect(() => {
-    const fetching = async () => {
-      try {
-        const res = await fetch('https://jsonplaceholder.typicode.com/posts');
-        const data = await res.json();
-        setPosts(data);
-      } catch (error) {
-        console.log(error.message);
-      }
-    };
-    fetching();
-  }, []);
+- configure a request mocking server with the given request handlers
+  > <https://mswjs.io/docs/getting-started/integrate/node>
 
-  return (
-    <div>
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id}>{post.title}</li>
-        ))}
-      </ul>
-    </div>
-  );
-};
+```JavaScript
+// ./mocks/server.js
+import { setupServer } from 'msw/node';
+import { handlers } from './handlers';
 
-// Async.test.js
-import { render, screen } from '@testing-library/react';
-import Async from './Async';
+export const server = setupServer(...handlers);
+```
 
-describe('Async component', () => {
-  test('renders posts if request succeeds', async () => {
-    // Arrange
-    // replace fetch fn with mock of globally available jest library
-    window.fetch = jest.fn();
-    // this sets value when fetch mock is resolved;
-    // simulates a resolved res obj having an async json method (-> async since json() returns a new promise normally)
-    // returns simply an array with one example of key value pairs needed in the component
-    window.fetch.mockResolvedValueOnce({
-      json: async () => [{ id: 'p1', title: 'First post' }],
-    });
-    render(<Async />);
-    // Assert
-    // use getAllByRole since getByRole fails if there are more than one item
-    // get method looks instantly (-> synchronous execution) -> so test would fail with async data fetching;
-    // use find method: returns promise; third arg is obj with timeout ms (-> default 1000)
-    const listItemsArray = await screen.findAllByRole('listitem', {}, { timeout: 1500 });
-    expect(listItemsArray).not.toHaveLength(0);
+- add configuration of mock service worker to setupTests.js
+  > <https://mswjs.io/docs/getting-started/integrate/node>
+
+```JavaScript
+import { server } from './mocks/server';
+// establish API mocking before all tests
+beforeAll(() => server.listen());
+// reset any request handlers that are maybe added during tests, that they don't affect other tests
+afterAll(() => server.resetHandlers());
+// clean up after tests are finished
+afterAll(() => server.close());
+```
+
+- test component that contains a HTTP request
+  - GET request happens in User component
+  - with configuration in `setupTest.js`, `handlers.js` and `server.js` test runs component and mock service worker is going to intercept to the request and sends back handler response
+
+```JavaScript
+describe('User component', () => {
+  test('displays image for each scoop option from server', () => {
+    render(<Users />);
+    // find images with 'avatar' at the end of alt text
+    const userAvatars = screen.getAllByRole('img', { name: /avatar$/i });
+    expect(userAvatars).toHaveLength(2);
+
+    // confirm alt text of images (create array of alt texts)
+    const altTexts = userAvatars.map(item => item.alt);
+    // arrays + objects use toEqual() while nums + string use toBe()
+    expect(altTexts).toEqual(['matchu avatar', 'pitchu avatar']);
   });
 });
 ```
 
 ## Advices for React Testing Library
 
-> https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
+> <https://kentcdodds.com/blog/common-mistakes-with-react-testing-library>
 
 - destructure what you need from `render`, because it returns a collection of utilities; don't use `wrapper` as the variable name for the return value from `render`
 
@@ -552,7 +572,7 @@ describe('Async component', () => {
   fireEvent.keyDown(input, {key: 'ArrowDown'})
   ```
 
-- use the right query; look at https://testing-library.com/docs/queries/about/#priority
+- use the right query; look at <https://testing-library.com/docs/queries/about/#priority>
 
   ```JavaScript
   // ❌
