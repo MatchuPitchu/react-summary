@@ -196,6 +196,10 @@
   1. anonymous fn containing testing code
   1. test fails if error is thrown in fn (e.g. if assertions fail)
 
+- `test.only()` and `test.skip()`
+
+  - if you have multiple tests, you can run only one certain with test.only(...) or skip a certain test with test.skip(...)
+
 - `render(<App />)` creates virtual DOM (a simulated browser) for a JSX argument (-> a component and his entire component tree)
 
 - `screen` allows access the virtual DOM:
@@ -421,12 +425,11 @@ test('popover appears on hovering', async () => {
 
 #### Using Mock Service Worker
 
-- using `Mock Service Worker` to intercept network calls and return specified responses
+- `Mock Service Worker` mimics response from server
 
   - `npm i msw`
   - create handlers
-  - create test server that listens during tests
-    - server has to be reseted after each test
+  - create test server: listens during tests, sends response, resets after each test
 
 - configure handlers with all wished HTTP requests of RestAPI
   > <https://mswjs.io/docs/basics/response-resolver>
@@ -478,7 +481,7 @@ afterAll(() => server.close());
 
 - test component that contains a HTTP request
   - GET request happens in User component
-  - with configuration in `setupTest.js`, `handlers.js` and `server.js` test runs component and mock service worker is going to intercept to the request and sends back handler response
+  - with configuration in `setupTest.js`, `handlers.js` and `server.js` test runs component and mock service worker intercepts to the request and sends back handler response
 
 ```JavaScript
 describe('User component', () => {
@@ -492,6 +495,37 @@ describe('User component', () => {
     const altTexts = userAvatars.map(item => item.alt);
     // arrays + objects use toEqual() while nums + string use toBe()
     expect(altTexts).toEqual(['matchu avatar', 'pitchu avatar']);
+  });
+});
+```
+
+- simulate `Error Server Response`
+
+  - import your `server` obj and `rest` obj of `Mock Service Worker` to overwrite defined handlers without error return
+  - create new handlers that returns an error (-> status code 500)
+
+- `await waitFor(() => {}, options)`: if you need to wait until all of your mock server promises are resolved;
+
+```JavaScript
+import { render, screen, waitFor } from '@testing-library/react';
+import Users from '../Users';
+import { server } from '../../../mocks/server';
+import { rest } from 'msw';
+
+describe('Users component', () => {
+  test('handles error for users and comments routes', async () => {
+    server.resetHandlers(
+      rest.get('http://localhost:3030/users', (req, res, ctx) => res(ctx.status(500))),
+      rest.get('http://localhost:3030/comments', (req, res, ctx) => res(ctx.status(500)))
+    );
+
+    render(<Users />);
+
+    // without waitFor alerts array would only have length 1
+    await waitFor(async () => {
+      const alerts = await screen.findAllByRole('alert');
+      expect(alerts).toHaveLength(2);
+    });
   });
 });
 ```
