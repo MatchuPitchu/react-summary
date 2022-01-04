@@ -42,7 +42,7 @@
 - write tests before writing code
 - then write code accodring to specifications set by tests
 - process:
-  1. write empty "shell" function in your file
+  1. write empty "shell" component function in your file
   1. write tests -> expect tests to fail
   1. write code -> then tests pass
 
@@ -92,7 +92,7 @@
     }
    ```
 
-   - example of rules and plugins (tutorial teacher udemy)
+   - example of rules and plugins (of tutorial teacher udemy course)
 
    ```JSON
     {
@@ -207,7 +207,7 @@
     - `getBy...`: returns element or `throw error` if element is not found
     - `queryBy...`: returns element or `null` if element is not found (NOT throw error),
       - when you are asserting that an element is NOT there: like `expect(screen.queryByText(/suchen/i)).toBeNull()`
-      - even though getBy... throws error if element is not found and `expect` statement wouldn't be reached, it's more readable and good practice to write direct assertion
+      - even though `getBy...` throws error if element is not found and `expect` statement wouldn't be reached, it's more readable and good practice to write direct assertion
     - `findBy...`: returns `Promise`
       - for async tasks if element is eventually on the screen or for second rendering of component if element is eventually on the screen
     - search variants for multiple elements: return array of elements if found
@@ -217,16 +217,16 @@
 
   - search types of query methods: use priority a) over b) over c)
 
-    - a) Accessible by every user
+    - `a) Accessible by every user`
       - getByText (most preferred - element text content)
       - getByRole (most preferred - aria role)
       - getByLabelText (label or aria-label text content)
       - getByPlaceholderText (input placeholder value)
       - getByDisplayValue (form element current value)
-    - b) Semantic Queries
+    - `b) Semantic Queries`
       - getByAltText (img alt attribute)
       - getByTitle (title attribute or svg title tag)
-    - c) Test ID
+    - `c) Test ID`
       - getByTestId (data-testid attribute on element)
 
   - 2nd argument of query methods is options object
@@ -252,12 +252,11 @@
   - some elements have built-in roles: button, a, input (when type is defined) etc.
   - overview roles <https://www.w3.org/TR/html-aria/#docconformance>
 
-- `userEvent` to simulate user actions
+- `userEvent` to simulate user actions (-> is to be prefered over `fireEvent`)
 
   - add multiple interaction methods: <https://github.com/testing-library/user-event>
-  - is to be prefered over `fireEvent`
 
-- `expect()` (-> Jest global fn starts assertion) with `matcher` method from Jest-DOM: e.g. `expect(linkElement).toBeInTheDocument()`
+- `expect()` (-> Jest global fn starts assertion) with `matcher method` from Jest-DOM: e.g. `expect(linkElement).toBeInTheDocument()`
 
 - `jest-dom`:
 
@@ -291,6 +290,8 @@
     - toBePartiallyChecked
     - toHaveErrorMessage
     - toHaveDescription
+    - toEqual (-> for arrays and objects)
+    - toBe (-> for nums and strings)
 
 ## Examples
 
@@ -383,7 +384,7 @@ describe('Greeting component', () => {
 
 ### waitForElementToBeRemoved()
 
-- use `waitForElementToBeRemoved` fn as assertion when you're waiting asynchronously that an element disappears from screen
+- use `waitForElementToBeRemoved(() => ...) as assertion` when you're waiting asynchronously that an element disappears from screen
 
 ```JavaScript
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
@@ -481,10 +482,10 @@ afterAll(() => server.close());
 
 ```JavaScript
 describe('User component', () => {
-  test('displays image for each scoop option from server', () => {
+  test('displays image for each scoop option from server', async () => {
     render(<Users />);
-    // find images with 'avatar' at the end of alt text
-    const userAvatars = screen.getAllByRole('img', { name: /avatar$/i });
+    // find images with 'avatar' at the end ($) of alt text
+    const userAvatars = await screen.findAllByRole('img', { name: /avatar$/i });
     expect(userAvatars).toHaveLength(2);
 
     // confirm alt text of images (create array of alt texts)
