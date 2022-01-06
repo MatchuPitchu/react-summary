@@ -5,7 +5,7 @@
   1. only call React Hooks at the Top Level, NOT in nested functions, NOT in any block statements
   1. recommanded rule for useEffect: ALWAYS add everything you refer to inside to useEffect as a dependency except the state updating functions (-> setName ...) because they never change
 
-# useRef Hook
+## useRef Hook
 
 - first time a component is rendered, React sets value of a ref variable to a real DOM element (-> NOT the virtual DOM of React, so you should not manipulate it, only React should) that is rendered based on a JSX element with a ref attribute and connection to the wished variable
 - useful when you only want to read a value and never plan on changing anything, then you don't need useState
@@ -41,7 +41,7 @@
   }
   ```
 
-# Forward Refs Hook
+## Forward Refs Hook
 
 - allows to interact with a component imperatively (in the real DOM, look at `useRef` Hook)
 - with `useImperativeHandle` and `forwardRef` you can expose functionalities from a React component to its parent component to then use your component in the parent component through refs and trigger certain functionalities
@@ -148,7 +148,7 @@
   );
   ```
 
-# useEffect Hook for "side effects"
+## useEffect Hook for "side effects"
 
 - it's for tasks that must happen outside of the normal component evaluation and render cycle, especially since they might block or delay rendering (e.g. HTTP requests)
 - examples for side effects: store data in browser storage, send HTTP requests to backend servers, set and manage timers etc.
@@ -193,7 +193,7 @@
   }, [enteredEmail, enteredPassword]);
   ```
 
-# useReducer for State Management
+## useReducer for State Management
 
 - for more complex state management `useReducer` can replace `useState`
   - e.g. if you have multiple states, multiple ways of changing them or dependencies to other states, then useState often becomes hard or error-prone to use
@@ -278,7 +278,7 @@
   }
   ```
 
-# useState vs useReducer
+## useState vs useReducer
 
 - use useReducer when using useState becomes cumbersome or you're getting a lot of bugs/unintended behaviors
 - useState
@@ -289,7 +289,7 @@
   - great if you have more complex state updates (-> different cases, different actions that change the state) you can write a reducer fn that contains more complex state updating logic
   - should be considered if you have related pieces of state/data (i.e. form inputs that are related)
 
-# useCallback Hook
+## useCallback Hook
 
 - stores a function in React internal storage across component execution / re-evaluation -> then this fn is NOT recreated with every execution
 - advantage: fn keeps the same reference in the `stack memory` that refers to the object in the `heap memory`;
@@ -325,7 +325,7 @@
   }
   ```
 
-# useMemo Hook
+## useMemo Hook
 
 - while useCallback memoizes functions, useMemo memoizes other values (any kind of data that you wanna store)
 - memoizes data to avoid re-calculation of performance intensive tasks
@@ -416,7 +416,7 @@
   }
   ```
 
-# Context API & useContext Hook
+## Context API & useContext Hook
 
 - context is a component-wide state storage
 
@@ -467,8 +467,9 @@
     }
     ```
 
-- b) recommanded and more complex context setup: to pull out more logic out of specific components and create a saparate context management component
+- b) recommanded and more complex context setup: to pull out more logic out of specific components and create a separate context management component
 
+  - hint: you can create a custom hook which returns context data object -> to avoid importing the Context in every other component file where you're using it
   - context file:
 
     ```JavaScript
@@ -476,12 +477,19 @@
     import { useState, useEffect, createContext } from 'react';
 
     // initialize context with default data obj to have better autocompletion in VSC;
-    // later import { AuthContext } in all components where you need context data
+    // later import { AuthContext } in all components where you need context data (OR use directly custom hook below)
     export const AuthContext = createContext({
       isLoggedIn: false,
       onLogout: () => {},
       onLogin: (email, password) => {},
     });
+
+    // custom hook to check whether you are inside a provider AND it returns context data object
+    export const useAuthContext = () => {
+      const context = useContext(AuthContext);
+      if (!context) throw new Error('useAuthContext must be used within AuthContextProvider');
+      return context;
+    };
 
     // create context component and export it as the default export;
     // now I can use useState etc. and insert more logic into this component
@@ -574,7 +582,7 @@
   - React Context shouldn't be used to replace ALL component communications and props
   - a component should still be configurable via props AND short "prop chains" might not need any replacement
 
-# Custom Hooks
+## Custom Hooks
 
 - helpful to share logic across multiple components or in other words outsource stateful logic into re-usable functions
 - unlike normal functions, custom hooks can use other React hooks and React state
@@ -582,7 +590,7 @@
 - name of hook has to start with `use`
 - you can return whatever you want: single variable, array, object
 
-## Example 1: useCounter Hook to count up and down
+### Example 1: useCounter Hook to count up and down
 
 ```JavaScript
 // useCounter.js
@@ -615,7 +623,7 @@ const ForwardCounter = () => {
 };
 ```
 
-## Example 2: useHttp Hook to bundle logic for HTTP requests
+### Example 2: useHttp Hook to bundle logic for HTTP requests
 
 ```JavaScript
 // useHttp.js
@@ -744,7 +752,7 @@ const NewTask = ({ onAddTask }) => {
 };
 ```
 
-## Example 3: useInput Hook to bundle logic for value states and handlers for input fields of form
+### Example 3: useInput Hook to bundle logic for value states and handlers for input fields of form
 
 ```JavaScript
 // useInput.js

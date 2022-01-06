@@ -259,6 +259,7 @@
 - `userEvent` to simulate user actions (-> is to be prefered over `fireEvent`)
 
   - add multiple interaction methods: <https://github.com/testing-library/user-event>
+  - hint: use `clear` method -> when updating a text element with a userEvent, first use `userEvent.clear(element)` to be sure that only wished entry is inserted
 
 - `expect()` (-> Jest global fn starts assertion) with `matcher method` from Jest-DOM: e.g. `expect(linkElement).toBeInTheDocument()`
 
@@ -529,6 +530,41 @@ describe('Users component', () => {
   });
 });
 ```
+
+## Testing with Context, Router, Redux Provider and Theming Provider
+
+### Option 1: Wrapper
+
+- inside of render method, use wrapper property in options object to add needed ContextProvider, Router, Redux Provider or Theming Provider
+
+```JavaScript
+render(<Example />, { wrapper: ContextProvider });
+```
+
+### Option 2: Customize render method (recommended since reusable)
+
+> <https://testing-library.com/docs/react-testing-library/setup/>
+
+- create a proper testing-utils file
+
+```JavaScript
+// testing-utils.jsx
+import { render } from '@testing-library/react';
+import { ContextProvider } from '../store/Context';
+
+// ui: standard name to refer to JSX
+// options: obj like the default render method has
+const renderWithContext = (ui, options) =>
+  render(ui, { wrapper: ContextProvider, ...options });
+
+// re-export everything
+export * from '@testing-library/react';
+
+// override render method
+export { renderWithContext as render };
+```
+
+- in test file: you can import `render` an ALL other methods (`screen`, `waitFor` etc.) from `testing-utils.jsx` OR if you want to have default setup from `@testing-library/react`
 
 ## Advices for React Testing Library
 
