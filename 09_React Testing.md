@@ -298,6 +298,18 @@
     - toEqual (-> for arrays and objects)
     - toBe (-> for nums and strings)
 
+## Debugging Tips
+
+- `screen.debug()`: prints out what DOM looks like at this point
+- read test error output carefully
+  - which assertion is failing
+  - copy/paste errors into web search
+- Errors and Solvings:
+  - `Unable to find role="role"`: Either role doesn't exist, or no element with that role that also matches `name` option
+  - `Warning: An update to component inside a test was not wrapped in act(...)`: there was an update to the component after the test completed. Use `await findBy*`
+  - `Warning: Can't perform a React state update on an unmounted component. This is a no-op, but it indicates a memory leak in your application.`: there was an update to the component after the test completed. Use `await findBy*`
+  - `Error: connect ECONNREFUSED 127.0.0.1`: no Mock Service Worker handler associated with this route and method
+
 ## Examples
 
 ```JavaScript
