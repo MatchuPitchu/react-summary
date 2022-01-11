@@ -46,6 +46,23 @@
   1. write tests -> expect tests to fail
   1. write code -> then tests pass
 
+## Standard Questions to Ask before Writing Tests
+
+1. What to render?
+   - the smallest component possible that encompasses everything needed for the tests
+1. Do I need to pass props when rendering a component?
+   - pass props
+1. Do I need to wrap the test into a Provider (Context, Theming, Redux) or in a Router?
+   - if in your App, the Provider or Router is outside of your rendered component, you have to make it available in your test and wrap it around this rendered component
+1. In which file and directory should I write the respective tests?
+   - group tests for a component (-> unit tests)
+   - group them for a specific sequence like an order process (-> functional tests)
+1. Which behavior in my App needs testing?
+1. Hot to test?
+   - What queries and events do I use?
+1. Is there anything asynchronous in my component?
+   - use `async await`
+
 ## Tools & Setup
 
 > Jest and React Testing Library are already set up when using create-react-app
@@ -60,8 +77,6 @@
    - creates virtual DOM for "simulating" (-> rendering) the React app/components
    - provides utilities for interacting with virtual DOM: searching (-> getBy\* etc.) and user actions
    - allows testing without a browser
-
-1. [React Hooks Testing Library]('https://react-hooks-testing-library.com/'): tool for testing custom React hooks
 
 1. ESLint Plugins for React Testing Library and Jest DOM:
 
@@ -170,6 +185,8 @@
    - add `.eslintcache` to `.gitignore`
 
    > Add VSCode settings file to global VSCode settings: <https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations>
+
+1. [React Hooks Testing Library]('https://react-hooks-testing-library.com/'): tool for testing custom React hooks
 
 ## Testing React Components & Building Blocks
 
@@ -400,7 +417,7 @@ describe('Greeting component', () => {
 
 ### waitForElementToBeRemoved()
 
-- use `waitForElementToBeRemoved(() => ...) as assertion` when you're waiting asynchronously that an element disappears from screen
+- use `waitForElementToBeRemoved(() => ...) as assertion` when you're waiting asynchronously that an element disappears from screen AND nothing appears instead (-> like a hover effect for a popover)
 
 ```JavaScript
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
@@ -513,8 +530,7 @@ describe('User component', () => {
 
 - simulate `Error Server Response`
 
-  - import your `server` obj and `rest` obj of `Mock Service Worker` to overwrite defined handlers without error return
-  - create new handlers that returns an error (-> status code 500)
+  - import your `server` obj and `rest` obj of `Mock Service Worker` and overwrite defined handlers with new handlers with an error response (here: status code 500)
 
 - `await waitFor(() => {}, options)`: if you need to wait until all of your mock server promises are resolved;
 
