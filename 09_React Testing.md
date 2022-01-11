@@ -196,6 +196,8 @@
     - watches changes in files since last commit
     - only run tests related to these files, unless you wanna run all test
 
+- `npm test -- --coverage`
+
 - 3 "A"s of writing tests:
 
   - `Arrange`: set up test data, test conditions and test environment
@@ -218,6 +220,8 @@
   - if you have multiple tests, you can run only one certain with test.only(...) or skip a certain test with test.skip(...)
 
 - `render(<App />)` creates virtual DOM (a simulated browser) for a JSX argument (-> a component and his entire component tree)
+
+  - Hint: outputs HTML tree of App component when writing tests, first render component and then debug what's visible `screen.debug();`
 
 - `screen` allows access the virtual DOM:
 
@@ -272,6 +276,7 @@
 
   - some elements have built-in roles: button, a, input (when type is defined) etc.
   - overview roles <https://www.w3.org/TR/html-aria/#docconformance>
+  - Hint: testing library shows all selectable roles if you provide a non-existing role in the rendered component's HTML `screen.getByRole('')`
 
 - `userEvent` to simulate user actions (-> is to be prefered over `fireEvent`)
 
@@ -593,9 +598,112 @@ export { renderWithContext as render };
 
 - in test file: you can import `render` an ALL other methods (`screen`, `waitFor` etc.) from `testing-utils.jsx` OR if you want to have default setup from `@testing-library/react`
 
-## Testing React Apps that use React Router
+### Testing with React Context - Example
 
-### Option 1: Include your real React Router
+- look which data of Context is needed in Component to execute your tests
+- create custom render that receives `providerProps` as second argument
+- create `const providerProps` in test in order to mock data and fns that are needed for tests
+- mock needed functions: `jest.fn()` replaces exactly the "real" function at a desired point and offers new test methods (e.g. toHaveBeenCalledWith)
+
+```JavaScript
+// CatchButton.tsx
+import { useContext } from 'react';
+import { PokeContext } from '../../store/Context';
+import classes from './CatchButton.module.css';
+
+const CatchButton: React.FC = () => {
+  const { addPokeToCartHandler, pokemon, pokeCart } = useContext(PokeContext);
+
+  const disabled = pokeCart.some((item) => item.id === pokemon?.id);
+
+  return (
+    <button
+      className={`${classes.btn} ${disabled ? classes.disabled : ''}`}
+      onClick={() => addPokeToCartHandler(pokemon!)}
+      disabled={disabled}
+    >
+      {disabled ? 'Gefangen' : 'Fangen'}
+    </button>
+  );
+};
+```
+
+```JavaScript
+// testing-utils.jsx
+import { render } from '@testing-library/react';
+import { PokeContext } from '../store/Context';
+
+const customRender = (ui, { providerProps, ...renderOptions }) => {
+  return render(
+    <PokeContext.Provider {...providerProps}>{ui}</PokeContext.Provider>,
+    renderOptions
+  );
+};
+
+export * from '@testing-library/react';
+export { customRender as render };
+```
+
+```JavaScript
+// CatchButton.test.jsx
+import { render, screen } from '../../../__test-utils__/testing-utils';
+import userEvent from '@testing-library/user-event';
+import CatchButton from '../CatchButton';
+
+describe('CatchButton component', () => {
+  test('has active btn when there is no pokemon in cart', () => {
+    const providerProps = {
+      value: {
+        pokemon: {
+          id: 123,
+        },
+        pokeCart: [],
+      },
+    };
+    render(<CatchButton />, { providerProps });
+    const btn = screen.getByRole('button', { name: /fangen/i });
+    expect(btn).toBeEnabled();
+  });
+
+  test('has disabled btn when there is the same pokemon in cart', () => {
+    const providerProps = {
+      value: {
+        pokemon: {
+          id: 123,
+        },
+        pokeCart: [{ id: 123 }],
+      },
+    };
+
+    render(<CatchButton />, { providerProps });
+    const btn = screen.getByRole('button', { name: /gefangen/i });
+    expect(btn).toBeDisabled();
+  });
+
+  test('adds pokemon to context when button is active', () => {
+    const mockAddPokeToCartHandler = jest.fn();
+    const providerProps = {
+      value: {
+        pokemon: {
+          id: 123,
+        },
+        pokeCart: [],
+        // Jest Mock Fn replaces exactly the "real" function at a desired point and offers new test methods (e.g. toHaveBeenCalledWith)
+        addPokeToCartHandler: mockAddPokeToCartHandler,
+      },
+    };
+
+    render(<CatchButton />, { providerProps });
+    const btn = screen.getByRole('button', { name: /fangen/i });
+    userEvent.click(btn);
+    expect(mockAddPokeToCartHandler).toHaveBeenCalledWith({ id: 123 });
+  });
+});
+```
+
+### Testing React Apps that use React Router
+
+#### Option 1: Include your real React Router
 
 - include `Router` in the `App` component
 - then for tests, always render `App` component (never child components)
@@ -603,7 +711,7 @@ export { renderWithContext as render };
 - advantage: less complicated test setup
 - disadvantage: no immediate load of routing history (current and previous page) in test setup
 
-### Option 2: Implement a test React Router
+#### Option 2: Implement a test React Router
 
 ```JavaScript
 // Routes defined in App.jsx to be tested
@@ -732,7 +840,7 @@ test('renders user page', () => {
 })
 ```
 
-## Testing with multiple Providers - Example
+### Testing with multiple Providers - Example
 
 ```JavaScript
 // testing-utils.jsx
