@@ -593,6 +593,174 @@ export { renderWithContext as render };
 
 - in test file: you can import `render` an ALL other methods (`screen`, `waitFor` etc.) from `testing-utils.jsx` OR if you want to have default setup from `@testing-library/react`
 
+## Testing React Apps that use React Router
+
+### Option 1: Include your real React Router
+
+- include `Router` in the `App` component
+- then for tests, always render `App` component (never child components)
+- navigate to your pages in tests by finding and clicking links on the page
+- advantage: less complicated test setup
+- disadvantage: no immediate load of routing history (current and previous page) in test setup
+
+### Option 2: Implement a test React Router
+
+```JavaScript
+// Routes defined in App.jsx to be tested
+const App = () => {
+  return (
+    <>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/users">Menus</Link>
+      </nav>
+      <main>
+        <Routes>
+          <Route path='/' element={<App />} />
+          <Route path='/users' element={<Users />} />
+          <Route path='/users/:id' element={<Users />} />
+        </Routes>
+      </main>
+    </>
+  );
+}
+
+// Users.jsx
+import { useParams, Link } from "react-router-dom";
+
+const userData = {
+  matchu: { name: "Mat Chu", address: "12 Main Street" },
+  pitchu: { name: "Pit Chu", address: "34 First Street" },
+};
+
+const Users = () => {
+  // use useParams hook to access dynamic pieces of URL
+  // in a real app, info would come from server
+  const { id } = useParams();
+
+  // if no id in URL parameter -> list of links to all users
+  if (!id) {
+    return (
+      <div>
+       <h1>Users</h1>
+         <ul>
+         {Object.entries(userData).map(([urlParam, data]) => {
+            return (
+            <li key={urlParam}>
+              <Link to={`/users/${urlParam}`}>{data.name}</Link>
+            </li>
+          );
+        })}
+        </ul>
+      </div>
+    );
+  }
+  // if id URL parameter -> show information about user
+  const data = userData[id];
+  return (
+    <div>
+      <h1>User: {data.name}</h1>
+      <p>{data.address}</p>
+    </div>
+  );
+}
+```
+
+- test belows causes error because you're using `useParams` without Router provider
+
+```JavaScript
+// Users.test.jsx
+import { render } from "@testing-library/react";
+import Users from "./Users";
+
+test("renders without error", () => {
+  render(<Users />);
+});
+```
+
+- solution: customize `render` method with the built-in testing `MemoryRouter` of `React Router DOM`
+  - `Memory` means it stores routes in memory, as opposed to using a browser
+  - React Router docs recommend `MemoryRouter` for testing -> other option see here: <https://v5.reactrouter.com/web/guides/testing>
+
+```JavaScript
+// test-utils.jsx
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+
+// important to have initial route, otherwise MemoryRouter throws error
+const initialRoutes = options && options.initialRoutes ? options.initialRoutes : ['/'];
+
+// pass initial routes inside of component;
+// if more than one route, pass array
+const MemoryRouterWithInitialRoutes = ({ children, initialRoutes }) => {
+  return (
+    <MemoryRouter initialEntries={initialRoutes}>
+      {children}
+    </MemoryRouter>
+  )
+};
+
+// create customRender that wraps UI in a memory Router
+const customRender = (ui, options) => {
+  return render(ui, {
+    wrapper: (args) =>
+      MemoryRouterWithInitialRoutes({
+        ...args,
+        initialRoutes
+    }),
+    ...options
+  });
+};
+// re-export everything
+export * from '@testing-library/react';
+// override render method
+export { customRender as render };
+```
+
+- now you can use `import { render } from './test-utils.jsx'` in `Users.test.jsx`
+
+```JavaScript
+// Users.test.jsx
+import { render, screen } from './test-utils.jsx';
+import App from './App';
+
+test('renders user page', () => {
+  // have to render App for test because it includes the "Routes" wrapper which is import to match routes
+  render(<App />, { initialRoutes: ['/users/matchu'] });
+  const header = screen.getByRole('heading', { name: /matchu/i })
+  expect(header).toBeInTheDocument();
+})
+```
+
+## Testing with multiple Providers - Example
+
+```JavaScript
+// testing-utils.jsx
+import { render } from '@testing-library/react';
+import { ContextProvider } from '../store/Context';
+import { MemoryRouter } from 'react-router-dom';
+
+const Providers = ({children, initialRoutes }) => {
+  return (
+    <ContextProvider>
+      <MemoryRouter initalEntries={initialRoutes}>
+        {children}
+      </MemoryRouter>
+    </ContextProvider>
+  )
+});
+
+// ui: standard name to refer to JSX
+// options: obj like the default render method has
+const renderWithContextAndRouter = (ui, options) =>
+  render(ui, { wrapper: Providers, ...options });
+
+// re-export everything
+export * from '@testing-library/react';
+// override render method
+export { renderWithContextAndRouter as render };
+```
+
 ## Debugging Tips
 
 - `screen.debug()`: prints out what DOM looks like at this point
