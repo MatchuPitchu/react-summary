@@ -563,6 +563,24 @@ describe('Users component', () => {
 });
 ```
 
+- Browser Debugging with `Mock Service Worker`: <https://mswjs.io/docs/getting-started/integrate/browser>
+  - install browser functionality in `public` folder of React App: `npx msw init public/ --save`
+  - create `browser.js`
+  - include server start in `index.js`
+
+```JavaScript
+// create browser.js
+import { setupWorker } from 'msw';
+import { handlers } from './handlers'; // your preconfigured mock handlers
+
+// This configures a Service Worker with the given request handlers.
+export const worker = setupWorker(...handlers);
+
+// index.js
+import { worker } from './__test-utils__/mocks/browser';
+worker.start();
+```
+
 ## Testing with Context, Router, Redux Provider and Theming Provider
 
 ### Option 1: Wrapper
