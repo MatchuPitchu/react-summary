@@ -43,7 +43,7 @@
 
 ## Forward Refs Hook
 
-- allows to interact with a component imperatively (in the real DOM, look at `useRef` Hook)
+- allows to interact with a component imperatively in the real DOM (-> look at `useRef` Hook)
 - with `useImperativeHandle` and `forwardRef` you can expose functionalities from a React component to its parent component to then use your component in the parent component through refs and trigger certain functionalities
 - it's good for use case like focusing fields or scrolling, BUT in general it's better to avoid this because of manipulating directly the real DOM
 - example of reusable input component and focussing invalid input field with help of `useRef`, `forwardRef` and `useImperativeHandle`
@@ -111,18 +111,19 @@
     ({ isValid, id, label, type, value, onChange, onBlur }, ref) => {
       const inputRef = useRef();
 
+      // 1. ref in same component
       const focus = () => {
         // available on input DOM obj when you're using ref in same component
         inputRef.current.focus();
       };
 
-      // in parent component you can only use things of the ref that are exposed in return of useImperativeHandle Hook;
+      // 2. ref in parent component: you can only use things of the ref that are exposed in return of useImperativeHandle Hook;
       // first arg: ref from outside (from parent component)
       // second arg: anonymous callback fn
       useImperativeHandle(ref, () => {
         // return a translation obj with all data that you would use from outside
         return {
-          // define externally available name (-> here 'focus') that points to focus fn
+          // define externally available name (-> here 'focus') that points to focus function
           focus: focus,
         };
       });
