@@ -7,9 +7,10 @@
 ## What is Redux?
 
 - state management system for cross-componment or app-wide state (like `React Context`)
-- `local state`: belongs to a single component (-> should be managed internal of component wie `useState` or `useReducer` hooks)
-- `cross-component state`: affects multiple components (-> requires `prop chains`/`prop drilling` OR `Context` or `Redux`)
-- `app-wide state`: affects entire app (most or all components) (-> requires `prop chains`/`prop drilling` OR `Context` or `Redux`)
+  - `local state`: belongs to a single component (-> should be managed internal of component wie `useState` or `useReducer` hooks)
+  - `cross-component state`: affects multiple components (-> requires `prop chains`/`prop drilling` OR `Context` or `Redux`)
+  - `app-wide state`: affects entire app (most or all components) (-> requires `prop chains`/`prop drilling` OR `Context` or `Redux`)
+- Redux can replace `React Context`, but have in mind, with Redux you add a third-party library to the code of your application (which becomes bigger)
 
 ## Redux vs React Context
 
