@@ -208,76 +208,76 @@
   - initialState (optional): optional you can set an initial state
   - initFn: a function to set the inital state programmatically in case that the initial state is more complex (e.g. the result of an HTTP request)
 
-- example of useReducer
+### Example with useReducer
 
-  - function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
+- function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
 
-  ```JavaScript
-  import { useEffect, useReducer } from 'react';
-  import classes from './Login.module.css';
-  import Button from '../UI/Button/Button';
+```JavaScript
+import { useEffect, useReducer } from 'react';
+import classes from './Login.module.css';
+import Button from '../UI/Button/Button';
 
-  const emailReducer = (prevState, action) => {
-    // condition defined based on action parameter and a related wished state update return
-    switch (action.type) {
-      case 'USER_INPUT':
-        return { value: action.val, isValid: action.val.includes('@') };
-      case 'INPUT_BLUR':
-        // it is guaranteed that prevState parameter is the last state snapshot
-        return { value: prevState.value, isValid: prevState.value.includes('@') };
-      default:
-        return { value: '', isValid: false };
-    }
+const emailReducer = (prevState, action) => {
+  // condition defined based on action parameter and a related wished state update return
+  switch (action.type) {
+    case 'USER_INPUT':
+      return { value: action.val, isValid: action.val.includes('@') };
+    case 'INPUT_BLUR':
+      // it is guaranteed that prevState parameter is the last state snapshot
+      return { value: prevState.value, isValid: prevState.value.includes('@') };
+    default:
+      return { value: '', isValid: false };
+  }
+};
+
+const Login = ({ onLogin }) => {
+  const [emailState, dispatchEmail] = useReducer(
+    emailReducer, // reducer function
+    { value: '', isValid: null } // initial state
+  );
+
+  const { isValid: emailIsValid } = emailState; // destructuring with alias
+
+  const emailHandler = ({ target }) => {
+    // dispatchFn of useReducer to pass an argument as an "action" (-> look at parameter of emailReducer fn);
+    // here I'm using an obj with type key that describes what happpens AND a payload (-> here a value the user entered)
+    dispatchEmail({ type: 'USER_INPUT', val: target.value });
   };
 
-  const Login = ({ onLogin }) => {
-    const [emailState, dispatchEmail] = useReducer(
-      emailReducer, // reducer function
-      { value: '', isValid: null } // initial state
-    );
+  const validateEmailHandler = () => {
+    dispatchEmail({
+      type: 'INPUT_BLUR', // action happens when focus is blurred, so I call type 'INPUT_BLUR'
+      // value definition not needed here for action definition
+    });
+  };
 
-    const { isValid: emailIsValid } = emailState; // destructuring with alias
+  const submitHandler = (e) => {
+    e.preventDefault();
+    onLogin(emailState.value); // OR another login logic
+  };
 
-    const emailHandler = ({ target }) => {
-      // dispatchFn of useReducer to pass an argument as an "action" (-> look at parameter of emailReducer fn);
-      // here I'm using an obj with type key that describes what happpens AND a payload (-> here a value the user entered)
-      dispatchEmail({ type: 'USER_INPUT', val: target.value });
-    };
-
-    const validateEmailHandler = () => {
-      dispatchEmail({
-        type: 'INPUT_BLUR', // action happens when focus is blurred, so I call type 'INPUT_BLUR'
-        // value definition not needed here for action definition
-      });
-    };
-
-    const submitHandler = (e) => {
-      e.preventDefault();
-      onLogin(emailState.value); // OR another login logic
-    };
-
-    return (
-      <form onSubmit={submitHandler}>
-        <div className={`${classes.control} ${emailState.isValid === false ? classes.invalid : ''}`}>
-          <label htmlFor='email'>E-Mail</label>
-          <input
-            type='email'
-            id='email'
-            value={emailState.value}
-            onChange={emailHandler}
-            // onBlur is activated when input loses focus
-            onBlur={validateEmailHandler}
-          />
-        </div>
-        <div className={classes.actions}>
-          <Button type='submit' className={classes.btn} >
-            Login
-          </Button>
-        </div>
-      </form>
-    );
-  }
-  ```
+  return (
+    <form onSubmit={submitHandler}>
+      <div className={`${classes.control} ${emailState.isValid === false ? classes.invalid : ''}`}>
+        <label htmlFor='email'>E-Mail</label>
+        <input
+          type='email'
+          id='email'
+          value={emailState.value}
+          onChange={emailHandler}
+          // onBlur is activated when input loses focus
+          onBlur={validateEmailHandler}
+        />
+      </div>
+      <div className={classes.actions}>
+        <Button type='submit' className={classes.btn} >
+          Login
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
 
 ## useState vs useReducer
 
