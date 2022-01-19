@@ -204,14 +204,15 @@ const Counter = () => {
   - pass in a `configuration obj` with `reducer prop` that can have obj of different `key reducer pairs` of your choice to include multiple reducers
   - if you have only one reducer, then you don't need this obj (-> `reducer: counterSlice.reducer` would be enough)
   - attention: you point at `reducer`, even if you write `reducers` in createSlice()
+- it is recommended to split code -> that means to put every slice of state into its own file
 
-### Basic Example of Redux in React with Redux Toolkit and multiple slices of global state
+### Basic Example of Redux in React with Redux Toolkit, multiple slices of global state and code splitting
 
 ```JavaScript
-// store/index.js
+// store/counter.js
 
-// simplify redux using with createSlice (recommended) or createReducer fn;
-import { createSlice, configureStore } from '@reduxjs/toolkit';
+// simplify redux using with createSlice (recommended) or createReducer fn
+import { createSlice } from '@reduxjs/toolkit';
 
 // First slice of global state
 const initialState = { counter: 0, showCounter: true };
@@ -235,6 +236,16 @@ const counterSlice = createSlice({
   },
 });
 
+// export action dispatchers that you can use it in other components to update the state
+export const counterActions = counterSlice.actions;
+// if you only need reducer, then export only this
+export default counterSlice.reducer;
+```
+
+```JavaScript
+// store/auth.js
+import { createSlice } from '@reduxjs/toolkit';
+
 // Second slice of global state
 const initialAutchState = { isAuth: false };
 
@@ -251,6 +262,16 @@ const authSlice = createSlice({
   },
 });
 
+export const authActions = authSlice.actions;
+export default authSlice.reducer;
+```
+
+```JavaScript
+// store/index.js
+import { configureStore } from '@reduxjs/toolkit';
+import counterReducer from './counter';
+import authReducer from './auth';
+
 const store = configureStore({
   // reducer: counterSlice.reducer,
   reducer: {
@@ -258,9 +279,6 @@ const store = configureStore({
     auth: authSlice.reducer,
   },
 });
-
-export const counterActions = counterSlice.actions;
-export const authActions = authSlice.actions;
 
 export default store;
 ```
@@ -270,7 +288,7 @@ export default store;
 ```JavaScript
 // components/Counter.js
 import { useSelector, useDispatch } from 'react-redux';
-import { counterActions } from '../store/index';
+import { counterActions } from '../store/counter';
 
 const Counter = () => {
   // hook returns dispatch fn for Redux store
@@ -300,7 +318,7 @@ const Counter = () => {
 ```JavaScript
 // components/Auth.js
 import { useDispatch } from 'react-redux';
-import { authActions } from '../store/index';
+import { authActions } from '../store/auth';
 
 const Auth = () => {
   const dispatch = useDispatch();
