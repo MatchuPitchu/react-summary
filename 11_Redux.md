@@ -200,8 +200,12 @@ const Counter = () => {
       - uses iternally `Immer` that detects when state should be mutated and clones existing state, keeps all the state that you are not editing and overwrites desired piece of state in an immutable way;
     - b) `createSlice` creates `action creator methods` for you that return `unique action identifiers` for different reducers
       - e.g. when you call later `counterSlice.actions.yourReducerName()`, Redux Toolkit returns an action obj of this shape: `{ type: 'some unique identifier' }`
+- `configureStore({ reducer: ... })` creates store like `createStore` of basic Redux, but can merge multiple reducers into one reducer;
+  - pass in a `configuration obj` with `reducer prop` that can have obj of different `key reducer pairs` of your choice to include multiple reducers
+  - if you have only one reducer, then you don't need this obj (-> `reducer: counterSlice.reducer` would be enough)
+  - attention: you point at `reducer`, even if you write `reducers` in createSlice()
 
-### Basic Example of Redux in React with Redux Toolkit
+### Basic Example of Redux in React with Redux Toolkit and multiple slices of global state
 
 ```JavaScript
 // store/index.js
@@ -209,27 +213,56 @@ const Counter = () => {
 // simplify redux using with createSlice (recommended) or createReducer fn;
 import { createSlice, configureStore } from '@reduxjs/toolkit';
 
+// First slice of global state
 const initialState = { counter: 0, showCounter: true };
 
 const counterSlice = createSlice({
   name: 'counter',
   initialState,
   reducers: {
-    increment(state) {
+    increment: (state) => {
       state.counter++;
     },
-    decrement(state) {
+    decrement: (state) => {
       state.counter--;
     },
-    increase(state, action) {
+    increase: (state, action) => {
       state.counter = state.counter + action.payload; // payload is fixed property name of Redux Toolkit
     },
-    toggleCounter(state) {
+    toggleCounter: (state) => {
       state.showCounter = !state.showCounter;
     },
   },
 });
 
+// Second slice of global state
+const initialAutchState = { isAuth: false };
+
+const authSlice = createSlice({
+  name: 'authentification',
+  initialState: initialAutchState,
+  reducers: {
+    login: (state) => {
+      state.isAuth = true;
+    },
+    logout: (state) => {
+      state.isAuth = false;
+    },
+  },
+});
+
+const store = configureStore({
+  // reducer: counterSlice.reducer,
+  reducer: {
+    counter: counterSlice.reducer,
+    auth: authSlice.reducer,
+  },
+});
+
+export const counterActions = counterSlice.actions;
+export const authActions = authSlice.actions;
+
+export default store;
 ```
 
 - dispatch action with `payload` with Redux Toolkit: payload is passed into reducer fn with a simple argument that is converter by Redux Toolkit to a `payload property`
@@ -259,6 +292,40 @@ const Counter = () => {
         <button onClick={decrementHandler}>Decrement</button>
       </div>
       <button onClick={toggleHandler}>Toggle</button>
+    </main>
+  );
+};
+```
+
+```JavaScript
+// components/Auth.js
+import { useDispatch } from 'react-redux';
+import { authActions } from '../store/index';
+
+const Auth = () => {
+  const dispatch = useDispatch();
+
+  const loginHandler = (e) => {
+    e.preventDefault();
+    // input validation ...
+    dispatch(authActions.login());
+  };
+
+  return (
+    <main>
+      <section>
+        <form onSubmit={loginHandler}>
+          <div>
+            <label htmlFor='email'>Email</label>
+            <input type='email' id='email' />
+          </div>
+          <div>
+            <label htmlFor='password'>Password</label>
+            <input type='password' id='password' />
+          </div>
+          <button>Login</button>
+        </form>
+      </section>
     </main>
   );
 };
