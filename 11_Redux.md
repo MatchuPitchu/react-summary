@@ -381,6 +381,7 @@ const Auth = () => {
 - then watch updated state with `useEffect` and perform async tasks or side-effect
 
 ```JavaScript
+// App.js
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 // ...
@@ -458,4 +459,123 @@ const App = () => {
     </>
   );
 };
+```
+
+### Async Tasks or side-effect with Action Creator Thunk
+
+- `thunk` is a function that delays an action until later
+  - in other words: an action creator fn that does NOT return the action itself but another fn which eventually returns the action
+  - so you can run some other code before dispatching the actual action object
+- use `Action Creator Thunk` to put logic into Redux Toolkit files
+  - for that take code of inside useEffect (look at example above) into your state slice file and create there your own action creator thunk that returns another fn
+  - `Redux Toolkit` accepts as argument for `dispatch()` also action creators that returns another fn
+  - Toolkit notices that and will execute that returned fn for you and gives you there automatically the `dispatch` parameter, so that you can dispatch actions in returned fn
+
+```JavaScript
+// App.js
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { sendCartData } from './store/cart-slice';
+import Notification from './components/UI/Notification';
+
+// avoid calling sendData fn in useEffect for first rendering
+let isInital = true;
+
+const App = () => {
+  const dispatch = useDispatch();
+
+  const cart = useSelector((state) => state.cart);
+  const notification = useSelector((state) => state.ui.notification);
+
+  useEffect(() => {
+    if (isInital) {
+      isInital = false;
+      return;
+    }
+    dispatch(sendCartData(cart));
+  }, [cart, dispatch]);
+
+  return (
+    <>
+      {notification && (
+        <Notification
+          status={notification.status}
+          title={notification.title}
+          message={notification.message}
+        />
+      )}
+
+      {/* ... */}
+
+    </>
+  );
+};
+```
+
+```JavaScript
+// store/cart-slice.js
+import { createSlice } from '@reduxjs/toolkit';
+import { uiActions } from './ui-slice';
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: {
+    items: [],
+    totalQuantity: 0,
+  },
+  reducers: { ... }
+});
+
+// create own action creator (default action creators are like cartActions.addItemToCart({...}))
+export const sendCartData = (cart) => {
+  return async (dispatch) => {
+    dispatch(
+      uiActions.showNotification({
+        status: 'pending',
+        title: 'Sending...',
+        message: 'Sending cart data',
+      })
+    );
+
+    const sendRequest = async () => {
+      const options = {
+        method: 'PUT', // overwriting existing data
+        body: JSON.stringify(cart),
+      };
+      // firebase test backend: 'cart.json' creates new cart node in database and store data there
+      const res = await fetch(
+        'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json',
+        options
+      );
+
+      if (!res.ok) throw new Error('Sending data failed.');
+    };
+
+    // catch all kinds of errors that could occur in this sendRequest fn
+    // and dispatch your wished succes or error action
+    try {
+      // sendRequest is async fn, that means it returns a Promise obj, so have to use await
+      await sendRequest();
+
+      dispatch(
+        uiActions.showNotification({
+          status: 'success',
+          title: 'Success',
+          message: 'Sent cart data successfully',
+        })
+      );
+    } catch (error) {
+      dispatch(
+        uiActions.showNotification({
+          status: 'error',
+          title: 'Error',
+          message: 'Sending data failed',
+        })
+      );
+    }
+  };
+};
+
+export const cartActions = cartSlice.actions;
+export default cartSlice.reducer;
 ```
