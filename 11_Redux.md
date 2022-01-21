@@ -168,6 +168,7 @@ import { useSelector, useDispatch } from 'react-redux';
 const Counter = () => {
   // hook returns dispatch fn for Redux store
   const dispatch = useDispatch();
+
   const counter = useSelector((state) => state.counter);
   const show = useSelector((state) => state.show);
 
@@ -197,7 +198,7 @@ const Counter = () => {
   - `reducers` key includes all reducers methods this slice needs;
     - all methods could have 2 parameters: `state`, `action`;
     - a) with this methods, you can dispatch actions without using if statements like in a "normal" reducer fn
-      - in fn body, you are allowed to mutate the state (-> normally NEVER DO IT) because Redux Toolkit
+      - in fn body, you are allowed to mutate the state (-> normally NEVER DO IT) because of Redux Toolkit
       - uses iternally `Immer` that detects when state should be mutated and clones existing state, keeps all the state that you are not editing and overwrites desired piece of state in an immutable way;
     - b) `createSlice` creates `action creator methods` for you that return `unique action identifiers` for different reducers
       - e.g. when you call later `counterSlice.actions.yourReducerName()`, Redux Toolkit returns an action obj of this shape: `{ type: 'some unique identifier' }`
@@ -294,6 +295,7 @@ import { counterActions } from '../store/counter';
 const Counter = () => {
   // hook returns dispatch fn for Redux store
   const dispatch = useDispatch();
+
   const counter = useSelector((state) => state.counter);
   const show = useSelector((state) => state.show);
 
@@ -346,6 +348,114 @@ const Auth = () => {
         </form>
       </section>
     </main>
+  );
+};
+```
+
+## Side Effects, Async Tasks and Redux
+
+- `Reducers` must be pure, side-effect free, synchronous functions: `Input(Old State + Action)` -> `Output (New State)`
+  - NEVER perform async code in the reducer (like sending HTTP Request)
+- side-effects and async tasks:
+  - can be put inside the components (e.g. `useEffect`) after global state was updated in Redux store
+  - replace default `action creators` of Redux Toolkit with your own ones
+
+### Frontend Code Depends on Backend Code
+
+1. One way to organize async tasks - `Backend does a lot of work`
+   - Backend API transforms data & stores data
+   - Frontend sends data & receives and uses response (i.e. less code on the frontend, ahead of the reducer)
+2. Another way to organize async tasks - `Backend does NOT a lot of work`
+   - Backend API just stores incoming data
+   - Frontend transforms data & sends data (i.e more code on the frontend, ahead of the reducer)
+
+### Fat Reducers vs Fat Components vs Fat Actions
+
+- Where should the logic code go?
+  - `Reducers + avoid Action Creators or Components`: when you have synchronous, side-effect free code (i.e. data transformations), then you typically chose Reducers
+  - `Action Creators or Components + never use Reducers`: when you have async code or code with side-effects
+
+### Async Tasks or side-effect with useEffect
+
+- first dispatch actions in any component as you want to update global state in redux store
+- then watch updated state with `useEffect` and perform async tasks or side-effect
+
+```JavaScript
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+// ...
+
+// avoid calling sendData fn in useEffect for first rendering
+let isInital = true;
+
+const App = () => {
+  const dispatch = useDispatch();
+
+  const cart = useSelector((state) => state.cart);
+  const notification = useSelector((state) => state.ui.notification);
+
+  useEffect(() => {
+    if (isInital) {
+      isInital = false;
+      return;
+    }
+
+    const sendData = async () => {
+      dispatch(
+        uiActions.showNotification({
+          status: 'pending',
+          title: 'Sending...',
+          message: 'Sending cart data',
+        })
+      );
+
+      const options = {
+        method: 'PUT', // overwriting existing data
+        body: JSON.stringify(cart),
+      };
+      // firebase test backend: 'cart.json' creates new cart node in database and store data there
+      const res = await fetch(
+        'https://firebasedatabase.app/cart.json',
+        options
+      );
+
+      if (!res.ok) throw new Error('Sending data failed.');
+
+      dispatch(
+        uiActions.showNotification({
+          status: 'success',
+          title: 'Success',
+          message: 'Sent cart data successfully',
+        })
+      );
+    };
+
+    // async fn returns a Promise: so you can catch all kinds of errors
+    // that could occur in this fn and dispatch your wished action
+    sendData().catch((_) => {
+      dispatch(
+        uiActions.showNotification({
+          status: 'error',
+          title: 'Error',
+          message: 'Sending data failed',
+        })
+      );
+    });
+  }, [cart]);
+
+  return (
+    <>
+      {notification && (
+        <Notification
+          status={notification.status}
+          title={notification.title}
+          message={notification.message}
+        />
+      )}
+
+      {/* ... */}
+
+    </>
   );
 };
 ```
