@@ -778,4 +778,4 @@ export default uiSlice.reducer;
   - `@@INIT` is first initialization of Redux store with default values
   - you receive a chronological list of dispatched actions with insights into the data that was transported by the action
   - you can test certain user path and play it later step by step to find and solve errors OR click on `jump` on a wished step to jump directly in history to this state point in the browser
-  - event `Jest` test templates are available
+  - even `Jest` test templates are available
