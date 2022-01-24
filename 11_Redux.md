@@ -510,7 +510,7 @@ const App = () => {
 };
 ```
 
-### Async Tasks or side-effect with Action Creator Thunk
+### Async Tasks or side-effect with Action Creator Thunk VERSION 1
 
 - `thunk` is a function that delays an action until later
   - in other words: an action creator fn that does NOT return the action itself but another fn which eventually returns the action
@@ -642,3 +642,140 @@ export const fetchCartData = () => {
   };
 };
 ```
+
+### Async Tasks or side-effect with Action Creator Thunk VERSION 2 (-> with createAsyncThunk)
+
+- Documentation: <https://redux-toolkit.js.org/api/createAsyncThunk>
+- By using `createAsyncThunk`, code in actions file becomes much shorter
+  - first arg passed to `createAsyncThunk` is a string identifier which will be used for automatically generated actions (see last point)
+  - second arg is basically the same code as in VERSION 1, but simplified since you don't have to handle errors there AND you don't need to dispatch any actions
+  - `React Toolkit automatically generates and dispatches actions` initially and when Promise resolves (which is returned from any async function in JS)
+    - names actions are generated from first arg: i.e. `cart/fetchData/pending`, or with additions `.../fulfilled`, `.../rejected`.
+
+```JavaScript
+// store/cart-actions.js
+import { createAsyncThunk } from '@reduxjs/toolkit';
+
+export const sendCartData = createAsyncThunk('cart/sendData', async (cart) => {
+  const options = {
+    method: 'POST',
+    body: JSON.stringify({ items: cart.items, totalQuantity: cart.totalQuantity }),
+  };
+  const res = await fetch(
+    'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json',
+    options
+  );
+  if (!res.ok) throw new Error('Sending data failed.');
+});
+
+export const fetchCartData = createAsyncThunk('cart/fetchData', async () => {
+  const res = await fetch(
+    'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json'
+  );
+  if (!res.ok) throw new Error('Error while fetching data');
+
+  const data = await res.json();
+  return {
+    items: data.items || [], // Firebase does NOT store empty data, so items is undefined when app is opened with empty cart
+    totalQuantity: data.totalQuantity,
+  };
+});
+```
+
+- in `createSlice` methods you can use automatically created actions
+- important: related methods have to be added in an `extraReducers object`, NOT in `reducers object`, since there a set of new actions would be created under the hood - and this work has already be done by `createAsyncThunk` above.
+- additional info: it would be no problem to use automatically generated actions, e.g. `fetchCartData.fulfilled` in `extraReducers` of multiple slices, like here in the cart slice and the ui slice (if needed).
+
+```JavaScript
+// store/cart-slice.js
+import { createSlice } from '@reduxjs/toolkit';
+import { fetchCartData } from './cart-actions';
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: {
+    items: [],
+    totalQuantity: 0,
+    changedLocally: false,
+  },
+  reducers: {
+    // remove replaceCart action of code V1
+    addItemToCart: (state, action) => {
+      /* look at code V1 */
+    },
+    removeItemFromCart: (state, action) => {
+      /* look at code V1 */
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(fetchCartData.fulfilled, (state, { payload: { totalQuantity, items } }) => {
+      state.items = items;
+      state.totalQuantity = totalQuantity;
+    });
+  },
+});
+
+export const cartActions = cartSlice.actions;
+export default cartSlice.reducer;
+```
+
+```JavaScript
+// store/ui-slice.js
+import { createSlice } from '@reduxjs/toolkit';
+import { fetchCartData, sendCartData } from './cart-actions';
+
+const uiSlice = createSlice({
+  name: 'ui',
+  initialState: { isCartVisible: false, notification: null },
+  reducers: {
+    toggle: (state) => {
+      /* look at code V1 */
+    },
+    // remove showNotifcation action of original code V1
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchCartData.rejected, (state, action) => {
+        state.notification = {
+          status: 'error',
+          title: 'Error',
+          message: action.error.message || 'Fetching data failed',
+        };
+      })
+      .addCase(sendCartData.pending, (state) => {
+        state.notification = {
+          status: 'pending',
+          title: 'Sending...',
+          message: 'Sending cart data',
+        };
+      })
+      .addCase(sendCartData.fulfilled, (state) => {
+        state.notification = {
+          status: 'success',
+          title: 'Success',
+          message: 'Sent cart data successfully',
+        };
+      })
+      .addCase(sendCartData.rejected, (state) => {
+        state.notification = {
+          status: 'error',
+          title: 'Error',
+          message: 'Sending data failed',
+        };
+      });
+  },
+});
+
+export const uiActions = uiSlice.actions;
+export default uiSlice.reducer;
+```
+
+## Redux DevTools
+
+- install as browser plugin: Firefox <https://addons.mozilla.org/de/firefox/addon/reduxdevtools/>
+- with `Redux Toolkit` no additional setup is required to make it run; open extra window simply in browser Dev Tools (-> `F12`)
+- some usefull information:
+  - `@@INIT` is first initialization of Redux store with default values
+  - you receive a chronological list of dispatched actions with insights into the data that was transported by the action
+  - you can test certain user path and play it later step by step to find and solve errors OR click on `jump` on a wished step to jump directly in history to this state point in the browser
+  - event `Jest` test templates are available
