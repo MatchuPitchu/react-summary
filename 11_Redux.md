@@ -375,6 +375,60 @@ const Auth = () => {
   - `Reducers + avoid Action Creators or Components`: when you have synchronous, side-effect free code (i.e. data transformations), then you typically chose Reducers
   - `Action Creators or Components + never use Reducers`: when you have async code or code with side-effects
 
+### Example of State Slices For Following Sections
+
+```JavaScript
+// store/cart-slice.js
+import { createSlice } from '@reduxjs/toolkit';
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: {
+    items: [],
+    totalQuantity: 0,
+    // helper variable to avoid that - when opening app - fetched cart data is immediately sended back to server
+    changedLocally: false,
+  },
+  reducers: {
+    replaceCart: (state, { payload: { totalQuantity, items } }) => {
+      state.totalQuantity = totalQuantity;
+      state.items = items;
+    },
+    addItemToCart: (state, { payload: { id, title, price } }) => {
+      state.totalQuantity++;
+      state.changedLocally = true;
+
+      const existingItem = state.items.find((item) => item.id === id);
+      // following manipulating of existing state would be NO GO without Redux Toolkit
+      if (!existingItem) {
+        state.items.push({
+          id,
+          title,
+          price,
+          quantity: 1,
+        });
+      } else {
+        existingItem.quantity++;
+      }
+    },
+    removeItemFromCart: (state, { payload: id }) => {
+      state.totalQuantity--;
+      state.changedLocally = true;
+
+      const existingItem = state.items.find((item) => item.id === id);
+      if (existingItem.quantity === 1) {
+        state.items = state.items.filter((item) => item.id !== id);
+      } else {
+        existingItem.quantity--;
+      }
+    },
+  },
+});
+
+export const cartActions = cartSlice.actions;
+export default cartSlice.reducer;
+```
+
 ### Async Tasks or side-effect with useEffect
 
 - first dispatch actions in any component as you want to update global state in redux store
@@ -386,9 +440,6 @@ import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 // ...
 
-// avoid calling sendData fn in useEffect for first rendering
-let isInital = true;
-
 const App = () => {
   const dispatch = useDispatch();
 
@@ -396,10 +447,8 @@ const App = () => {
   const notification = useSelector((state) => state.ui.notification);
 
   useEffect(() => {
-    if (isInital) {
-      isInital = false;
-      return;
-    }
+    // avoid calling sendData fn in useEffect for first rendering, is only called after action of user
+    if (!cart.changedLocally) return;
 
     const sendData = async () => {
       dispatch(
@@ -475,11 +524,8 @@ const App = () => {
 // App.js
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { sendCartData } from './store/cart-slice';
+import { sendCartData, fetchCartData } from './store/cart-actions';
 import Notification from './components/UI/Notification';
-
-// avoid calling sendData fn in useEffect for first rendering
-let isInital = true;
 
 const App = () => {
   const dispatch = useDispatch();
@@ -488,12 +534,14 @@ const App = () => {
   const notification = useSelector((state) => state.ui.notification);
 
   useEffect(() => {
-    if (isInital) {
-      isInital = false;
-      return;
-    }
-    dispatch(sendCartData(cart));
+    // only if data was changed locally, send HTTP request
+    if (cart.changedLocally) dispatch(sendCartData(cart));
   }, [cart, dispatch]);
+
+  // fetch cart data from backend when app is mounted
+  useEffect(() => {
+    dispatch(fetchCartData());
+  }, [dispatch]);
 
   return (
     <>
@@ -513,18 +561,9 @@ const App = () => {
 ```
 
 ```JavaScript
-// store/cart-slice.js
-import { createSlice } from '@reduxjs/toolkit';
+// store/cart-actions.js
 import { uiActions } from './ui-slice';
-
-const cartSlice = createSlice({
-  name: 'cart',
-  initialState: {
-    items: [],
-    totalQuantity: 0,
-  },
-  reducers: { ... }
-});
+import { cartActions } from './cart-slice';
 
 // create own action creator (default action creators are like cartActions.addItemToCart({...}))
 export const sendCartData = (cart) => {
@@ -543,10 +582,7 @@ export const sendCartData = (cart) => {
         body: JSON.stringify(cart),
       };
       // firebase test backend: 'cart.json' creates new cart node in database and store data there
-      const res = await fetch(
-        'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json',
-        options
-      );
+      const res = await fetch('https://firebasedatabase.app/cart.json', options);
 
       if (!res.ok) throw new Error('Sending data failed.');
     };
@@ -576,6 +612,33 @@ export const sendCartData = (cart) => {
   };
 };
 
-export const cartActions = cartSlice.actions;
-export default cartSlice.reducer;
+export const fetchCartData = () => {
+  return async (dispatch) => {
+    const fetchData = async () => {
+      const res = await fetch('https://firebasedatabase.app/cart.json');
+      if (!res.ok) throw new Error('Error while fetching data');
+
+      const data = await res.json();
+      return data;
+    };
+
+    try {
+      const { items, totalQuantity } = await fetchData();
+      dispatch(
+        cartActions.replaceCart({
+          items: items || [], // Firebase does NOT store empty data, so items is undefined when app is opened with empty cart
+          totalQuantity,
+        })
+      );
+    } catch (err) {
+      dispatch(
+        uiActions.showNotification({
+          status: 'error',
+          title: 'Error',
+          message: 'Fetching data failed',
+        })
+      );
+    }
+  };
+};
 ```
