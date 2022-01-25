@@ -1,16 +1,14 @@
 # React
 
-> React Documentation: https://reactjs.org/
-
-> React Repo for creating an new React App: https://github.com/facebook/create-react-app
-
-> Academind GitHub Repo of the course: https://github.com/academind/react-complete-guide-code/tree/master
+> React Documentation: <https://reactjs.org/>
+> React Repo for creating an new React App: <https://github.com/facebook/create-react-app>
+> Academind GitHub Repo of the course: <https://github.com/academind/react-complete-guide-code/tree/master>
 
 - client-side JS library four building reactive user interfaces
 - Traditionally, in web apps, you click a link and wait for a new page to load. You click a button and wait for some action to complete. In React, you don't wait for new pages to load or actions to start
 - with JS you can manipulate HTML structure (DOM) of a page -> that allows to change what user sees without sending a request to the server and waiting for new fetched HTML page
 
-# Vanilla JavaScript vs ReactJS
+## Vanilla JavaScript vs ReactJS
 
 - with Vanilla JS I have to give clear step-by-step instructions to JS, that means decribe every single step of a functionality (-> called `imperative approach`) which reaches its limits at some point AND developer has to take care of all details and has to do repetitive tasks
 
@@ -23,9 +21,9 @@
 
 - in React basic steps are done by the library; the developer describes rather on a higher level the end result of what should be displayed on the screen, in other words the desired target state(s), and React will figure out the actual JS DOM instructions (-> called `declarative approach`); in React the code of one application is splitted in multiple small components that are responsible for one clear task; so code stays maintainable and manageable; React library is doing the rendering and combining of the code
 
-# React - How it works
+## React - How it works
 
-## Virtual DOM & DOM Updates
+### Virtual DOM & DOM Updates
 
 - React `virtual DOM` determines how the component tree currently looks like and what it should look like after a state update
 - the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see)
@@ -51,80 +49,95 @@
   </div>
   ```
 
-- use `React.memo()` to avoid unnessecary re-execution of a component
+#### `React.memo()` to avoid unnessecary re-execution of a component
 
-  - then component is only re-executed if props really changed and have new values -> works well with `primitive values`
+- then component is only re-executed if props really changed and have new values -> works well with `primitive values`
 
-  - for `reference values` like objects/functions/arrays that you pass as props to child components comparison doesn't work, because with every re-execution the obj/fn/arr is recreated and so references are new and cannot be compared -> solution `useCallback Hook`
+- for `reference values` like objects/functions/arrays that you pass as props to child components comparison doesn't work, because with every re-execution the obj/fn/arr is recreated and so references are new and cannot be compared -> solution `useCallback Hook`
 
-  - Note: DON'T use React.memo() on every component; memo costs also performance because
-    React has to store prev state and compare it with current; to cut of a branch and avoid unnecessary re-render cylces on the entire branch, it's recommanded if:
-    - hugh component tree AND
-    - rare changes of props AND
-    - on a high level in the tree
+- Note: DON'T use React.memo() on every component; memo costs also performance because
+  React has to store prev state and compare it with current; to cut of a branch and avoid unnecessary re-render cylces on the entire branch
+- `<Component>` could be wrapped in `React.memo()` if:
+  - it is a `pure functional component`, i.e. `<Component>` renders same output, if same props are passed
+  - it renders often
+  - it re-renders usually provided with the same props
+  - it has medium to big size, i.e. it contains a decent amount of UI elements to reason props equality check
+  - you have a hugh component tree
+  - it is on a high level in the tree
+- `Custom equality check of props`:
 
-  ```JavaScript
-  // Examples - App.js
-  const App = () => {
-    const [show, setShow] = useState(false);
-    const [enable, setEnable] = useState(false);
+  - by default `React.memo()` does shallow comparison of props and objects of props
+  - to customize props comparison, use second argument to indicate an equality check function; `areEqual(prevProps, nextProps)` function must return true if `prevProps` and `nextProps` are equal.
 
-    const toggleBtn = useCallback(() => {
-      if (enable) setShow(prev => !prev);
-    }, [enable]);
+    ```JavaScript
+    const propsAreEqual = (prevProps, nextProps) => {
+      return prevProps.name === nextProps.name && prevProps.id === nextProps.id;
+    }
+    React.memo(Component, propsAreEqual);
+    ```
 
-    const enableToggleBtn = useCallback(() => {
-      setEnable(true);
-    }, []);
+```JavaScript
+// Examples - App.js
+const App = () => {
+  const [show, setShow] = useState(false);
+  const [enable, setEnable] = useState(false);
 
-    console.log('APP Component running');
+  const toggleBtn = useCallback(() => {
+    if (enable) setShow(prev => !prev);
+  }, [enable]);
 
-    return (
-      <div>
-        {/* 1) conditional <p> in same component:
-        <div> parent node flashes, i.e. is updated after removing;
-        <p> node flashes, i.e. is added to real DOM after clicking toggle */}
-        {/* {show && <p>New line!</p>} */}
+  const enableToggleBtn = useCallback(() => {
+    setEnable(true);
+  }, []);
 
-        {/* 2) conditional rendering <p> in child component using props:
-        in my case <p> always stays in real DOM tree, so only <p> flashes;
-        beside child component, also App component is re-evaluated because
-        here state is managed */}
-        <Demo show={show} />
+  console.log('APP Component running');
 
-        {/* 3) hard coded prop value (-> primitive value):
-        if click Toggle, nevertheless all child components along the node tree are
-        re-executed because state changes and the following re-evaluation of this component includes the return statement with <Demo /> etc. -> child components are
-        then like fn that are re-evaluated too, BUT NO updates in real DOM are
-        triggered because of NO changes */}
-        {/* 4) React.memo() to avoid unnecessary re-evaluation:
-        tell React only to re-evaluate child component if prop changes;
-        wrap child component in React.memo() -> export default React.memo(Demo);
-        then React looks at props that this component gets and compares current
-        value(s) to prev value(s) and if no changes then no re-evaluation of all child components */}
-        {/* <Demo show={false} /> */}
+  return (
+    <div>
+      {/* 1) conditional <p> in same component:
+      <div> parent node flashes, i.e. is updated after removing;
+      <p> node flashes, i.e. is added to real DOM after clicking toggle */}
+      {/* {show && <p>New line!</p>} */}
 
-        {/* 5) React.memo() in a child component with fn as props (-> reference value):
-        memo() has no cut off branch effect because on every re-execution
-        of the App Component, toggleBtn fn is newly recreated;
-        solution: useCallback Hook that stores a function in React internal storage across
-        component execution / re-evaluation -> so fn is NOT recreated with every execution and remains the same for JS */}
-        <Button onClick={enableToggleBtn}>Enable Toggle Button</Button>
-        <Button onClick={toggleBtn}>Toggle</Button>
-      </div>
-    );
-  };
+      {/* 2) conditional rendering <p> in child component using props:
+      in my case <p> always stays in real DOM tree, so only <p> flashes;
+      beside child component, also App component is re-evaluated because
+      here state is managed */}
+      <Demo show={show} />
 
-  // Demo.js
-  const Demo = ({ show }) => {
-    console.log('DEMO Component running');
-    return <Paragraph>{show ? 'New line!' : ''}</Paragraph>;
-  };
+      {/* 3) hard coded prop value (-> primitive value):
+      if click Toggle, nevertheless all child components along the node tree are
+      re-executed because state changes and the following re-evaluation of this component includes the return statement with <Demo /> etc. -> child components are
+      then like fn that are re-evaluated too, BUT NO updates in real DOM are
+      triggered because of NO changes */}
+      {/* 4) React.memo() to avoid unnecessary re-evaluation:
+      tell React only to re-evaluate child component if prop changes;
+      wrap child component in React.memo() -> export default React.memo(Demo);
+      then React looks at props that this component gets and compares current
+      value(s) to prev value(s) and if no changes then no re-evaluation of all child components */}
+      {/* <Demo show={false} /> */}
 
-  export default React.memo(Demo); // for 4) in App.js
-  ```
+      {/* 5) React.memo() in a child component with fn as props (-> reference value):
+      memo() has no cut off branch effect because on every re-execution
+      of the App Component, toggleBtn fn is newly recreated;
+      solution: useCallback Hook that stores a function in React internal storage across
+      component execution / re-evaluation -> so fn is NOT recreated with every execution and remains the same for JS */}
+      <Button onClick={enableToggleBtn}>Enable Toggle Button</Button>
+      <Button onClick={toggleBtn}>Toggle</Button>
+    </div>
+  );
+};
 
-## State & State Updates
+// Demo.js
+const Demo = ({ show }) => {
+  console.log('DEMO Component running');
+  return <Paragraph>{show ? 'New line!' : ''}</Paragraph>;
+};
+
+export default React.memo(Demo); // for 4) in App.js
+```
+
+### State & State Updates
 
 - React manages the state for you
 - when using useState() Hook, the default variable (like `false` in `useState(false)`) is stored internally by React and even if component is re-executed useState() is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
@@ -143,12 +156,12 @@
   }
   ```
 
-# Building Single-Page Applications (SPAs) with React
+## Building Single-Page Applications (SPAs) with React
 
 1. React can be used to control parts of HTML pages or entire pages (e.g. a sidebar) called widget approcach on a multi-page-app
 2. React can also be used to control the entire frontend of a web app called SPA approach (-> server only sends one HTML page, React takes over and controls UI)
 
-# React Components
+## React Components
 
 - components are a combination of HTML (structure), CSS (styling) and JavaScript (logic) code
 - components are reusable building blocks that allows a separation of concerns
@@ -239,7 +252,7 @@
   }
   ```
 
-# Rerendering of Components
+## Rerendering of Components
 
 - every state update with the setState function triggers a rerendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
 - that means with a reexecution of this instance, `const title` is assigned to the value that was updated before
@@ -254,7 +267,7 @@
     };
   ```
 
-# Two-way binding
+## Two-way binding
 
 - that means that you fetch data (e.g. of a form) and save it in a state variable when an input changes or is submitted AND at the same time this input has a value attribute which is binded to the state variable
 
@@ -288,7 +301,7 @@
 
 - when both the value as well as changes to the value are not handled in the component itself, but in the parent component, then this child component is called `controlled component`(-> which uses two-way binding)
 
-# Styling Components
+## Styling Components
 
 - create CSS file with same name as JS file
 - import css file into component
@@ -390,7 +403,7 @@
     `
     ```
 
-# Concept of "Composition" (-> "children props")
+## Concept of "Composition" (-> "children props")
 
 - when you have components with some identical CSS rules, you can build a wrapper container with the extracted wished CSS rules that should apply in general on multiple components
 
@@ -475,7 +488,7 @@
   }
   ```
 
-# JSX - How it's working under the hood
+## JSX - How it's working under the hood
 
 ```JavaScript
 // JSX return
@@ -502,7 +515,7 @@ const App = () => {
 }
 ```
 
-# React Portals of ReactDOM library
+## React Portals of ReactDOM library
 
 - Example of deeply nested React Component `<MyModal />`
 
