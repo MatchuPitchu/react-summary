@@ -419,169 +419,171 @@ const Login = ({ onLogin }) => {
 
 ## Context API & useContext Hook
 
-- context is a component-wide state storage
+- `Context` is a component-wide state storage
+- performance: `Context` is not optimized for high-frequency state changes, that means, every (!) component that uses `useContext()` will re-render when a state changes in the `Context`
 
-- a) basic context setup:
+### a) Basic Context Setup
 
-  - a basic context where I can pass data and functions to other components
-
-    ```JavaScript
-    // AuthContext.js
-    import { createContext } from 'react';
-
-    // initialize context with default data obj to have better autocompletion in VSC;
-    // later import { AuthContext } in all components where you need context data
-    export const AuthContext = createContext({
-      isLoggedIn: false,
-      onLogout: () => {},
-    });
-    ```
-
-  - provide context: wrap in JSX code all components that should be able to listen to the context
-
-    ```JavaScript
-    // App.js
-    import AuthContext from './context/AuthContext';
-    // ...
-    const App = () => {
-      const [isLoggedIn, setIsLoggedIn] = useState(false);
-      // ... component logic
-      const logoutHandler = () => {
-        // ...
-      };
-
-      return (
-        <AuthContext.Provider
-          // all variables and functions listed here are available in all children components
-          value={{
-            isLoggedIn, // shorthand to "isLoggedIn: isLoggedIn", etc.
-            logoutHandler
-          }}
-        >
-          <MyComponent/>
-          <main>
-            <AnotherComponent />
-            <Home />
-          </main>
-        </AuthContext.Provider>
-      );
-    }
-    ```
-
-- b) recommanded and more complex context setup: to pull out more logic out of specific components and create a separate context management component
-
-  - hint: you can create a custom hook which returns context data object -> to avoid importing the Context in every other component file where you're using it
-  - context file:
-
-    ```JavaScript
-    // AuthContext.js
-    import { useState, useEffect, createContext } from 'react';
-
-    // initialize context with default data obj to have better autocompletion in VSC;
-    // later import { AuthContext } in all components where you need context data (OR use directly custom hook below)
-    export const AuthContext = createContext({
-      isLoggedIn: false,
-      onLogout: () => {},
-      onLogin: (email, password) => {},
-    });
-
-    // custom hook to check whether you are inside a provider AND it returns context data object
-    export const useAuthContext = () => {
-      const context = useContext(AuthContext);
-      if (!context) throw new Error('useAuthContext must be used within AuthContextProvider');
-      return context;
-    };
-
-    // create context component and export it as the default export;
-    // now I can use useState etc. and insert more logic into this component
-    const AuthContextProvider = ({ children }) => {
-      const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-      useEffect(() => {
-        setIsLoggedIn(true);
-      }, []);
-
-      const logoutHandler = () => {
-        // ... logout logic
-        setIsLoggedIn(false);
-      };
-
-      const loginHandler = (email, password) => {
-        // ... login logic
-        setIsLoggedIn(true);
-      };
-
-      return (
-        <AuthContext.Provider
-          value={{
-            isLoggedIn, // shorthand for "isLoggedIn: isLoggedIn", etc.
-            logoutHandler,
-            loginHandler,
-          }}
-        >
-          {children}
-        </AuthContext.Provider>
-      );
-    };
-
-    export default AuthContextProvider;
-    ```
-
-  - provide context: wrapp whole app into context provider component to make context accessible to all children components
-
-    ```JavaScript
-    // index.js
-    import ReactDOM from 'react-dom';
-    import AuthContextProvider from './context/AuthContext';
-    import App from './App';
-    import './index.css';
-
-    ReactDOM.render(
-      <AuthContextProvider>
-        <App />
-      </AuthContextProvider>,
-      document.getElementById('root')
-    );
-    ```
-
-- a + b) consume (or listen) to the context with useContext
+- a basic context where I can pass data and functions to other components
 
   ```JavaScript
-  import { useContext } from 'react';
-  import { AuthContext } from '../../context/AuthContext';
+  // AuthContext.js
+  import { createContext } from 'react';
 
-  const Navigation = () => {
-    // pass the pointer to the context obj into useContext
-    // create variables with destructuring;
-    // with useContext Hook, component will be reevaluate when context changes
-    const { isLoggedIn, logoutHandler } = useContext(AuthContext);
+  // initialize context with default data obj to have better autocompletion in VSC;
+  // later import { AuthContext } in all components where you need context data
+  export const AuthContext = createContext({
+    isLoggedIn: false,
+    onLogout: () => {},
+  });
+  ```
+
+- provide context: wrap in JSX code all components that should be able to listen to the context
+
+  ```JavaScript
+  // App.js
+  import AuthContext from './context/AuthContext';
+  // ...
+  const App = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    // ... component logic
+    const logoutHandler = () => {
+      // ...
+    };
 
     return (
-      <nav>
-        <ul>
-          {isLoggedIn && (
-            <li>
-              <button onClick={logoutHandler}>Logout</button>
-            </li>
-          )}
-        </ul>
-      </nav>
+      <AuthContext.Provider
+        // all variables and functions listed here are available in all children components
+        value={{
+          isLoggedIn, // shorthand to "isLoggedIn: isLoggedIn", etc.
+          logoutHandler
+        }}
+      >
+        <MyComponent/>
+        <main>
+          <AnotherComponent />
+          <Home />
+        </main>
+      </AuthContext.Provider>
+    );
+  }
+  ```
+
+### b) Recommanded and more complex Context Setup: to pull out more logic out of specific components and create a separate context management component
+
+- hint: you can create a custom hook which returns context data object -> to avoid importing the Context in every other component file where you're using it
+- context file:
+
+  ```JavaScript
+  // AuthContext.js
+  import { useState, useEffect, createContext } from 'react';
+
+  // initialize context with default data obj to have better autocompletion in VSC;
+  // later import { AuthContext } in all components where you need context data (OR use directly custom hook below)
+  export const AuthContext = createContext({
+    isLoggedIn: false,
+    onLogout: () => {},
+    onLogin: (email, password) => {},
+  });
+
+  // custom hook to check whether you are inside a provider AND it returns context data object
+  export const useAuthContext = () => {
+    const context = useContext(AuthContext);
+    if (!context) throw new Error('useAuthContext must be used within AuthContextProvider');
+    return context;
+  };
+
+  // create context component and export it as the default export;
+  // now I can use useState etc. and insert more logic into this component
+  const AuthContextProvider = ({ children }) => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+      setIsLoggedIn(true);
+    }, []);
+
+    const logoutHandler = () => {
+      // ... logout logic
+      setIsLoggedIn(false);
+    };
+
+    const loginHandler = (email, password) => {
+      // ... login logic
+      setIsLoggedIn(true);
+    };
+
+    return (
+      <AuthContext.Provider
+        value={{
+          isLoggedIn, // shorthand for "isLoggedIn: isLoggedIn", etc.
+          logoutHandler,
+          loginHandler,
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
     );
   };
 
-  export default Navigation;
+  export default AuthContextProvider;
   ```
 
-- context vs props
-  - in short: props for configuration, context for state management accross components or the entire app
-  - props
-    - in most cases, use props to pass data to components, because props let you configure components and make them reusable
-    - if you have smth that you will adapt often, like a button that you use in different situations and so you should be more flexible
-  - context
-    - if you have smth which you would forward to lots of components AND you are forwarding it to a component that does smth very specific or unique (-> like the navigation)
-    - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then Redux is option
-  - React Context shouldn't be used to replace ALL component communications and props
-  - a component should still be configurable via props AND short "prop chains" might not need any replacement
+### Provide Context: wrapp whole app into context provider component to make context accessible to all children components
+
+```JavaScript
+// index.js
+import ReactDOM from 'react-dom';
+import AuthContextProvider from './context/AuthContext';
+import App from './App';
+import './index.css';
+
+ReactDOM.render(
+  <AuthContextProvider>
+    <App />
+  </AuthContextProvider>,
+  document.getElementById('root')
+);
+```
+
+### a + b) Consume (or Listen) to the Context with useContext
+
+```JavaScript
+import { useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
+
+const Navigation = () => {
+  // pass the pointer to the context obj into useContext
+  // create variables with destructuring;
+  // with useContext Hook, component will be reevaluate when context changes
+  const { isLoggedIn, logoutHandler } = useContext(AuthContext);
+
+  return (
+    <nav>
+      <ul>
+        {isLoggedIn && (
+          <li>
+            <button onClick={logoutHandler}>Logout</button>
+          </li>
+        )}
+      </ul>
+    </nav>
+  );
+};
+
+export default Navigation;
+```
+
+### Context vs Props
+
+- in short: props for configuration, context for state management accross components or the entire app
+- props
+  - in most cases, use props to pass data to components, because props let you configure components and make them reusable
+  - if you have smth that you will adapt often, like a button that you use in different situations and so you should be more flexible
+- context
+  - if you have smth which you would forward to lots of components AND you are forwarding it to a component that does smth very specific or unique (-> like the navigation)
+  - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then Redux is option
+- React Context shouldn't be used to replace ALL component communications and props
+- a component should still be configurable via props AND short "prop chains" might not need any replacement
 
 ## Custom Hooks
 

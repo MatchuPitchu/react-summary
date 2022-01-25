@@ -48,7 +48,7 @@
   }
   ```
 
-- performance: `Context` is not optimized for high-frequency state changes
+- performance: `Context` is not optimized for high-frequency state changes, that means, every (!) component that uses `useContext()` will re-render when a state changes in the `Context`
 
 ## Core Concepts Redux
 
