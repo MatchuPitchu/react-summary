@@ -268,7 +268,7 @@ export const authActions = authSlice.actions;
 export default authSlice.reducer;
 ```
 
-```JavaScript
+```TypeScript
 // store/index.js
 import { configureStore } from '@reduxjs/toolkit';
 import counterReducer from './counter';
@@ -283,6 +283,10 @@ const store = configureStore({
 });
 
 export default store;
+
+// TypeScript specific
+export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>
 ```
 
 - dispatch action with `payload` with Redux Toolkit: payload is passed into reducer fn with a simple argument that is converter by Redux Toolkit to a `payload property`
@@ -510,7 +514,7 @@ const App = () => {
 };
 ```
 
-### Async Tasks or side-effect with Action Creator Thunk VERSION 1
+### Async Tasks or side-effect VARIANT 1: Action Creator Thunk
 
 - `thunk` is a function that delays an action until later
   - in other words: an action creator fn that does NOT return the action itself but another fn which eventually returns the action
@@ -643,7 +647,7 @@ export const fetchCartData = () => {
 };
 ```
 
-### Async Tasks or side-effect with Action Creator Thunk VERSION 2 (-> with createAsyncThunk)
+### Async Tasks or side-effect VARIANT 2: Action Creator Thunk with createAsyncThunk
 
 - Documentation: <https://redux-toolkit.js.org/api/createAsyncThunk>
 - By using `createAsyncThunk`, code in actions file becomes much shorter
@@ -683,7 +687,7 @@ export const fetchCartData = createAsyncThunk('cart/fetchData', async () => {
 ```
 
 - in `createSlice` methods you can use automatically created actions
-- important: related methods have to be added in an `extraReducers object`, NOT in `reducers object`, since there a set of new actions would be created under the hood - and this work has already be done by `createAsyncThunk` above.
+- `extraReducers` object: related methods have to be added in an `extraReducers object`, NOT in `reducers object`, since there a set of new actions would be created under the hood - and this work has already be done by `createAsyncThunk` above.
 - additional info: it would be no problem to use automatically generated actions, e.g. `fetchCartData.fulfilled` in `extraReducers` of multiple slices, like here in the cart slice and the ui slice (if needed).
 
 ```JavaScript
@@ -769,6 +773,145 @@ const uiSlice = createSlice({
 export const uiActions = uiSlice.actions;
 export default uiSlice.reducer;
 ```
+
+### Async Tasks or side-effect VARIANT 3: React Toolkit Query
+
+- Documentation: <https://redux-toolkit.js.org/rtk-query/overview>
+- data fetching and caching logic is built on top of Redux Toolkit's `createSlice` and `createAsyncThunk` APIs
+- can generate React hooks that encapsulate the entire data fetching process, provide `data` and `isLoading` fields to components, and `manage the lifetime of cached data` as components mount and unmount
+- `createApi()`
+  - allows to define set of endpoints, describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data
+  - notice: in most cases, use it `once per app`, with `one API slice per base URL`
+- `fetchBaseQuery()`
+  - small wrapper around fetch to simplify requests
+  - recommended `baseQuery` to be used in `createApi`
+
+#### Create an API Slice
+
+```TypeScript
+// Create an API Slice
+// store/cart-api-slice.ts
+// RTK Query: Create an API Slice
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+interface Item {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
+}
+
+interface Cart {
+  totalQuantity: number;
+  items: Item[];
+}
+
+// Define a service using a base URL and expected endpoints
+export const cartApi = createApi({
+  reducerPath: 'cartApi',
+  // built-in fetch wrapper
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app',
+  }),
+  tagTypes: ['Cart'], // define tag(s) which can trigger an action
+  endpoints: (builder) => {
+    return {
+      // in angle brackets, define return type generics a) for API response and
+      // b) for arguments that are passed into fn
+      getCart: builder.query<Cart, string | void>({
+        query: (WISHED_QUERY_PARAM_TO_ADD) => '/cart.json',
+        providesTags: ['Cart'],
+      }),
+      // mutation method is for updating data
+      updateCart: builder.mutation<Cart, Partial<Cart>>({
+        query: (cart) => ({
+          url: '/cart.json',
+          method: 'PUT',
+          body: JSON.stringify({ items: cart.items, totalQuantity: cart.totalQuantity }),
+        }),
+        invalidatesTags: ['Cart'], // this triggers re-fetching of getCart
+      }),
+    };
+  },
+});
+
+// automatically generated query hook
+export const { useGetCartQuery, useUpdateCartMutation } = cartApi;
+
+```
+
+#### Configure the Store
+
+- `API slice` (-> here const `cartApi`) contains an auto-generated Redux slice reducer and a custom middleware that manages subscription lifetimes; add both to Redux store
+
+```TypeScript
+// store/index.ts
+import { configureStore } from '@reduxjs/toolkit';
+import uiSliceReducer from './ui-slice';
+import cartSliceReducer from './cart-slice';
+// Variant with RTK Query
+import { cartApi } from './cart-api-slice';
+
+const store = configureStore({
+  reducer: {
+    ui: uiSliceReducer,
+    cart: cartSliceReducer,
+    // Add generated reducer as a specific top-level slice
+    [cartApi.reducerPath]: cartApi.reducer,
+  },
+  // Adding api middleware enables caching, invalidation, polling,
+  // and other useful features of RTK Query
+  middleware: (getDefaultMiddleware) => {
+    return getDefaultMiddleware().concat(cartApi.middleware);
+  },
+});
+
+export default store;
+
+// TypeScript specific
+export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>;
+```
+
+#### Use Hooks in Components
+
+- call auto-generated hook in component with any needed parameters
+- RTK Query automatically fetches data on mount, re-fetch when parameters change, provide `{ data, isFetching }` values in the result, and re-render the component as those values change
+
+```TypeScript
+import { useGetCartQuery, useUpdateCartMutation } from './store/cart-api-slice';
+
+const App = () => {
+  // query hook automatically fetches data and returns query values
+    const {
+    data = { totalQuantity: 0, items: [] },
+    error,
+    isFetching,
+    isLoading,
+    isSuccess,
+    isError,
+  } = useGetCartQuery();
+
+  const [
+    updateCart, // mutation trigger fn
+    { isLoading: isUpdating }, // destructured mutation result (see in doc)
+  ] = useUpdateCartMutation();
+
+  useEffect(() => {
+    // only if data was changed locally, send HTTP request
+    if (cart.changedLocally) updateCart(cart);
+  }, [cart, updateCart]);
+
+  return (
+    // ...
+  )
+}
+
+```
+
+## React Redux with TypeScript
+
+- Documentation: <https://redux.js.org/usage/usage-with-typescript>
 
 ## Redux DevTools
 
