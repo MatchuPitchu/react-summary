@@ -193,7 +193,7 @@ export default React.memo(Demo); // for 4) in App.js
 
 - JSX return of a component can only be one element, so React JSX requires one wrapper element
 
-  - problem: with lots of nested components, you could end with lots of unnecessary <div>'s (or other elements) which slow down the rendering performance and add no semantic meaning or structure to the page but are only there because of React's/JSX requirement
+  - problem: with lots of nested components, you could end with lots of unnecessary `<div>`'s (or other elements) which slow down the rendering performance and add no semantic meaning or structure to the page but are only there because of React's/JSX requirement
 
   ```JavaScript
   return (
