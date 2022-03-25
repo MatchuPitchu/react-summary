@@ -420,7 +420,7 @@ const Login = ({ onLogin }) => {
 ## Context API & useContext Hook
 
 - `Context` is a component-wide state storage
-- performance: `Context` is not optimized for high-frequency state changes, that means, every (!) component that uses `useContext()` will re-render when a state changes in the `Context`
+- performance: `Context` is not optimized for high-frequency state changes, that means, EVERY (!) component that uses `useContext()` will re-render when a state changes in the `Context`
 
 ### a) Basic Context Setup
 
