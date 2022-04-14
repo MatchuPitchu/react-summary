@@ -274,6 +274,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import counterReducer from './counter';
 import authReducer from './auth';
 
+// optional: use combineReducers() of reduxjs/toolkit to create reducers obj with reducers of multiple slices
+// then you can insert this obj below
+// const reducers = combineReducers({
+//  counter: counterSlice.reducer,
+//  auth: authSlice.reducer,
+//} 
+
 const store = configureStore({
   // reducer: counterSlice.reducer,
   reducer: {
