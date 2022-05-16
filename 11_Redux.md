@@ -156,7 +156,28 @@ ReactDOM.render(
     - pass in an anonymous fn that determines which piece of state you want to extract from store;
     - with useSelector, `subscription` is automatically set up to the store for this component;
     - if component will be unmounted, subscription is also cleared automatically
-    - if state changes, new state is returned automatically and leads to re-evaluation of component
+    - if state changes (since action was triggered via `dispatch()`), new state is returned automatically:
+      - a) in case of primitive values, that are returned from `useSelector`, this leads only to re-evaluation of component if value was changed
+      - b) in case of non-primitive values, this leads always to re-evalution of component, even if object has same content (because of strict `===` reference equality checks)
+        - in `Redux Toolkit` you can use `createSelector()` to memoize the selector (otherwise a new instance of the selector is created whenever the component is rendered);
+        - 2 advantages: 1) selector fn is memoized and so a returned non-primitive value would succeed the equality check; 2) when you have performance intensive tasks, this doesn't have to be done again until the state changed
+
+        ```TypeScript
+        // https://react-redux.js.org/api/hooks
+        import { createSelector } from 'reselect'
+
+        const selectNumCompletedTodos = createSelector(
+          (state: Rootstate) => state.todos,
+          // return of first arg of createSelector is first parameter of snd arg ... and so on, return of snd arg could be first parameter of third arg ... 
+          (todos) => todos.filter((todo) => todo.completed).length
+        )
+
+        export const CompletedTodosCounter = () => {
+          const numCompletedTodos = useSelector(selectNumCompletedTodos)
+          return <div>{numCompletedTodos}</div>
+        }
+        ```
+
   - `useStore`: select whole store
 - retrieve dispatch function with help of `useDispatch` hook
   - dispatch fn receives action object that can contain an action type property and a payload property
