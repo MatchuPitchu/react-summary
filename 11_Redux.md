@@ -159,8 +159,32 @@ ReactDOM.render(
     - if state changes (since action was triggered via `dispatch()`), new state is returned automatically:
       - a) in case of primitive values, that are returned from `useSelector`, this leads only to re-evaluation of component if value was changed
       - b) in case of non-primitive values, this leads always to re-evalution of component, even if object has same content (because of strict `===` reference equality checks)
-        - in `Redux Toolkit` you can use `createSelector()` to memoize the selector (otherwise a new instance of the selector is created whenever the component is rendered);
-        - 2 advantages: 1) selector fn is memoized and so a returned non-primitive value would succeed the equality check; 2) when you have performance intensive tasks, this doesn't have to be done again until the state changed
+        - in `Redux Toolkit` you can use `createSelector()` (fn signature: `createSelector(…inputSelectors | [inputSelectors], resultFunction)`) to memoize a result fn, which can be based on multiple input selectors
+        - rules to make this work: <https://medium.com/swlh/building-efficient-reselect-selectors-759800f8ed7f>
+          - 1) input selectors should return the `leaf node` (-> the bottom level of an object or array), 
+          - 2) input selector functions can take additional arguments, which would have to be passed in when calling your selector.
+            ```TypeScript
+            // DOES NOT MEMOIZE HERE, because the extra parameters is included in the memoization checks, so if you are passing in different arguments on every call, that effectively means the memoization becomes useless.
+            const parameterized = createSelector(
+              (state, id) => ... // additional id parameter
+            );
+            // In your component somewhere
+            parameterized(getState(), id); // id gets passed in here
+
+            const createParameterizedSelector = (id) => {
+              return createSelector(
+                (state) => state.todos[id],
+                (todo) => todo // or heavy computation logic
+              );
+            }
+
+            // usage in a component
+            const ToDoItem = (id) => {
+              const { todo } = useSelector(createParameterizedSelector(id))
+              // ...
+            }
+            ```
+        - 2 advantages: 1) the result of multiple input selectors is memoized until a concerning state was updated; 2) when you have performance intensive tasks, this doesn't have to be done again until the state changed
 
         ```TypeScript
         // https://react-redux.js.org/api/hooks
