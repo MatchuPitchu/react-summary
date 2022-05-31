@@ -888,11 +888,11 @@ export { renderWithContextAndRouter as render };
 ```
 
 ## Testing React Portals
-
-- integrate Mock Function in `setupTests.ts` -> that creates mock environment when `createPortal` method is used anywhere in tests
-- links with this issue that otherwise React Test Renderer is broken with portals
-  - <https://github.com/facebook/react/issues/>
-  - <https://github.com/facebook/react/issues/11565#issuecomment-573517172>
+- Approach: you are mocking only `createPortal` method of the current `react-dom` module
+  - integrate Mock Function in `setupTests.ts` -> that creates mock environment when `createPortal` method is used anywhere in tests
+  - links with this issue that otherwise React Test Renderer is broken with portals:
+    - <https://github.com/facebook/react/issues>
+    - <https://github.com/facebook/react/issues/11565#issuecomment-573517172>
 
 ```JavaScript
 // setupTests.ts
@@ -900,7 +900,7 @@ jest.mock('react-dom', () => {
   const original = jest.requireActual('react-dom');
   return {
     ...original,
-    createPortal: (children: React.ReactNode, container: Element) => children,
+    createPortal: (element: React.ReactNode, target: Element) => element,
   };
 });
 ```
