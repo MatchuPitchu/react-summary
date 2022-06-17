@@ -290,43 +290,123 @@ const Login = ({ onLogin }) => {
   - great if you have more complex state updates (-> different cases, different actions that change the state) you can write a reducer fn that contains more complex state updating logic
   - should be considered if you have related pieces of state/data (i.e. form inputs that are related)
 
-## useCallback Hook
+## Memoizing values and Good Practices with useCallback, useMemo and React.memo()
+
+> Article: <https://www.developerway.com/posts/how-to-use-memo-use-callback?utm_campaign=This%20Week%20In%20React&utm_medium=email&utm_source=Revue%20newsletter>
+
+- in a React component, non-primitive values will be re-created on every re-rendering
+- memoization between re-renders means, that React caches values during initial rendering and returns a reference to saved values during consecutive renders
+
+```JavaScript
+const a = { 'test': 1 };
+const b = { 'test': 1 };
+console.log(a === b); // false
+
+const c = a; // 'c' is a reference to 'a'
+console.log(a === c); // true
+
+// React specific example
+const Component = () => {
+  const a = { 'test': 1 };
+
+  useEffect(() => {
+  }, [a]) // without memoization, 'a' is always re-created with every render and triggers useEffect
+  // ...
+}
+```
+
+- `useMemo` and `useCallback` are useful for re-rendering. During initial rendering, they are even harmful: React has to do additional work
+- Use case: memoize props values to prevent re-renders
+- Import to know about Component re-rendering:
+
+  - a) when state or prop value changes
+  - b) when a component re-renders itself, it also re-renders all of its children
+  - Conclusion: memoizing props on a component makes only sense, when every single prop and the component itself (with `React.memo()`) are memoized.
+
+  ```JavaScript
+  const PageMemoized = React.memo(Page); // memoized Page component
+
+  const App = () => {
+    const [state, setState] = useState(1);
+
+    const onClick = useCallback(() => {
+        // some code
+    }, []);
+
+    return (
+      // PageMemoized will NOT re-render because onClick is memoized
+      <PageMemoized onClick={onClick} />
+    );
+  };
+  ```
+
+- Memoizing `exepnsive calculation`
+
+  - Example below: Without (!) memoization, with 6x CPU slowdown, sorting of this array with ~250 items takes less than 2ms. To compare, rendering this list - just native buttons with text - takes more than 20ms. 10 times more!
+
+  ```JavaScript
+  const List = ({ countries }) => {
+    const sortedCountries = orderBy(countries, 'name', sort);
+
+    return (
+      <>
+        {sortedCountries.map((country) => (
+          <Item country={country} key={country.id} />
+        ))}
+      </>
+    );
+  };
+  ```
+
+  - Good Practice: Instead of memoizing sort function, memoize the actual most expensive calculation -> re-rendering and updating components:
+
+  ```JavaScript
+  const List = ({ countries }) => {
+    const content = useMemo(() => {
+      const sortedCountries = orderBy(countries, 'name', sort);
+      return sortedCountries.map((country) => <Item country={country} key={country.id} />);
+    }, [countries, sort]);
+
+    return content;
+  };
+  ```
+
+### useCallback Hook
 
 - stores a function in React internal storage across component execution / re-evaluation -> then this fn is NOT recreated with every execution
 - advantage: fn keeps the same reference in the `stack memory` that refers to the object in the `heap memory`;
 
-  - now you can e.g. use `export default React.memo(ChildComponentName)` in child component because you can compare if functions changed or not; if fn remains unchanged then no re-rendering of a certain child component
+- now you can e.g. use `export default React.memo(ChildComponentName)` in child component because you can compare if functions changed or not; if fn remains unchanged then no re-rendering of a certain child component
 
 - `const foo = useCallback(() => {}, [])`
 
-  - first argument: cb function -> a memoized version of it is stored by React
-  - second argument: dependency array
-    - memoized version of cb fn only changes if one of the dependencies has changed
-    - empty array means: cb fn wrapped into useCallback() will never change
-    - functions in JS are `closures` -> they close over the values that are available in there environment; so JS logs in all variables that are used in the fn (below: `enable`) and stores these variables for the fn definition
-    - in dependency array: list all variables, functions etc. that could change, then in case memoized version of cb fn is recreated
+- first argument: cb function -> a memoized version of it is stored by React
+- second argument: dependency array
+  - memoized version of cb fn only changes if one of the dependencies has changed
+  - empty array means: cb fn wrapped into useCallback() will never change
+  - functions in JS are `closures` -> they close over the values that are available in there environment; so JS logs in all variables that are used in the fn (below: `enable`) and stores these variables for the fn definition
+  - in dependency array: list all variables, functions etc. that could change, then in case memoized version of cb fn is recreated
 
-  ```JavaScript
-  const App = () => {
-    const [show, setShow] = useState(false);
+```JavaScript
+const App = () => {
+  const [show, setShow] = useState(false);
 
-    const toggleBtn = useCallback(() => {
-      if (enable) setShow(prev => !prev);
-    }, [enable]);
+  const toggleBtn = useCallback(() => {
+    if (enable) setShow(prev => !prev);
+  }, [enable]);
 
-    return (
-        <div>
-          {/* if you use React.memo() in Button child component with fn as props (-> reference value):
-          memo() has no cut off branch effect because on every re-execution of the App Component,
-          toggleBtn fn is newly recreated -> solution: useCallback Hook */}
-          <Button onClick={toggleBtn}>Toggle</Button>
-        </div>
-      );
-    };
-  }
-  ```
+  return (
+    <div>
+      {/* if you use React.memo() in Button child component with fn as props (-> reference value):
+      memo() has no cut off branch effect because on every re-execution of the App Component,
+      toggleBtn fn is newly recreated -> solution: useCallback Hook */}
+      <Button onClick={toggleBtn}>Toggle</Button>
+    </div>
+  );
+};
+```
 
-## useMemo Hook
+### useMemo Hook
 
 - while useCallback memoizes functions, useMemo memoizes other values (any kind of data that you wanna store)
 - memoizes data to avoid re-calculation of performance intensive tasks
