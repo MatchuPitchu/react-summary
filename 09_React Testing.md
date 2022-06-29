@@ -209,7 +209,7 @@
   - 2 args: a) description string, b) anonymous fn that contains all test fns in the fn body
   - `good practice`: test suite description and test fn description form nice sentences to understand the aim of a test
 
-- `test()` is globally available, receives 2 args:
+- `test()` or `it()` is globally available, receives 2 args:
 
   1. description of test (`string`) to identifie test in output
   1. anonymous fn containing testing code
@@ -252,7 +252,7 @@
       - getByAltText (img alt attribute)
       - getByTitle (title attribute or svg title tag)
     - `c) Test ID`
-      - getByTestId (data-testid attribute on element)
+      - getByTestId (`data-testid` attribute on element)
 
   - 2nd argument of query methods is options object
 
@@ -277,6 +277,32 @@
   - some elements have built-in roles: button, a, input (when type is defined) etc.
   - overview roles <https://www.w3.org/TR/html-aria/#docconformance>
   - Hint: testing library shows all selectable roles if you provide a non-existing role in the rendered component's HTML `screen.getByRole('')`
+
+- `within()`: select first an element like e.g. a section, the use within to select only a child element of this section
+
+  ```TypeScript
+  import { render, screen, within } from "@testing-library/react";
+  import { AriaMessage } from "./AriaMessage";
+  import { AriaLogProvider } from "./AriaLogProvider";
+
+  describe("Aria Message", () => {
+    it("should put every message into the log to let the screen reader read the messages", () => {
+      const message1 = "Message 1";
+      const message2 = "Message 2";
+      render(
+        <AriaLogProvider>
+          <AriaMessage>{message1}</AriaMessage>
+          <AriaMessage>{message2}</AriaMessage>
+        </AriaLogProvider>,
+      );
+
+      const logElement = screen.getByRole("log");
+
+      expect(within(logElement).getByText(message1)).toBeInTheDocument();
+      expect(within(logElement).getByText(message2)).toBeInTheDocument();
+    });
+  });
+  ```
 
 - `userEvent` to simulate user actions (-> is to be prefered over `fireEvent`)
 
@@ -317,33 +343,29 @@
     - toBePartiallyChecked
     - toHaveErrorMessage
     - toHaveDescription
-    - toEqual (-> for arrays and objects)
-    - toBe (-> for nums and strings)
+    - toEqual (-> for non-primitive values for deep equality check)
+    - toBe (-> for primitive values for equality check)
 
 ## Examples
 
 ```JavaScript
-// Example 1
-// App.test.js
+// Example 1: App.test.js
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
 test('renders learn react link', () => {
-  // Arrange
-  render(<App />);
+  render(<App />); // Arrange
 
   // Act: ...nothing
 
-  // Assert
-  // identifie element by a text (-> here: Regex case insensitive);
+  // Assert: identifie element by a text (-> here: Regex case insensitive);
   const linkElement = screen.getByText(/learn react/i);
   expect(linkElement).toBeInTheDocument();
 });
 ```
 
 ```JavaScript
-// Example 2
-// Greeting.js
+// Example 2: Greeting.js
 import { useState } from 'react';
 import Output from './Output';
 
@@ -371,22 +393,19 @@ import Greeting from './Greeting';
 describe('Greeting component', () => {
   test('renders Hello World as a text', () => {
     render(<Greeting />);
-    // Assert
     const element = screen.getByText('Hello World', { exact: false });
     expect(element).toBeInTheDocument();
   });
 
   test('renders "good to see you" if button was NOT clicked', () => {
     render(<Greeting />);
-    // Assert
     const paragraph = screen.getByText('good to see you', { exact: false });
     expect(paragraph).toBeInTheDocument();
   });
 
   test('renders "changed" if button was clicked', () => {
     render(<Greeting />);
-    // Act
-    // button is a role that elements can have on screen, and I have only 1 btn in this component, so the right one is selected
+    // Act: button is a role that elements can have on screen, and I have only 1 btn in this component, so the right one is selected
     const btn = screen.getByRole('button');
     userEvent.click(btn);
     // Assert
@@ -396,23 +415,235 @@ describe('Greeting component', () => {
 
   test('does not render "good to see you" if button was clicked', () => {
     render(<Greeting />);
-    // Act
     const btn = screen.getByRole('button');
     userEvent.click(btn);
-    // Assert
-    // returns null if element is not found on screen
+    // Assert: returns null if element is not found on screen
     const outputElement = screen.queryByText('good to see you', { exact: false });
     expect(outputElement).toBeNull();
   });
 });
 ```
 
-## Jest Mock Function as Props
+## Jest Mocking and Jest Mock Function
 
-- when you have fn passed as props to component, you may need to pass this fn also when rendering in tests
+- `jest.fn()` - Jest mock function does nothing:
+  - it's a placeholder to avoid errors
+  - use it when you don't need a function to be really executed in a test
+  - important to clear mock before each test: `yourMockedFuntionName.mockClear()`
+
+```TypeScript
+//  Example: mock onSubmit in the TestComponent that includes the CustomNumberField component which should be tested here
+interface TestFormValues {
+  testField: string;
+}
+
+interface Props {
+  max?: number;
+}
+
+describe.only("Custom Number Field", () => {
+  const onSubmit = jest.fn();
+
+  const TestComponent: FC<Props> = ({ max }) => {
+    const { handleSubmit, control } = useForm<TestFormValues>();
+
+    return (
+      <form onSubmit={handleSubmit((value) => onSubmit(value))}>
+        <CustomNumberField
+          control={control}
+          name="testField"
+          label="Number Field Label"
+          max={max}
+        />
+        <Button
+          type="submit"
+          label="Submit"
+        />
+      </form>
+    );
+  };
+
+  beforeEach(() => {
+    onSubmit.mockClear(); // clear mock before each test
+  });
+
+  it("should not allow an empty field", async () => {
+    render(<TestComponent />);
+    const submitButton = screen.getByRole("button", { name: "Submit" });
+    await userEvent.click(submitButton);
+    const error = screen.getByText("Dieses Feld ist erforderlich");
+    expect(error).toBeInTheDocument();
+  });
+});
+```
+
+### Mocking of entire module
+
+- you can mock an entire module like `react-router`
+  - first use `jest.mock("react-router")` in top of testing file to replace the real `import ...` in the component
+  - mock `navigate()` of `useNavigate` hook with `jest.fn()`
+  - before each test, clear the mock and define that `useNavigate` returns the `navigate` mock
+
+```TypeScript
+import { useNavigate } from "react-router-dom"; // import needed because it's used in beforeEach()
+jest.mock("react-router");
+
+describe("Validation of form", () => {
+  let navigate = jest.fn();
+
+  beforeEach(() => {
+    navigate.mockClear();
+    (useNavigate as jest.Mock).mockReturnValue(navigate);
+  });
+
+  it("should ...", async () => {
+    render(<ComponentWithNextPageButton />);
+    const elternteil1Section = screen.getByLabelText("Elternteil 1");
+
+    await userEvent.click(nextPageBtn);
+    const error = within(elternteil1Section).queryByText(
+      "Dieses Feld ist erforderlich",
+    );
+    expect(error).toBeInTheDocument();
+  });
+});
+```
+
+- you can mock only a specific function of an imported library
+  - Example 1: for API that returns data, but you only need to test how UI behaves with returned values
+  - Example 2: for `React Portals` to avoid error that component can NOT be found in DOM; mock only createPortal fn of library
+  - Example 3: for API that fetches external data; avoid this fetching in tests
+
+```TypeScript
+// Example 1
+jest.mock("@egr/monatsplaner-app", () => {
+  const original = jest.requireActual("@egr/monatsplaner-app");
+  return {
+    ...original,
+    validateElternteile: jest.fn(),
+  };
+});
+
+describe("Submit validation Monatsplaner", () => {
+  const mockValidateElternteile =
+    validateElternteile as jest.Mock<ValidationResult>;
+
+  beforeEach(() => {
+    mockValidateElternteile.mockClear();
+  });
+
+  it.each([
+    [
+      /mindestens ein Elternteil muss Elterngeld beantragen/i,
+      "HasNoSelection" as const,
+    ],
+    [
+      /reduzieren Sie auf die verfügbare Anzahl von BasisElterngeld-Monaten/i,
+      "HasTakenMoreThanTheAvailableBEGMonths" as const,
+    ],
+    // ...
+  ])(
+    "should show error message %p if validation returns error code %p",
+    async (expectedText, errorCode) => {
+      render(<Monatsplaner />, { preloadedState }); // preloaded state for Redux; that was configured in a test-utils file
+
+      mockValidateElternteile.mockReturnValue({
+        isValid: false,
+        errorCodes: [errorCode], // errorCodes was Array in this implementation
+      });
+
+      const submitButton = screen.getByRole("button", {
+        name: /Elterngeld beantragen/i,
+      });
+      await userEvent.click(submitButton);
+
+      expect(screen.getByText(expectedText)).toBeInTheDocument();
+      expect(navigate).not.toHaveBeenCalled(); // navigate was also mocked in this example (is NOT shown here)
+    },
+  );
+});
+```
+
+```TypeScript
+// Example 2
+jest.mock("react-dom", () => {
+  const actual = jest.requireActual("react-dom");
+
+  return {
+    ...actual,
+    createPortal: (element: ReactNode) => element,
+  };
+});
+```
+
+```TypeScript
+// Example 3
+import { EgrCalculation } from "../../../globals/js/calculations/egr-calculation";  // import needed because it's used in beforeEach()
+jest.mock("../../../globals/js/calculations/egr-calculation");
+
+describe("Rechner", () => {
+  let simulationErgebnis: ElternGeldSimulationErgebnis;
+  const mockEgrSimulation = {
+    simulate: jest.fn(),
+  };
+
+  beforeEach(() => {
+    simulationErgebnis = {
+      rows: [
+        {
+          vonLebensMonat: 1,
+          bisLebensMonat: 12,
+          basisElternGeld: new Big(1001),
+          elternGeldPlus: new Big(2001),
+          nettoEinkommen: new Big(3001),
+        },
+      ],
+    };
+    mockEgrSimulation.simulate.mockClear();
+    mockEgrSimulation.simulate.mockImplementation(
+      async () => simulationErgebnis, // mock return value of async simulate()
+    );
+    // mock what happens when EgrCalculation class is instantiated: only function that is needed in test component (mockEgrSimulation.simulate()) is mocked here
+    (EgrCalculation as unknown as jest.Mock).mockImplementation(
+      () => mockEgrSimulation,
+    );
+  });
+
+  it("should calculate and display the Elterngeld", async () => {
+    const state: Partial<RootState> = { /*...*/ };
+    const store = configureStore({ preloadedState: state, reducer: reducers });
+
+    render(<Rechner />, { store });
+    // ...
+
+    await userEvent.click(screen.getByText("Elterngeld berechnen"));
+
+    await screen.findByLabelText("Elterngeld berechnen Ergebnis");
+    expect(mockEgrSimulation.simulate).toHaveBeenCalled();
+    expect(
+      store.getState().stepRechner.ET1.elterngeldResult,
+    ).toEqual<ElterngeldRowsResult>({
+      state: "success",
+      data: [
+        {
+          vonLebensMonat: 1,
+          bisLebensMonat: 12,
+          basisElternGeld: 1001,
+          elternGeldPlus: 2001,
+          nettoEinkommen: 3001,
+        },
+      ],
+    });
+  });
+});
+```
+
+### Jest Mock Function as Prop
+
+- when you have a function passed as a prop to a component, you may need to pass this fn also when rendering in tests
   - TypeScript, PropTypes or other prop validators will require
   - OR inside the test, the fn gets called, but this doesn't matter for the test (-> e.g. a fn that calculates a total value but you're not tracking this value in your tests)
-- `solution`: use `jest.fn()` -> Jest mock function that does nothing, it's a placeholder to avoid errors
+- `solution`: use `jest.fn()`
 
   ```JavaScript
   render(<User updateTotal={jest.fn()}/>)
@@ -595,10 +826,10 @@ render(<Example />, { wrapper: ContextProvider });
 
 > <https://testing-library.com/docs/react-testing-library/setup/>
 
-- create a proper testing-utils file
+- create a proper `testing-utils` file
 
 ```JavaScript
-// testing-utils.jsx
+// test-utils.jsx
 import { render } from '@testing-library/react';
 import { ContextProvider } from '../store/Context';
 
@@ -607,11 +838,57 @@ import { ContextProvider } from '../store/Context';
 const renderWithContext = (ui, options) =>
   render(ui, { wrapper: ContextProvider, ...options });
 
-// re-export everything
-export * from '@testing-library/react';
+export * from '@testing-library/react'; // re-export everything
+export { renderWithContext as render }; // override render method
+```
 
-// override render method
-export { renderWithContext as render };
+- Example with `AriaLogProvider`, `ToastProvider` (both are Contexts) and Redux Store
+
+```TypeScript
+// test-utils.tsx
+import { FC, ReactElement } from "react";
+import { render, RenderOptions } from "@testing-library/react";
+import { configureStore, Store } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
+import { reducers, RootState } from "../redux/index";
+import { AriaLogProvider } from "../components/atoms";
+import { ToastProvider } from "../components/atoms/toast";
+
+interface RenderOptionsWithRedux extends RenderOptions {
+  preloadedState?: Partial<RootState>;
+  store?: Store;
+}
+
+interface TestWrapperProps {
+  store: Store;
+}
+
+const TestWrapper: FC<TestWrapperProps> = ({ store, children }) => {
+  return (
+    <AriaLogProvider>
+      <ToastProvider>
+        <Provider store={store}>{children}</Provider>
+      </ToastProvider>
+    </AriaLogProvider>
+  );
+};
+
+const renderWithReduxAndContext = (
+  ui: ReactElement,
+  {
+    preloadedState,
+    store = configureStore({ reducer: reducers, preloadedState }),
+    ...renderOptions
+  }: RenderOptionsWithRedux = {},
+) => {
+  const Wrapper: FC = ({ children }) => (
+    <TestWrapper store={store}>{children}</TestWrapper>
+  );
+  return render(ui, { wrapper: Wrapper, ...renderOptions });
+};
+
+export * from "@testing-library/react"; // re-export everything
+export { renderWithReduxAndContext as render }; // override render method
 ```
 
 - in test file: you can import `render` an ALL other methods (`screen`, `waitFor` etc.) from `testing-utils.jsx` OR if you want to have default setup from `@testing-library/react`
@@ -874,7 +1151,7 @@ const Providers = ({children, initialRoutes }) => {
       </MemoryRouter>
     </ContextProvider>
   )
-});
+};
 
 // ui: standard name to refer to JSX
 // options: obj like the default render method has
@@ -888,6 +1165,7 @@ export { renderWithContextAndRouter as render };
 ```
 
 ## Testing React Portals
+
 - Approach: you are mocking only `createPortal` method of the current `react-dom` module
   - integrate Mock Function in `setupTests.ts` -> that creates mock environment when `createPortal` method is used anywhere in tests
   - links with this issue that otherwise React Test Renderer is broken with portals:
@@ -896,11 +1174,15 @@ export { renderWithContextAndRouter as render };
 
 ```JavaScript
 // setupTests.ts
+import { ReactNode } from "react";
+import "@testing-library/jest-dom";
+
 jest.mock('react-dom', () => {
   const original = jest.requireActual('react-dom');
+
   return {
     ...original,
-    createPortal: (element: React.ReactNode, target: Element) => element,
+    createPortal: (element: ReactNode, target: Element) => element,
   };
 });
 ```
