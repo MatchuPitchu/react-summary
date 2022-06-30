@@ -215,6 +215,30 @@
   1. anonymous fn containing testing code
   1. test fails if error is thrown in fn (e.g. if assertions fail)
 
+  - test loop with `it.each()`
+
+  ```TypeScript
+  it.each([
+    [ /text1/i, "HasNoSelection" as const ],
+    [ /text2/i, "HasTakenMoreThanTheAvailableBEGMonths" as const ],
+    // ...
+  ])("should show text %p if validation returns %p", async (expectedText, errorCode) => {
+      render(<Monatsplaner />);
+
+      // mock implementation is shown somewhere else
+      mockValidateElternteile.mockReturnValue({
+        isValid: false,
+        errorCodes: [errorCode], // errorCodes is Array in this implementation
+      });
+
+      const submitButton = screen.getByRole("button", { name: /submit/i });
+      await userEvent.click(submitButton);
+
+      expect(screen.getByText(expectedText)).toBeInTheDocument();
+    },
+  );
+  ```
+
 - `test.only()` and `test.skip()`
 
   - if you have multiple tests, you can run only one certain with test.only(...) or skip a certain test with test.skip(...)
@@ -349,7 +373,7 @@
 ## Examples
 
 ```JavaScript
-// Example 1: App.test.js
+// Example 1: App.spec.ts
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
@@ -385,7 +409,7 @@ const Greeting = () => {
   );
 };
 
-// Greeting.test.js
+// Greeting.spec.ts
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'; // package to simulate user events
 import Greeting from './Greeting';
@@ -428,11 +452,11 @@ describe('Greeting component', () => {
 
 - `jest.fn()` - Jest mock function does nothing:
   - it's a placeholder to avoid errors
-  - use it when you don't need a function to be really executed in a test
-  - important to clear mock before each test: `yourMockedFuntionName.mockClear()`
+  - use it when you don't need a function to be realy executed in a test
+  - important to clear mock before each test: `yourMockFunctionName.mockClear()`
 
 ```TypeScript
-//  Example: mock onSubmit in the TestComponent that includes the CustomNumberField component which should be tested here
+//  Example: mock onSubmit of TestComponent that includes the CustomNumberField component which should be tested
 interface TestFormValues {
   testField: string;
 }
@@ -479,7 +503,7 @@ describe.only("Custom Number Field", () => {
 
 ### Mocking of entire module
 
-- you can mock an entire module like `react-router`
+- you can mock an entire module (e.g. `react-router`)
   - first use `jest.mock("react-router")` in top of testing file to replace the real `import ...` in the component
   - mock `navigate()` of `useNavigate` hook with `jest.fn()`
   - before each test, clear the mock and define that `useNavigate` returns the `navigate` mock
@@ -498,24 +522,22 @@ describe("Validation of form", () => {
 
   it("should ...", async () => {
     render(<ComponentWithNextPageButton />);
-    const elternteil1Section = screen.getByLabelText("Elternteil 1");
 
     await userEvent.click(nextPageBtn);
-    const error = within(elternteil1Section).queryByText(
-      "Dieses Feld ist erforderlich",
-    );
+    const error = screen.queryByText("Dieses Feld ist erforderlich");
     expect(error).toBeInTheDocument();
   });
 });
 ```
 
-- you can mock only a specific function of an imported library
-  - Example 1: for API that returns data, but you only need to test how UI behaves with returned values
-  - Example 2: for `React Portals` to avoid error that component can NOT be found in DOM; mock only createPortal fn of library
-  - Example 3: for API that fetches external data; avoid this fetching in tests
+### Mocking a specific function of a library
+
+- Example 1: for API that returns data, but you only need to test how UI behaves with returned values
 
 ```TypeScript
 // Example 1
+import { validateElternteile, ValidationResult } from "@egr/monatsplaner-app";
+
 jest.mock("@egr/monatsplaner-app", () => {
   const original = jest.requireActual("@egr/monatsplaner-app");
   return {
@@ -525,12 +547,9 @@ jest.mock("@egr/monatsplaner-app", () => {
 });
 
 describe("Submit validation Monatsplaner", () => {
-  const mockValidateElternteile =
-    validateElternteile as jest.Mock<ValidationResult>;
+  const mockValidateElternteile = validateElternteile as jest.Mock<ValidationResult>;
 
-  beforeEach(() => {
-    mockValidateElternteile.mockClear();
-  });
+  beforeEach(() => mockValidateElternteile.mockClear());
 
   it.each([
     [
@@ -545,24 +564,24 @@ describe("Submit validation Monatsplaner", () => {
   ])(
     "should show error message %p if validation returns error code %p",
     async (expectedText, errorCode) => {
-      render(<Monatsplaner />, { preloadedState }); // preloaded state for Redux; that was configured in a test-utils file
+      render(<Monatsplaner />, { preloadedState }); // preloaded state Redux; configured in test-utils.ts
 
       mockValidateElternteile.mockReturnValue({
         isValid: false,
-        errorCodes: [errorCode], // errorCodes was Array in this implementation
+        errorCodes: [errorCode], // errorCodes is Array in this implementation
       });
 
-      const submitButton = screen.getByRole("button", {
-        name: /Elterngeld beantragen/i,
-      });
+      const submitButton = screen.getByRole("button", { name: /Elterngeld beantragen/i });
       await userEvent.click(submitButton);
 
       expect(screen.getByText(expectedText)).toBeInTheDocument();
-      expect(navigate).not.toHaveBeenCalled(); // navigate was also mocked in this example (is NOT shown here)
+      expect(navigate).not.toHaveBeenCalled(); // navigate was also mocked (NOT shown here)
     },
   );
 });
 ```
+
+- Example 2: `React Portals` to avoid error that component can NOT be found in DOM; mock only `createPortal` fn
 
 ```TypeScript
 // Example 2
@@ -576,6 +595,9 @@ jest.mock("react-dom", () => {
 });
 ```
 
+- Example 3: API fetches external data; test only UI and avoid fetching in tests
+  - Hint: better way is to use `Mock Service Worker` to simulate HTTP request
+
 ```TypeScript
 // Example 3
 import { EgrCalculation } from "../../../globals/js/calculations/egr-calculation";  // import needed because it's used in beforeEach()
@@ -583,9 +605,7 @@ jest.mock("../../../globals/js/calculations/egr-calculation");
 
 describe("Rechner", () => {
   let simulationErgebnis: ElternGeldSimulationErgebnis;
-  const mockEgrSimulation = {
-    simulate: jest.fn(),
-  };
+  const mockEgrSimulation = { simulate: jest.fn() };
 
   beforeEach(() => {
     simulationErgebnis = {
@@ -593,9 +613,7 @@ describe("Rechner", () => {
         {
           vonLebensMonat: 1,
           bisLebensMonat: 12,
-          basisElternGeld: new Big(1001),
-          elternGeldPlus: new Big(2001),
-          nettoEinkommen: new Big(3001),
+          basisElternGeld: 1001,
         },
       ],
     };
@@ -603,10 +621,8 @@ describe("Rechner", () => {
     mockEgrSimulation.simulate.mockImplementation(
       async () => simulationErgebnis, // mock return value of async simulate()
     );
-    // mock what happens when EgrCalculation class is instantiated: only function that is needed in test component (mockEgrSimulation.simulate()) is mocked here
-    (EgrCalculation as unknown as jest.Mock).mockImplementation(
-      () => mockEgrSimulation,
-    );
+    // mock what happens when EgrCalculation class is instantiated: only fn that is needed in test component (mockEgrSimulation.simulate()) is mocked here
+    (EgrCalculation as unknown as jest.Mock).mockImplementation(() => mockEgrSimulation);
   });
 
   it("should calculate and display the Elterngeld", async () => {
@@ -620,17 +636,13 @@ describe("Rechner", () => {
 
     await screen.findByLabelText("Elterngeld berechnen Ergebnis");
     expect(mockEgrSimulation.simulate).toHaveBeenCalled();
-    expect(
-      store.getState().stepRechner.ET1.elterngeldResult,
-    ).toEqual<ElterngeldRowsResult>({
+    expect(store.getState().stepRechner.ET1.elterngeldResult).toEqual<ElterngeldRowsResult>({
       state: "success",
       data: [
         {
           vonLebensMonat: 1,
           bisLebensMonat: 12,
           basisElternGeld: 1001,
-          elternGeldPlus: 2001,
-          nettoEinkommen: 3001,
         },
       ],
     });
@@ -685,8 +697,8 @@ test('popover appears on hovering', async () => {
   - HTTP requests cause a lot of traffic when you have a lot of tests;
   - POST/PUT requests would insert or change data in database
 - solution: replace browser built-in fn with `mock function` (-> dummy fn that overwrites built-in fn)
-  - only test code that's written by you (-> `fetch`, `localStorage` etc. are built into browser, you rely on them);
-  - you want to test code and output of my component
+  - only test your code (-> `fetch`, `localStorage` etc. are built into browser, you rely on them);
+  - test code and output of your component
 
 #### Using Mock Service Worker
 
@@ -816,7 +828,7 @@ worker.start();
 
 ### Option 1: Wrapper
 
-- inside of render method, use wrapper property in options object to add needed ContextProvider, Router, Redux Provider or Theming Provider
+- inside of render method, use wrapper property in options object to add needed `ContextProvider`, `Router`, `Redux Provider` or `Theming Provider`
 
 ```JavaScript
 render(<Example />, { wrapper: ContextProvider });
@@ -838,7 +850,7 @@ import { ContextProvider } from '../store/Context';
 const renderWithContext = (ui, options) =>
   render(ui, { wrapper: ContextProvider, ...options });
 
-export * from '@testing-library/react'; // re-export everything
+export * from '@testing-library/react'; // re-export everything from this file
 export { renderWithContext as render }; // override render method
 ```
 
@@ -893,7 +905,7 @@ export { renderWithReduxAndContext as render }; // override render method
 
 - in test file: you can import `render` an ALL other methods (`screen`, `waitFor` etc.) from `testing-utils.jsx` OR if you want to have default setup from `@testing-library/react`
 
-### Testing with React Context - Example
+### Example: Testing with React Context
 
 - look which data of Context is needed in Component to execute your tests
 - create custom render that receives `providerProps` as second argument
@@ -940,18 +952,20 @@ export { customRender as render };
 ```
 
 ```JavaScript
-// CatchButton.test.jsx
+// CatchButton.spec.tsx
 import { render, screen } from '../../../__test-utils__/testing-utils';
 import userEvent from '@testing-library/user-event';
 import CatchButton from '../CatchButton';
 
 describe('CatchButton component', () => {
+  const pokemon = {
+    id: 123,
+  },
+
   test('has active btn when there is no pokemon in cart', () => {
     const providerProps = {
       value: {
-        pokemon: {
-          id: 123,
-        },
+        pokemon,
         pokeCart: [],
       },
     };
@@ -963,9 +977,7 @@ describe('CatchButton component', () => {
   test('has disabled btn when there is the same pokemon in cart', () => {
     const providerProps = {
       value: {
-        pokemon: {
-          id: 123,
-        },
+        pokemon,
         pokeCart: [{ id: 123 }],
       },
     };
@@ -979,9 +991,7 @@ describe('CatchButton component', () => {
     const mockAddPokeToCartHandler = jest.fn();
     const providerProps = {
       value: {
-        pokemon: {
-          id: 123,
-        },
+        pokemon,
         pokeCart: [],
         // Jest Mock Fn replaces exactly the "real" function at a desired point and offers new test methods (e.g. toHaveBeenCalledWith)
         addPokeToCartHandler: mockAddPokeToCartHandler,
@@ -998,7 +1008,7 @@ describe('CatchButton component', () => {
 
 ### Testing React Apps that use React Router
 
-#### Option 1: Include your real React Router
+#### Option 1: Include real React Router
 
 - include `Router` in the `App` component
 - then for tests, always render `App` component (never child components)
@@ -1044,18 +1054,15 @@ const Users = () => {
   // if no id in URL parameter -> list of links to all users
   if (!id) {
     return (
-      <div>
-       <h1>Users</h1>
-         <ul>
-         {Object.entries(userData).map(([urlParam, data]) => {
-            return (
-            <li key={urlParam}>
-              <Link to={`/users/${urlParam}`}>{data.name}</Link>
-            </li>
-          );
-        })}
-        </ul>
-      </div>
+      <ul>
+      {Object.entries(userData).map(([urlParam, data]) => {
+        return (
+          <li key={urlParam}>
+            <Link to={`/users/${urlParam}`}>{data.name}</Link>
+          </li>
+        );
+      })}
+    </ul>
     );
   }
   // if id URL parameter -> show information about user
@@ -1069,10 +1076,10 @@ const Users = () => {
 }
 ```
 
-- test belows causes error because you're using `useParams` without Router provider
+- test below causes error because you're using `useParams` without Router provider
 
 ```JavaScript
-// Users.test.jsx
+// Users.spec.tsx
 import { render } from "@testing-library/react";
 import Users from "./Users";
 
@@ -1091,7 +1098,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 // important to have initial route, otherwise MemoryRouter throws error
-const initialRoutes = options && options.initialRoutes ? options.initialRoutes : ['/'];
+const initialRoutes = options?.initialRoutes ? options.initialRoutes : ['/'];
 
 // pass initial routes inside of component;
 // if more than one route, pass array
@@ -1114,28 +1121,26 @@ const customRender = (ui, options) => {
     ...options
   });
 };
-// re-export everything
 export * from '@testing-library/react';
-// override render method
 export { customRender as render };
 ```
 
-- now you can use `import { render } from './test-utils.jsx'` in `Users.test.jsx`
+- now you can use `import { render } from './test-utils.jsx'` in `Users.spec.tsx`
 
 ```JavaScript
-// Users.test.jsx
+// Users.spec.tsx
 import { render, screen } from './test-utils.jsx';
 import App from './App';
 
 test('renders user page', () => {
-  // have to render App for test because it includes the "Routes" wrapper which is import to match routes
+  // render App in test since it includes "Routes" wrapper component which is important to match routes
   render(<App />, { initialRoutes: ['/users/matchu'] });
   const header = screen.getByRole('heading', { name: /matchu/i })
   expect(header).toBeInTheDocument();
 })
 ```
 
-### Testing with multiple Providers - Example
+### Testing with multiple Providers
 
 ```JavaScript
 // testing-utils.jsx
@@ -1154,13 +1159,11 @@ const Providers = ({children, initialRoutes }) => {
 };
 
 // ui: standard name to refer to JSX
-// options: obj like the default render method has
+// options: obj like the default render method has it
 const renderWithContextAndRouter = (ui, options) =>
   render(ui, { wrapper: Providers, ...options });
 
-// re-export everything
 export * from '@testing-library/react';
-// override render method
 export { renderWithContextAndRouter as render };
 ```
 
