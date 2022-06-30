@@ -70,7 +70,7 @@ import redux from 'redux';
 // will be called by redux library;
 // receives 2 args: a) old state, b) dispatched action;
 // must return new state object (-> theoretically can be any type of data);
-// when store is initilized, redux executes reducer for first time -> so need to set default state value
+// when store is initialized, redux executes reducer for first time -> so need to set default state value
 const counterReducer = (state = { counter: 0 }, action) => {
   if (action.type === 'increment') return { counter: state.counter + 1 };
   if (action.type === 'decrement') return { counter: state.counter - 1 };
@@ -128,9 +128,7 @@ const reducerFn = (state = initialState, action) => {
   return state;
 };
 // create store and point at reducer fn
-const store = createStore(reducerFn);
-
-export default store;
+export const store = createStore(reducerFn);
 ```
 
 - wrap wished components in `React Redux Provider` (like for `React Context`)
@@ -140,7 +138,7 @@ export default store;
 ```JavaScript
 // index.js
 import { Provider } from 'react-redux';
-import store from './store/index';
+import { store } from './store/index';
 // ...
 
 ReactDOM.render(
@@ -152,18 +150,25 @@ ReactDOM.render(
 ```
 
 - use hooks to access Redux store:
+
   - `useSelector(state => state.pieceOfState)`: you can select a part of state managed by store
+
     - pass in an anonymous fn that determines which piece of state you want to extract from store;
     - with useSelector, `subscription` is automatically set up to the store for this component;
     - if component will be unmounted, subscription is also cleared automatically
     - if state changes (since action was triggered via `dispatch()`), new state is returned automatically:
-      - a) in case of primitive values, that are returned from `useSelector`, this leads only to re-evaluation of component if value was changed
+
+      - a) in case of primitive values, they are returned from `useSelector`, this leads only to re-evaluation of component if value was changed
       - b) in case of non-primitive values, this leads always to re-evalution of component, even if object has same content (because of strict `===` reference equality checks)
+
         - in `Redux Toolkit` you can use `createSelector()` (fn signature: `createSelector(…inputSelectors | [inputSelectors], resultFunction)`) to memoize a result fn, which can be based on multiple input selectors
         - rules to make this work: <https://medium.com/swlh/building-efficient-reselect-selectors-759800f8ed7f>
-          - 1) input selectors should return the `leaf node` (-> the bottom level of an object or array), 
-          - 2) input selector functions can take additional arguments, which would have to be passed in when calling your selector.
+
+          - 1. input selectors should return the `leaf node` (-> the bottom level of an object or array),
+          - 2. input selector functions can take additional arguments, which would have to be passed in when calling your selector.
+
             ```TypeScript
+            // Example 1
             // DOES NOT MEMOIZE HERE, because the extra parameters is included in the memoization checks, so if you are passing in different arguments on every call, that effectively means the memoization becomes useless.
             const parameterized = createSelector(
               (state, id) => ... // additional id parameter
@@ -184,26 +189,164 @@ ReactDOM.render(
               // ...
             }
             ```
+
         - 2 advantages: 1) the result of multiple input selectors is memoized until a concerning state was updated; 2) when you have performance intensive tasks, this doesn't have to be done again until the state changed
 
         ```TypeScript
+        // Example 2
         // https://react-redux.js.org/api/hooks
-        import { createSelector } from 'reselect'
+        import { createSelector } from "@reduxjs/toolkit"
 
         const selectNumCompletedTodos = createSelector(
           (state: Rootstate) => state.todos,
-          // return of first arg of createSelector is first parameter of snd arg ... and so on, return of snd arg could be first parameter of third arg ... 
+          // return of first arg of createSelector is first parameter of snd arg ... and so on, return of snd arg could be first parameter of third arg ...
           (todos) => todos.filter((todo) => todo.completed).length
         )
 
+        // Component
         export const CompletedTodosCounter = () => {
           const numCompletedTodos = useSelector(selectNumCompletedTodos)
           return <div>{numCompletedTodos}</div>
         }
         ```
 
+        ```TypeScript
+        // Example 3: more complex with multiple input selectors
+        import { createSelector } from "@reduxjs/toolkit"
+
+        export interface SelectedPSBMonthIndices {
+          selectableIndices: number[];
+          deselectableIndices: number[];
+        }
+
+        export const getSelectablePSBMonthIndices = createSelector(
+          (state: RootState) => state.monatsplaner.elternteile.ET1.months,
+          (state: RootState) => state.monatsplaner.elternteile.remainingMonths.PSB,
+          (months, remainingMonthsPSB): SelectedPSBMonthIndices => {
+            const currentPSBIndices = months.flatMap((month, index) =>
+              month.type === "PSB" ? [index] : [],
+            );
+            if (currentPSBIndices.length === 0) {
+              return {
+                selectableIndices: months.map((_, index) => index),
+                deselectableIndices: [],
+              };
+            }
+
+            const lowestIndex = currentPSBIndices[0];
+            const highestIndex = currentPSBIndices[currentPSBIndices.length - 1];
+
+            if (remainingMonthsPSB > 0) {
+              return {
+                selectableIndices: [lowestIndex - 1, highestIndex + 1],
+                deselectableIndices: [lowestIndex, highestIndex],
+              };
+            } else {
+              return {
+                selectableIndices: [],
+                deselectableIndices: [lowestIndex, highestIndex],
+              };
+            }
+          },
+        );
+
+        // Component
+        export const Monatsplaner: VFC = () => {
+          // const selectablePSBMonths = useAppSelector((state) => getSelectablePSBMonthIndices(state));
+          // Eta Reduction version
+          const selectablePSBMonths = useAppSelector(getSelectablePSBMonthIndices);
+          // ...
+        }
+        ```
+
   - `useStore`: select whole store
-- retrieve dispatch function with help of `useDispatch` hook
+
+- `createAction()`
+  > <https://redux-toolkit.js.org/api/createAction>
+  - a helper function to define a Redux action type and creator: `function createAction(type, prepareAction?)`
+
+```TypeScript
+// The usual way to define an action in Redux is to separately declare an action type constant and an action creator function for constructing actions of that type.
+const INCREMENT = 'counter/increment'
+
+const increment = (amount: number) => {
+  return {
+    type: INCREMENT,
+    payload: amount,
+  }
+}
+
+const action = increment(3); // { type: 'counter/increment', payload: 3 }
+```
+
+- `createAction` helper combines these two declarations above into one.
+
+```TypeScript
+import { createAction } from '@reduxjs/toolkit'
+
+const increment = createAction<number | undefined>('counter/increment')
+
+let action = increment(); // { type: 'counter/increment' }
+action = increment(3); // returns { type: 'counter/increment', payload: 3 }
+
+console.log(increment.toString()); // 'counter/increment'
+console.log(`The action type is: ${increment}`) // 'The action type is: counter/increment'
+```
+
+- generated action creators (-> like `increment()`) accept a single argument, which becomes action.payload
+- if you want to write additional logic to customize the creation of the payload value, createAction accepts an optional second argument: a "prepare callback" that will be used to construct the payload value.
+
+```TypeScript
+import { createAction, nanoid } from '@reduxjs/toolkit'
+
+const prepare = (text: string) => ({
+  payload: {
+    text,
+    id: nanoid(),
+    createdAt: new Date().toISOString(),
+  },
+})
+
+const addTodo = createAction('todos/add', prepare)
+console.log(addTodo('Write more docs'))
+/**
+ * {
+ *   type: 'todos/add',
+ *   payload: {
+ *     text: 'Write more docs',
+ *     id: '4AJvwMSWEHCchcWYga3dj',
+ *     createdAt: '2019-10-03T07:53:36.581Z'
+ *   }
+ * }
+ **/
+```
+
+- usage with `createReducer()`: because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to `createReducer()` or as `extraReducers` in `createSlice()`.
+
+```TypeScript
+import { createAction, createReducer } from '@reduxjs/toolkit'
+
+const increment = createAction<number>('counter/increment')
+
+  // Version 1
+const counterReducer = createReducer(state = { counter: 0 }, (builder) => {
+  builder.addCase(increment, (state, action) => state.counter + action.payload)
+})
+
+// Version 2
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: { counter: 0 },
+  reducers: { /*... */ },
+  extraReducers: (builder) => {
+    builder.addCase(increment, (state, action) => {
+      return state.counter + action.payload;
+    });
+  },
+});
+```
+
+- retrieve `dispatch` fn with help of `useDispatch` hook
   - dispatch fn receives action object that can contain an action type property and a payload property
 
 ```JavaScript
@@ -238,17 +381,18 @@ const Counter = () => {
 
 ## Redux Toolkit to simplify Redux with React
 
-- `npm i @reduxjs/toolkit` (-> includes Redux, so you can remove this from your `package.json`)
+- `npm i @reduxjs/toolkit` (-> includes Redux, so you can remove Redux from `package.json`)
 - `createSlice({ name: '...', initialState: ..., reducers: { ... } })`: with this fn you can create different slices of the global state to make code more maintainable
-  - `reducers` key includes all reducers methods this slice needs;
+  - `reducers` key includes all reducers methods that this slice needs;
     - all methods could have 2 parameters: `state`, `action`;
     - a) with this methods, you can dispatch actions without using if statements like in a "normal" reducer fn
       - in fn body, you are allowed to mutate the state (-> normally NEVER DO IT) because of Redux Toolkit
       - uses iternally `Immer` that detects when state should be mutated and clones existing state, keeps all the state that you are not editing and overwrites desired piece of state in an immutable way;
-    - b) `createSlice` creates `action creator methods` for you that return `unique action identifiers` for different reducers
+    - b) `createSlice` creates `action creator methods` for you that returns `unique action identifiers` for different reducers
       - e.g. when you call later `counterSlice.actions.yourReducerName()`, Redux Toolkit returns an action obj of this shape: `{ type: 'some unique identifier' }`
 - `configureStore({ reducer: ... })` creates store like `createStore` of basic Redux, but can merge multiple reducers into one reducer;
   - pass in a `configuration obj` with `reducer prop` that can have obj of different `key reducer pairs` of your choice to include multiple reducers
+  - recommended way to integrate multiple reducers is to create the a `const reducers` obj with the `combineReducers()` (see below)
   - if you have only one reducer, then you don't need this obj (-> `reducer: counterSlice.reducer` would be enough)
   - attention: you point at `reducer`, even if you write `reducers` in createSlice()
 - it is recommended to split code -> that means to put every slice of state into its own file
@@ -257,7 +401,6 @@ const Counter = () => {
 
 ```JavaScript
 // store/counter.js
-
 // simplify redux using with createSlice (recommended) or createReducer fn
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -319,19 +462,19 @@ import { configureStore } from '@reduxjs/toolkit';
 import counterReducer from './counter';
 import authReducer from './auth';
 
-// optional: use combineReducers() of reduxjs/toolkit to create reducers obj with reducers of multiple slices
-// then you can insert this obj below
-// const reducers = combineReducers({
-//  counter: counterSlice.reducer,
-//  auth: authSlice.reducer,
-//} 
+// recommended: use combineReducers() of reduxjs/toolkit to create reducers obj with reducers of multiple slices, then you can insert this obj below
+const reducers = combineReducers({
+ counter: counterSlice.reducer,
+ auth: authSlice.reducer,
+});
 
 const store = configureStore({
   // reducer: counterSlice.reducer,
-  reducer: {
-    counter: counterSlice.reducer,
-    auth: authSlice.reducer,
-  },
+  // reducer: {
+  //   counter: counterSlice.reducer,
+  //   auth: authSlice.reducer,
+  // },
+  reducer: reducers,
 });
 
 export default store;
