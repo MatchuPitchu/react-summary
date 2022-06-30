@@ -1073,7 +1073,7 @@ export type RootState = ReturnType<typeof store.getState>;
 - call auto-generated hook in component with any needed parameters
 - RTK Query automatically fetches data on mount, re-fetch when parameters change, provide `{ data, isFetching }` values in the result, and re-render the component as those values change
 
-```TypeScript
+```TSX
 import { useGetCartQuery, useUpdateCartMutation } from './store/cart-api-slice';
 
 const App = () => {
