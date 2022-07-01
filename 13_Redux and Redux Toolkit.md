@@ -844,41 +844,58 @@ export const fetchCartData = () => {
 
 ### Async Tasks or side-effect VARIANT 2: Action Creator Thunk with createAsyncThunk
 
-- Documentation: <https://redux-toolkit.js.org/api/createAsyncThunk>
-- By using `createAsyncThunk`, code in actions file becomes much shorter
-  - first arg passed to `createAsyncThunk` is a string identifier which will be used for automatically generated actions (see last point)
-  - second arg is basically the same code as in VERSION 1, but simplified since you don't have to handle errors there AND you don't need to dispatch any actions
-  - `React Toolkit automatically generates and dispatches actions` initially and when Promise resolves (which is returned from any async function in JS)
-    - names actions are generated from first arg: i.e. `cart/fetchData/pending`, or with additions `.../fulfilled`, `.../rejected`.
+> Documentation: <https://redux-toolkit.js.org/api/createAsyncThunk>
+
+- `createAsyncThunk` is a function that returns a promise
+
+  - 3 parameters:
+
+    - `string action type` value
+    - `payloadCreator cb`: is basically the same code as in VERSION 1, but simplified since you don't have to handle errors there AND you don't need to dispatch any actions
+    - `options` object
+
+  - `React Toolkit automatically generates and dispatches actions` initially and when Promise resolves: it generates promise lifecycle action types based on the action type prefix that you pass in, and returns a thunk action creator that will run the promise cb and dispatch the lifecycle actions based on the returned promise
+
+  ```TypeScript
+    pending: 'users/requestStatus/pending'
+    fulfilled: 'users/requestStatus/fulfilled'
+    rejected: 'users/requestStatus/rejected'
+  ```
+
+- by using `createAsyncThunk`, code in actions file becomes much shorter
 
 ```JavaScript
 // store/cart-actions.js
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const sendCartData = createAsyncThunk('cart/sendData', async (cart) => {
-  const options = {
-    method: 'POST',
-    body: JSON.stringify({ items: cart.items, totalQuantity: cart.totalQuantity }),
-  };
-  const res = await fetch(
-    'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json',
-    options
-  );
-  if (!res.ok) throw new Error('Sending data failed.');
-});
+export const sendCartData = createAsyncThunk(
+  'cart/sendData',
+  async (cart) => {
+    const options = {
+      method: 'POST',
+      body: JSON.stringify({ items: cart.items, totalQuantity: cart.totalQuantity }),
+    };
+    const res = await fetch(
+      'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json',
+      options
+    );
+    if (!res.ok) throw new Error('Sending data failed.');
+  }
+);
 
-export const fetchCartData = createAsyncThunk('cart/fetchData', async () => {
-  const res = await fetch(
-    'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json'
-  );
-  if (!res.ok) throw new Error('Error while fetching data');
+export const fetchCartData = createAsyncThunk(
+  'cart/fetchData',
+  async () => {
+    const res = await fetch('https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json');
+    if (!res.ok) throw new Error('Error while fetching data');
 
-  const data = await res.json();
-  return {
-    items: data.items || [], // Firebase does NOT store empty data, so items is undefined when app is opened with empty cart
-    totalQuantity: data.totalQuantity,
-  };
-});
+    const data = await res.json();
+    return {
+      items: data.items || [], // Firebase does NOT store empty data, so items is undefined when app is opened with empty cart
+      totalQuantity: data.totalQuantity,
+    };
+  }
+);
 ```
 
 - in `createSlice` methods you can use automatically created actions
