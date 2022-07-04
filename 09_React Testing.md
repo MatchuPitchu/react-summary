@@ -37,10 +37,10 @@
   - unit tests = the smallest building blocks that make up your app
   - test success and error cases, test all possible scenarios (-> rare (but possible) results)
 
-## TDD (Test-Driven Development)
+## Test-Driven Development (TDD)
 
-- write tests before writing code
-- then write code accodring to specifications set by tests
+- write failing tests before writing code
+- then implement the code according to specifications set by tests
 - process:
   1. write empty "shell" component function in your file
   1. write tests -> expect tests to fail
