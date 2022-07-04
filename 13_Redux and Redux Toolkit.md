@@ -993,10 +993,14 @@ export default uiSlice.reducer;
 - can generate React hooks that encapsulate the entire data fetching process, provide `data` and `isLoading` fields to components, and `manage the lifetime of cached data` as components mount and unmount
 - `createApi()`
   - allows to define set of endpoints, describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data
-  - notice: in most cases, use it `once per app`, with `one API slice per base URL`
+  - `Recommended`: in most cases, use it `once per app`, with `one API slice per base URL`
 - `fetchBaseQuery()`
   - small wrapper around fetch to simplify requests
-  - recommended `baseQuery` to be used in `createApi`
+  - it's recommended to use `baseQuery` in `createApi`
+- `Recommendation`:
+  - use RTK Query for data fetching
+  - use Thunks for logic that requires talking to the store
+  - use listeners if your code needs to react to actions or state changes
 
 #### Create an API Slice
 
@@ -1049,7 +1053,79 @@ export const cartApi = createApi({
 
 // automatically generated query hook
 export const { useGetCartQuery, useUpdateCartMutation } = cartApi;
+```
 
+#### Create a Listener Middleware
+
+> Official Documentation: <https://redux-toolkit.js.org/api/createListenerMiddleware>
+> Article: <https://blog.logrocket.com/redux-toolkits-new-listener-middleware-vs-redux-saga/>
+
+- `createListenerMiddleware`: lets you define "listener" entries that contain an "effect" callback with additional logic, and a way to specify when that callback should run based on dispatched actions or state changes
+  - Conceptually, it's similar to `useEffect hook`, except that it runs logic in response to Redux store updates instead of component props/state updates
+  - Listener effect callbacks have access to `dispatch` and `getState`, similar to thunks.
+  - listener also receives a set of `async workflow functions` like `take`, `condition`, `pause`, `fork` and `unsubscribe`, which allow writing more complex async logic.
+  - define listeners statically by calling `listenerMiddleware.startListening()` during setup, or add and remove it dynamically at runtime with special `dispatch(addListener())` and `dispatch(removeListener())` actions
+
+```TypeScript
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
+
+import todosReducer, {
+  todoAdded,
+  todoToggled,
+  todoDeleted,
+} from '../features/todos/todosSlice'
+
+// Create the middleware instance and methods
+const listenerMiddleware = createListenerMiddleware()
+
+// Add one or more listener entries that look for specific actions.
+// They may contain any sync or async logic, similar to thunks.
+listenerMiddleware.startListening({
+  actionCreator: todoAdded,
+  effect: async (action, listenerApi) => {
+    // Run whatever additional side-effect-y logic you want here
+    console.log('Todo added: ', action.payload.text)
+
+    // Can cancel other running instances
+    listenerApi.cancelActiveListeners()
+
+    // Run async logic
+    const data = await fetchData()
+
+    // Pause until action dispatched or state changed
+    if (await listenerApi.condition(matchSomeAction)) {
+      // Use the listener API methods to dispatch, get state,
+      // unsubscribe the listener, start child tasks, and more
+      listenerApi.dispatch(todoAdded('Buy pet food'))
+
+      // Spawn "child tasks" that can do more work and return results
+      const task = listenerApi.fork(async (forkApi) => {
+        // Can pause execution
+        await forkApi.delay(5)
+        // Complete the child by returning a value
+        return 42
+      })
+
+      const result = await task.result
+      // Unwrap the child result in the listener
+      if (result.status === 'ok') {
+        // Logs the `42` result value that was returned
+        console.log('Child succeeded: ', result.value)
+      }
+    }
+  },
+})
+
+const store = configureStore({
+  reducer: {
+    todos: todosReducer,
+  },
+  // Add the listener middleware to the store.
+  // NOTE: Since this can receive actions with functions inside,
+  // it should GO BEFORE the serializability check middleware
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().prepend(listenerMiddleware.middleware),
+})
 ```
 
 #### Configure the Store
