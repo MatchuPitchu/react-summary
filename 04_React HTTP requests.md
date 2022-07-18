@@ -7,7 +7,7 @@
   - in context of HTTP requests `REST API` & `GraphQL API` are two different standards for how a server should expose its data
 - [HTTP response status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 
-# Tools
+## Tools
 
 - JavaScript built-in [`Fetch API`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
 - [`Axios` library](https://axios-http.com/): is a simple promise based HTTP client for the browser and node.js
@@ -110,3 +110,88 @@ const App = () => {
   );
 };
 ```
+
+## Avoiding Race Conditions
+
+<https://beta.reactjs.org/learn/you-might-not-need-an-effect?utm_campaign=This%20Week%20In%20React&utm_medium=email&utm_source=Revue%20newsletter#fetching-data>
+
+- when you have a searchbar and every onChange event triggers a separate fetch, there is no guarantee about which order the responses will arrive in. For example, a `hell` response may arrive after `hello` response. Since it will call setResults() last, you will be displaying the wrong search results. This is called a `race condition`: two different requests `raced` against each other and came in a different order than you expected.
+- to fix the race condition, you need to add a cleanup function in `useEffect`:
+
+  - OPTION 1: `ignore` stale responses
+
+    ```JavaScript
+    const SearchResults = ({ query }) => {
+      const [page, setPage] = useState(1);
+      const params = new URLSearchParams({ query, page });
+      const results = useData(`/api/search?${params}`);
+
+      const handleNextPageClick = () => {
+        setPage(page + 1);
+      }
+      // ...
+    }
+
+    const useData = (url) => {
+      const [result, setResult] = useState(null);
+
+      useEffect(() => {
+        let ignore = false;
+        fetchData = async () => {
+          try {
+            const response = await fetch(url);
+            const data = response.json();
+            if (!ignore) {
+              setResult(data);
+            }
+          } catch (err) {
+            console.log(err.message)
+          }
+        }
+        fetchData();
+
+        return () => ignore = true;
+      }, [url]);
+
+      return result;
+    }
+    ```
+
+  - OPTION 2: abort an ongoing fetch request with `AbortController` <https://developer.mozilla.org/en-US/docs/Web/API/AbortController>
+
+    ```JavaScript
+    const SearchResults = ({ query }) => {
+      const [page, setPage] = useState(1);
+      const params = new URLSearchParams({ query, page });
+      const results = useData(`/api/search?${params}`);
+
+      const handleNextPageClick = () => {
+        setPage(page + 1);
+      }
+      // ...
+    }
+
+    const useData = (url) => {
+      const [result, setResult] = useState(null);
+
+      useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        const fetchData = async () => {
+          try {
+            const response = await fetch(url, { signal });
+            const data = response.json();
+            setResult(data);
+          } catch (err) {
+            console.log(err.message)
+          }
+        }
+        fetchData();
+
+        return () => controller.abort();
+      }, [url]);
+
+      return result;
+    }
+    ```
