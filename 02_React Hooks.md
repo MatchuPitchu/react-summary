@@ -208,7 +208,7 @@
   - initialState (optional): optional you can set an initial state
   - initFn: a function to set the inital state programmatically in case that the initial state is more complex (e.g. the result of an HTTP request)
 
-### Example with useReducer
+### Example 1 with useReducer
 
 - function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
 
@@ -276,6 +276,26 @@ const Login = ({ onLogin }) => {
       </div>
     </form>
   );
+}
+```
+
+### Example 2: useReducer instead of useState for toggling
+
+```JavaScript
+// OPTION 1: useState
+const ToggleButton = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleState = () => setIsOpen(prevIsOpen => !prevIsOpen);
+
+  return <button onClick={toggleState}>{String(isOpen)}</button>;
+}
+
+// OPTION 2: useReducer
+const ToggleButton = () => {
+  const [isOpen, toggleState] = useReducer(prevIsOpen => !prevIsOpen, false);
+
+  return <button onClick={toggleState}>{String(isOpen)}</button>;
 }
 ```
 
