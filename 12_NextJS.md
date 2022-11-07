@@ -62,8 +62,8 @@ const Nav: NextPage = () => {
 
 ## Page Pre-Rendering
 
-- Request -> /some-route -> return pre-rendered page (good for SEO) -> then hydrate with React code once loaded (that means pre-rendered page is handed over to React and act now like a SPA)
-- then Page/App is interactive and `useEffect` code with e.g. data fetching from server will be executed
+- `Request` -> `/some-route` -> return pre-rendered page (good for SEO) -> then hydrate with React code once loaded (that means pre-rendered page is handed over to React and act now like a SPA)
+- then `Page/App` is interactive and `useEffect` code with e.g. data fetching from server will be executed
 - `Problem`: this data is not visible in pre-rendered page
 
 ```TSX
@@ -72,7 +72,7 @@ const Home = () => {
   const [loadedMeetups, setLoadedMeetups] = useState<typeof DUMMY_MEETUPS>([]);
 
   useEffect(() => {
-    // normally: send HTTP Request and fetch data
+    // normally: send HTTP Request and fetch data (here only simulated)
     // problem: useEffect with data fetching is executed after component fn is executed,
     // so first loadedMeetups is empty [], this causes problem with SEO
     setLoadedMeetups(DUMMY_MEETUPS);
@@ -84,20 +84,55 @@ const Home = () => {
 
 - `Solution`: 2 Forms of Pre-Rendering
 
-  - `Static Site Generation (SSG)`: page component is pre-rendered during build process for production
-
-    - if you need to fetch also additional data from server, use `getStaticProps()` to prepare props for a certain page;
-    - fn only works in `pages folder` and fn allows to execute code that normally only runs on server-side (e.g. access file system, securely connect to database)
-    - if Next finds this fn, it will execute it during pre-rendering process, i.e. BEFORE execution of component fn -> code will NEVER reach client-side since it's executed during build process
+  - `Static Site Generation (SSG)`:
+    - it's faster than `getServerSideProps`
+    - page component is pre-rendered during `build process` for production (-> `npm run build`)
+    - if you need to fetch also additional data from server, use `getStaticProps()` to prepare props for a certain page
+    - `getStaticProps()` works only in `pages folder`; it allows to execute code that normally only runs on server-side (e.g. access file system, securely connect to database)
+    - if Next finds this fn, it will execute it during pre-rendering process, i.e. BEFORE execution of component fn -> code will `NEVER reach client-side` since it's executed during build process
     - use fn with `async` and Next waits until Promise is resolved (-> until data is loaded) and returns props for component fn
+    - when your fetched data will change regulary, add `revalidate` property to return object
+      - unlocks feature `Incremental Static Generation`
+      - example: this page would be re-generated on server at least every x seconds if there are requests coming in -> re-generated pages replace old pages -> so data is never older than x seconds
 
   ```TSX
   const Home: NextPage<Props> = ({ meetups }) => {
     return <MeetupList meetups={meetups} />;
   };
 
-  export const getStaticProps = () => {
-    // fetch data from an API or database and return { props: { ... } }
+  export const getStaticProps: GetStaticProps = async () => {
+    // fetch data from an API or database
+    // ...
+
+    // need to return object with props property (-> object that is passed into your component)
+    return {
+      props: {
+        meetups: DUMMY_MEETUPS,
+      },
+      revalidate: 3600,
+    };
+  };
+  ```
+
+  - `Server-side Rendering (SSR)`
+    - only use it if you need access to request and response object OR if your data changes really very often
+    - page is re-rendered on every incoming request
+    - `getServerSideProps` runs NOT during build, but always on server after deployment
+    - code NEVER runs on client side (like `getStaticProps`)
+
+  ```TSX
+  const Home: NextPage<Props> = ({ meetups }) => {
+    return <MeetupList meetups={meetups} />;
+  };
+
+  export const getServerSideProps: GetServerSideProps = async (context) => {
+    // access to request and response object
+    const req = context.req;
+    const res = context.res;
+
+    // fetch data from an API or database
+    // ...
+
     return {
       props: {
         meetups: DUMMY_MEETUPS,
@@ -105,5 +140,3 @@ const Home = () => {
     };
   };
   ```
-
-  - `Server-side Rendering`:
