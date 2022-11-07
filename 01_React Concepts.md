@@ -26,7 +26,7 @@
 ### Virtual DOM & DOM Updates
 
 - React `virtual DOM` determines how the component tree currently looks like and what it should look like after a state update
-- the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see)
+- the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see) -> `Notice`: the state in React is immutable and can only be updated with `setState()` because otherwise React would have NO chance to know if state changed in a component
 - React cares about components and updates `real DOM` if one of the following changes:
   - `props`: data from a parent component to make components configurable and enable parent-child-component communication
   - `state`: internal data of a component

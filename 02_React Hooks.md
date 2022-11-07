@@ -314,7 +314,8 @@ const ToggleButton = () => {
 
 > Article: <https://www.developerway.com/posts/how-to-use-memo-use-callback?utm_campaign=This%20Week%20In%20React&utm_medium=email&utm_source=Revue%20newsletter>
 
-- in a React component, non-primitive values will be re-created on every re-rendering
+- in a React component, primitive AND non-primitive values are re-created on every re-rendering
+- Problem: non-primitive values are always getting a new reference on every re-rendering
 - memoization between re-renders means, that React caches values during initial rendering and returns a reference to saved values during consecutive renders
 
 ```JavaScript
