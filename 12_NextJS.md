@@ -140,3 +140,199 @@ const Home = () => {
     };
   };
   ```
+
+### Preparing Paths with getStaticPaths and Working with Fallback Pages
+
+- `getStaticPath` is needed if you are using `getStaticProps` in a dynamic page
+
+```TSX
+// my-domain.de/:meetupId (-> param name is derived of folder name in Next.js: [meetupId] )
+import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
+import MeetupDetail from '../../components/meetups/MeetupDetail';
+
+interface Props {
+  id: string;
+  image: string;
+  alt: string;
+  title: string;
+  address: string;
+  description: string;
+}
+
+const Meetup: NextPage<Props> = ({ id, image, alt, title, address, description }) => {
+  console.log(`Client-side: ${id}`);
+
+  return <MeetupDetail image={image} alt={alt} title={title} address={address} description={description} />;
+};
+
+export const getStaticPaths: GetStaticPaths = () => {
+  // hard coded paths
+  const paths = [
+    {
+      params: {
+        meetupId: 'm1',
+      },
+    },
+    {
+      params: {
+        meetupId: 'm2',
+      },
+    },
+  ];
+
+  return {
+    // define ALL supported parameters in URL
+    paths,
+    // tells Next.js if paths array contains all supported parameter values OR only some of them
+    // handy to pre-generate only some important pages, BUT not all possible pages
+    // false: if user enters anything that's NOT supported in paths array, 404 page would be shown
+    // true: Next.js would try to generate dynamically a page for user param input that's NOT contained in paths array
+    fallback: true,
+  };
+};
+
+// Next.js pre-generates ALL versions of dynamic page for ALL supported ids
+export const getStaticProps: GetStaticProps = async (context) => {
+  // it's a dynamic page, so you need to get identifier
+  const meetupId = context.params?.meetupId; // get parameter in URL (-> here [meetupId] -> look at pages folder)
+  console.log(`Server-side: ${meetupId}`); // is logged in console (NOT browser), because run's at build time
+
+  // fetch data for a single meetup
+  // Notice: look into Next.js example project for MongoDB implementation
+  // ...
+
+  return {
+    props: {
+      id: meetupId,
+      image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/1024px-Stadtbild_M%C3%BCnchen.jpg',
+      alt: 'First Meetup',
+      title: 'First Meetup',
+      address: 'Somme address 5, 12345 City',
+      description: 'Somme description',
+    },
+  };
+};
+
+export default Meetup;
+```
+
+## API Routes - Backend inside your App
+
+- create folder `api` inside `pages` folder
+- all files inside this folder will be turned into API routes (-> endpoints that can be targeted by requests)
+- file names will be `path segments` in the URL
+
+```TypeScript
+// utils function to connect to database
+// install mongodb driver: npm i mongodb + create a mongodb cluster https://cloud.mongodb.com
+import { MongoClient } from 'mongodb'; // Next.js detects this and will NOT bundle it into client side build
+
+export const connectDatabase = async () => {
+  const client = await MongoClient.connect(
+    `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.2gcet26.mongodb.net/nextjs-example-database?retryWrites=true&w=majority`
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection('meetups'); // name of your choice for collection inside your database
+
+  return { meetupsCollection, client };
+};
+```
+
+```TypeScript
+// API route: /api/add-meetup
+import { NextApiRequest, NextApiResponse } from 'next';
+import { connectDatabase } from '../../utils/mongodb-connection';
+
+// code will NEVER be exposed on client side -> it's normal server side NodeJS code
+// name function as you want
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  // only POST requests allowed to /api/add-meetup
+  if (req.method !== 'POST') return;
+
+  const { title, image, address, description } = req.body;
+  const { meetupsCollection, client } = await connectDatabase();
+
+  try {
+    const result = await meetupsCollection.insertOne({ title, image, address, description });
+    console.log(result);
+    res.status(201).json({ message: 'Meetup inserted' }); // API request succeeded with custom message
+  } catch (error) {
+    console.log(error);
+    res.status(400).json(error); // API request failed with custom message
+  }
+  client.close(); // close database connection
+};
+
+export default handler;
+```
+
+```TSX
+// Example: POST request
+// my-domain.de/new-meetup
+import { NextPage } from 'next';
+import { useRouter } from 'next/router';
+import type { MeetupData } from '../../components/meetups/NewMeetupForm';
+import NewMeetupForm from '../../components/meetups/NewMeetupForm';
+
+const NewMeetup: NextPage = () => {
+  const router = useRouter();
+
+  const addMeetupHandler = async (enteredMeetupData: MeetupData) => {
+    // fetch from internal Next.js API in api folder with specific filename (-> here 'add-meetup')
+    try {
+      const options = {
+        method: 'POST',
+        body: JSON.stringify(enteredMeetupData),
+        headers: { 'Content-Type': 'application/json' },
+      };
+      const response = await fetch(`/api/add-meetup`, options);
+      const data = await response.json();
+      console.log(data);
+
+      router.replace('/'); // go to starting page after successful POST request
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return <NewMeetupForm onAddMeetup={addMeetupHandler} />;
+};
+
+export default NewMeetup;
+```
+
+```TSX
+// Example: GET request
+import type { GetStaticProps, NextPage } from 'next';
+import MeetupList from '../components/meetups/MeetupList';
+import { connectDatabase } from '../utils/mongodb-connection';
+
+const Home: NextPage<Props> = ({ meetups }) => {
+  return <MeetupList meetups={meetups} />;
+};
+
+export const getStaticProps: GetStaticProps = async () => {
+  // fetch data from an API or database (in Next.js you can use fetch() in server-side code)
+  // ...
+  // NOTICE: if you are fetching data from own Next.js API routes,
+  // you do NOT need fetch(), you can directly get data from database
+  const { meetupsCollection, client } = await connectDatabase();
+  const meetups = await meetupsCollection.find().toArray();
+
+  client.close();
+
+  return {
+    props: {
+      meetups: meetups.map((meetup) => ({
+        title: meetup.title,
+        address: meetup.address,
+        image: meetup.image,
+        id: meetup._id.toString(),
+      })),
+    },
+    revalidate: 3600,
+  };
+};
+
+export default Home;
+```
