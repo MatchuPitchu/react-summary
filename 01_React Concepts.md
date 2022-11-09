@@ -1,16 +1,18 @@
 # React
 
 > React Documentation: <https://reactjs.org/>
-> React Repo for creating an new React App: <https://github.com/facebook/create-react-app>
+> React Repo for creating new React App: <https://github.com/facebook/create-react-app>
 > Academind GitHub Repo of the course: <https://github.com/academind/react-complete-guide-code/tree/master>
 
-- client-side JS library four building reactive user interfaces
-- Traditionally, in web apps, you click a link and wait for a new page to load. You click a button and wait for some action to complete. In React, you don't wait for new pages to load or actions to start
-- with JS you can manipulate HTML structure (DOM) of a page -> that allows to change what user sees without sending a request to the server and waiting for new fetched HTML page
+- client-side JavaScript library for building reactive user interfaces
+- traditionally, in web apps, you click a link -> wait for a new page to load, you click a button -> wait for some action to complete
+- in React, you don't wait for new pages to load or actions to start
+- with JavaScript you can manipulate HTML structure (`DOM`) -> that allows to change what user sees without sending a request to the server and waiting for new fetched HTML page
 
-## Vanilla JavaScript vs ReactJS
+## Vanilla JavaScript vs React
 
-- with Vanilla JS I have to give clear step-by-step instructions to JS, that means decribe every single step of a functionality (-> called `imperative approach`) which reaches its limits at some point AND developer has to take care of all details and has to do repetitive tasks
+- with Vanilla JavaScript you have to define clear step-by-step instructions, i.e. decribe every single step of a functionality (-> `imperative approach`)
+- that reaches its limits at some point AND developer has to take care of all details and has to do repetitive tasks
 
   ```JavaScript
     const modalCancelAction = document.createElement('button');
@@ -19,19 +21,21 @@
     modalCancelAction.addEventListener('click', closeModalHandler);
   ```
 
-- in React basic steps are done by the library; the developer describes rather on a higher level the end result of what should be displayed on the screen, in other words the desired target state(s), and React will figure out the actual JS DOM instructions (-> called `declarative approach`); in React the code of one application is splitted in multiple small components that are responsible for one clear task; so code stays maintainable and manageable; React library is doing the rendering and combining of the code
+- in React basic steps are done by the library; the developer describes rather on a higher level the final result of what should be displayed on the screen, i.e. the desired target state(s)
+- React will figure out the actual JavaScript DOM instructions (-> `declarative approach`)
+- in React the code of one app is splitted in multiple small components that are responsible for one clear task -> so code stays maintainable and manageable
+- React library is doing the rendering and combining of the code
 
-## React - How it works
-
-### Virtual DOM & DOM Updates
+## React: Virtual DOM & DOM Updates
 
 - React `virtual DOM` determines how the component tree currently looks like and what it should look like after a state update
-- the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see) -> `Notice`: the state in React is immutable and can only be updated with `setState()` because otherwise React would have NO chance to know if state changed in a component
+- the `ReactDOM` receives the differences between previous and current states and then manipulates the `real DOM` (-> that's what users see)
+- `Notice`: state in React is immutable and can only be updated with `setState()` because otherwise React would have NO chance to know if state changed in a component
 - React cares about components and updates `real DOM` if one of the following changes:
   - `props`: data from a parent component to make components configurable and enable parent-child-component communication
   - `state`: internal data of a component
   - `context`: component-wide data
-- `Virtual DOM Diffing`: React re-evaluates a component whenever props, state or context changes, i.e. re-exectues component function and with this all child component functions, BUT changes to the `real DOM` are only made for differences between these evaluations
+- `Virtual DOM Diffing`: React re-evaluates a component whenever `props`, `state` or `context` changes, i.e. re-exectues component function and with this all child component functions, BUT changes to the `real DOM` are only made for differences between these evaluations
 
   - a virtual comparison between previous and current state needs only few resources (-> happens in memory)
   - reaching out the `real DOM` for rendering in the browser is expansive from a performance perspective
@@ -49,14 +53,15 @@
   </div>
   ```
 
-#### `React.memo()` to avoid unnessecary re-execution of a component
+### `React.memo()` to avoid unnessecary re-execution of a component
 
-- then component is only re-executed if props really changed and have new values -> works well with `primitive values`
-
-- for `reference values` like objects/functions/arrays that you pass as props to child components comparison doesn't work, because with every re-execution the obj/fn/arr is recreated and so references are new and cannot be compared -> solution `useCallback Hook`
-
-- Note: DON'T use React.memo() on every component; memo costs also performance because
-  React has to store prev state and compare it with current; to cut of a branch and avoid unnecessary re-render cylces on the entire branch
+- using `React.memo(MyComponent)` on a stateless component with `props`
+  - component function is only re-executed if `props` really changed with new values -> works well with `primitive values`
+  - for `reference values` (-> `objects`, `functions`, `arrays`) that you pass as props to child component comparison doesn't work, because with every re-execution obj/fn/arr is re-created and so references are new and cannot be compared -> solution `useCallback Hook`
+- `Notice`
+  - do NOT use `React.memo()` on every component
+  - memo costs also performance because React has to store prev state and compare it with current
+  - use it to cut of a branch and avoid unnecessary re-render cylces on the entire branch
 - `<Component>` could be wrapped in `React.memo()` if:
   - it is a `pure functional component`, i.e. `<Component>` renders same output, if same props are passed
   - it renders often
@@ -70,13 +75,13 @@
   - to customize props comparison, use second argument to indicate an equality check function; `areEqual(prevProps, nextProps)` function must return true if `prevProps` and `nextProps` are equal.
 
     ```JavaScript
-    const propsAreEqual = (prevProps, nextProps) => {
+    const arePropsEqual = (prevProps, nextProps) => {
       return prevProps.name === nextProps.name && prevProps.id === nextProps.id;
     }
-    React.memo(Component, propsAreEqual);
+    React.memo(Component, arePropsEqual);
     ```
 
-```JavaScript
+```JSX
 // Examples - App.js
 const App = () => {
   const [show, setShow] = useState(false);
@@ -90,7 +95,7 @@ const App = () => {
     setEnable(true);
   }, []);
 
-  console.log('APP Component running');
+  console.log('App Component running');
 
   return (
     <div>
@@ -121,7 +126,7 @@ const App = () => {
       memo() has no cut off branch effect because on every re-execution
       of the App Component, toggleBtn fn is newly recreated;
       solution: useCallback Hook that stores a function in React internal storage across
-      component execution / re-evaluation -> so fn is NOT recreated with every execution and remains the same for JS */}
+      component execution / re-evaluation -> so fn is NOT recreated with every execution and keeps same reference */}
       <Button onClick={enableToggleBtn}>Enable Toggle Button</Button>
       <Button onClick={toggleBtn}>Toggle</Button>
     </div>
@@ -137,18 +142,19 @@ const Demo = ({ show }) => {
 export default React.memo(Demo); // for 4) in App.js
 ```
 
-### State & State Updates
+## State & State Updates
 
 - React manages the state for you
-- when using useState() Hook, the default variable (like `false` in `useState(false)`) is stored internally by React and even if component is re-executed useState() is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
-- new state can only be set with `setState` fn
+- when using `useState()` Hook, the default variable (e.g. `false` in `useState(false)`) is stored internally by React and even if component is re-executed `useState()` is not re-executed again unless the component was completely removed from the DOM in the meantime (e.g. if a component is rendered conditionally)
+- new state can only be set with `setState()`
 - state updates scheduling example:
   1. `<MyComponent />` has current string state `stateOne`
   2. calling `setState('stateTwo')` schedules state update with data `stateTwo` -> means NOT that current state changes instantly
-  3. order of state changes (when you have severals) is garanteed, but it could be that React executes first tasks with higher priority (-> e.g. input field where user is typing something in)
+  3. order of state changes (when multiple changes) is garanteed, but it could be that React executes first tasks with higher priority (-> e.g. input field where user is typing something in)
   4. React will re-evaluate component fn AFTER the state change was processed (i.e. new state is active)
 - since you can schedule multiple updates at the same time, use cb fn to update state if it depends on prev state (`setState(prev => prev + 1)`) to ensure that the latest state is used and NOT the last state when last the component was rendered
 - `state batching`: if you have multiple state updates lines of code after each other in a synchronous fn (without time delay, not asynchronous), React will batch those updates together into one scheduled state update
+
   ```JavaScript
   const myFunc = (data) => {
     setNewState(data);
@@ -158,8 +164,8 @@ export default React.memo(Demo); // for 4) in App.js
 
 ## Building Single-Page Applications (SPAs) with React
 
-1. React can be used to control parts of HTML pages or entire pages (e.g. a sidebar) called widget approcach on a multi-page-app
-2. React can also be used to control the entire frontend of a web app called SPA approach (-> server only sends one HTML page, React takes over and controls UI)
+1. React can be used to control parts of HTML pages or entire pages (e.g. a sidebar) -> called `widget approach` on a multi-page-app
+1. React can also be used to control the entire frontend of a web app called `SPA approach` (-> server only sends one HTML page, React takes over and controls UI)
 
 ## React Components
 
@@ -168,21 +174,23 @@ export default React.memo(Demo); // for 4) in App.js
   - Reusability: Don't repeat yourself (DRY)
   - Separation of Concerns: Don't do too many things in one and the same place (function)
 - in React all user interfaces are made up of components that are mixed and matched according to the application's needs
-- component is just a JS function
-  ```JavaScript
+- component is just a JavaScript function
+
+  ```JSX
   const App = () => {
     return (
       <div>Hello</div>
     )
-  })
+  };
   ```
-- in React I'm building a component tree
+
+- in React you are building a component tree
   - only the top-most root component (-> in general `<App />`) is rendered directly into the single HTML page
   - then deeper components are nested inside of each other (e.g. `<Tasks />` -> `<Task />` -> ...)
 - passing data from parent to child component with `props` obj
 
-  ```JavaScript
-  // inside of parent component
+  ```JSX
+  // inside parent component
   <Task title='Do this' />
 
   // child component
@@ -195,46 +203,38 @@ export default React.memo(Demo); // for 4) in App.js
 
   - problem: with lots of nested components, you could end with lots of unnecessary `<div>`'s (or other elements) which slow down the rendering performance and add no semantic meaning or structure to the page but are only there because of React's/JSX requirement
 
-  ```JavaScript
+  ```JSX
   return (
     <div>
       // inside you can add more elements
     </div>
   )
 
-  // solution 1 - workaround: creating a helper wrapper component that returns only the children prop, i.e. what's between the wrapper in the component
-  const Wrapper = ({ children }) => {
-    return { children };
-  };
+  // OPTION 1 - workaround: creating a helper wrapper component that returns only the children prop, i.e. what's between the wrapper in the component
+  const Wrapper = ({ children }) => ({ children });
 
   // other component
   return (
-    <Wrapper>
-      // more elements ...
-    </Wrapper>
+    <Wrapper> /* more elements ... */ </Wrapper>
   )
 
-  // recommanded built-in solution 2: using React.Fragment or shortcut <></> as empty wrapper component
+  // OPTION 2 - recommanded: using React.Fragment or shortcut <></> as empty wrapper component
   import { Fragment } from 'react';
 
   return (
-    <Fragment>
-      // ...
-    </Fragment>
+    <Fragment> /* ... */ </Fragment>
   )
 
   // OR simply without importing
   return (
-    <>
-      // ...
-    </>
+    <> /* ... */  </>
   )
   ```
 
-- passing data from child to parent component with function that's passed inside props obj
+- passing `data from child to parent` component with function that's passed inside props obj
 
-  ```JavaScript
-  // inside of parent components
+  ```JSX
+  // inside parent components
   const newInputHandler = (inputValue) => {
     console.log(inputValue);
   };
@@ -254,14 +254,14 @@ export default React.memo(Demo); // for 4) in App.js
 
 ## Rerendering of Components
 
-- every state update with the setState function triggers a rerendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
-- that means with a reexecution of this instance, `const title` is assigned to the value that was updated before
+- every state update with `setState()` triggers a re-rendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
+- that means with a re-execution of this instance, `const title` is assigned to the value that was updated before
 
   ```JavaScript
     const [title, setTitle] = useState(t);
 
-    // often a convention to name fn with ...Handler
-    const clickHandler = ({target}) => {
+    // often a convention to name fn with handle...
+    const handleClick = ({target}) => {
       setTitle(target);
       console.log(target);
     };
@@ -271,15 +271,15 @@ export default React.memo(Demo); // for 4) in App.js
 
 - that means that you fetch data (e.g. of a form) and save it in a state variable when an input changes or is submitted AND at the same time this input has a value attribute which is binded to the state variable
 
-  ```JavaScript
+  ```JSX
   const MyComponent = () => {
-    // when I read a value of an input it's always a string (-> nums, dates ... are also read as strings)
+    // when you read a value of an input it's always a string (-> nums, dates ... are also read as strings)
     const [userInput, setUserInput] = useState('');
 
-    const inputChangeHandler = ({ target }) => setUserInput(target.value);
+    const inputChangeHandler = ({ target: { value } }) => setUserInput(value);
 
-    const submitHandler = (e) => {
-      e.preventDefault();
+    const submitHandler = (event) => {
+      event.preventDefault();
       console.log(userInput); // do what ever you want after submitting, here only console.log
       setUserInput(''); // clear input
     };
@@ -289,8 +289,7 @@ export default React.memo(Demo); // for 4) in App.js
         <label>Name</label>
         <input
           type='text'
-          // add value attribute here with state variable is called two-way binding
-          value={userInput}
+          value={userInput} // adding value attribute with state variable is called two-way binding
           onChange={inputChangeHandler}
         />
         <button type='submit'>Submit Name</button>
@@ -303,12 +302,12 @@ export default React.memo(Demo); // for 4) in App.js
 
 ## Styling Components
 
-- create CSS file with same name as JS file
+- create css file with same name as js file
 - import css file into component
 - use `className` instead of `class` HTML keyword to add classes in JSX
 - assign unique class or id names to target elements only in this component
 
-  ```JavaScript
+  ```JSX
   import './ExpenseItem.css';
 
   const ExpenseItem = () => {
@@ -327,7 +326,7 @@ export default React.memo(Demo); // for 4) in App.js
 
 - setting css classes dynamically: inline styles have the highest priority, so they overwrite all other css rules; therefore it's not recommanded, the better way is setting classes dynamically with template literal (`...`)
 
-  ```JavaScript
+  ```JSX
   return (
     <form onSubmit={formSubmitHandler}>
       <div className={`form-control ${!isValid ? 'invalid' : ''}`}>
@@ -343,15 +342,15 @@ export default React.memo(Demo); // for 4) in App.js
 
 - when you use specific css files to style elements in specific js files (-> e.g. task.js with task.css), then it's problematic that these css rules are in global scope and by mistake you could reuse them somewhere without wanting it
 
-  - recommanded solution: Styling with CSS Modules
+  - `OPTION 1`: CSS Modules
 
     - creates unique versions of the styles of your css file, so they apply only to the wished component AND you avoid to have them in the global scope
-    - it's already prefconfigured in React: https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/
+    - it's already prefconfigured in React <https://create-react-app.dev/docs/adding-a-css-modules-stylesheet>
 
-    ```JavaScript
+    ```JSX
     // a) rename css file to Filename.module.css
     // b) use -> import styles from './Filename.module.css'
-    // c) replace className string with obj styles and add your needed classes as a property
+    // c) replace className string with styles obj and add your needed classes as a property
     // d) conditional rendering with backticks as always
     import styles from './Filename.module.css';
 
@@ -364,16 +363,16 @@ export default React.memo(Demo); // for 4) in App.js
     };
     ```
 
-  - my NOT preferred solution: use styled components package https://styled-components.com/
+  - `OPTION 2`: styled components package <https://styled-components.com>
 
-    ```JavaScript
+    ```JSX
     // a) install npm package
     // b) import styled object
     // c) create component with method of wished HTML tag (button, div, p ...)
     // d) what's inside the backticks is passed inside the method
     // e) add normal css rules between backticks, remove HTML tag, because it's automatically added to wished HTML element
     // f) use "&" to indicate main HTML class (e.g. for pseudo-classes, nested selectors "& input {}" ...)
-    // g) for conditional rendering look in react learing goals app files
+    // g) for conditional rendering look at documentation
     import styled from 'styled-components';
 
     const Button = styled.button`
@@ -381,8 +380,9 @@ export default React.memo(Demo); // for 4) in App.js
       font: inherit;
       padding: 0.5rem 1.5rem;
       border: 1px solid #8b005d;
-      color: white;
-      background: #8b005d;
+      /* Adapt the colors based on primary prop */
+      color: ${props => props.primary ? "white" : "palevioletred"};
+      background: ${props => props.primary ? "palevioletred" : "white"};
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.26);
       cursor: pointer;
 
@@ -401,14 +401,29 @@ export default React.memo(Demo); // for 4) in App.js
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.26);
       }
     `
+
+    const MyComponent = () => {
+      return (
+        <>
+          <Button>Normal</Button>
+          <Button primary>Primary</Button>
+        </>
+      );
+    };
     ```
 
 ## Concept of "Composition" (-> "children props")
 
 - when you have components with some identical CSS rules, you can build a wrapper container with the extracted wished CSS rules that should apply in general on multiple components
 
-  ```JavaScript
-  // Create simple e.g. Card component in Card.js
+  ```JSX
+  // Card.css
+  .card {
+    border-radius: 12px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  // Card.js
   import './Card.css';
 
   // a) pass className as prop into wrapper component
@@ -420,12 +435,7 @@ export default React.memo(Demo); // for 4) in App.js
     return <div className={classes}>{children}</div>;
   };
 
-  // Add wished CSS rules in Card.css
-  .card {
-    border-radius: 12px;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
-  }
-
+  // Expenses.js
   // Use Card as a wrapper for a component in order to apply all wished CSS rules
   // and combine them with specific rules (-> here in Expenses.css) of this component
   import Card from './Card';
@@ -440,9 +450,9 @@ export default React.memo(Demo); // for 4) in App.js
   };
   ```
 
-- wrapper components are also handy to extract more complexe JSX code (e.g. Modals, Alerts, Buttons ) that you need in multiple components
+- wrapper components are also handy to extract more complexe JSX code (e.g. `Modal`, `Alert`, `Button`, `Notification`, `Sidebar`, `Layout` ) that you need in multiple components
 
-  ```JavaScript
+  ```JSX
   // Button wrapper component
   const Button = ({ type, onClick, children }) => {
     return (
@@ -452,7 +462,7 @@ export default React.memo(Demo); // for 4) in App.js
     );
   };
 
-  // Another component which uses Button in JSX return
+  // Another component using Button
   return (
     <form onSubmit={formSubmitHandler}>
       <div className='form-control'>
@@ -488,9 +498,9 @@ export default React.memo(Demo); // for 4) in App.js
   }
   ```
 
-## JSX - How it's working under the hood
+## Javascript Syntax Extension (JSX)
 
-```JavaScript
+```JSX
 // JSX return
 return (
   <div>
@@ -517,14 +527,14 @@ const App = () => {
 
 ## React Portals of ReactDOM library
 
-- Example of deeply nested React Component `<MyModal />`
+- Example: deeply nested React Component `<MyModal />`
 
-  ```JavaScript
+  ```JSX
   return (
-    <React.Fragment>
+    <>
       <MyModal />
       <MyInputForm />
-    </React.Fragment>
+    </>
   )
   ```
 
@@ -543,7 +553,7 @@ const App = () => {
   ```
 
 - semantically from "clean HTML structure" perspective, having this nested modal isn't ideal. It's an overlay to the entire page after all (that's similar for side-drawers, other dialogs etc.)
-- portals good way to render component (-> like a modal) somewhere else, not so deeply nested, but on another place in real DOM
+- a `portal` renders component somewhere else, not so deeply nested, but on another place in real DOM
 
   - add div element(s) to index.html to hook into them later
 
@@ -555,7 +565,7 @@ const App = () => {
     </body>
   ```
 
-  - import ReactDOM in component(s) that should be rendered somewhere else, create normal wished components, use createPortal method to move rendering of this component(s) to another place
+  - import `ReactDOM` in component(s) that should be rendered somewhere else, create normal wished components, use `createPortal` method to move rendering of this component(s) to another place
 
   ```JavaScript
   import ReactDOM from 'react-dom'; // import for createPortal method
@@ -585,10 +595,10 @@ const App = () => {
   };
 
   const ErrorModal = ({ title, message, onConfirm }) => {
-    // first argument in createPortal method is JSX React component that I wanna move somewhere
+    // first argument in createPortal method is JSX React component that should be moved somewhere
     // -> important: pass props into this component;
-    // second argument is element in index.html that I get e.g. by id;
-    // now it doesn't matter where - in which deep nested component - I use Backdrop and Modal, it's always rendered attached to element with this id
+    // second argument is element in index.html that you get e.g. by id
+    // now it doesn't matter where - in which deep nested component - you are using Backdrop and Modal, it's always rendered attached to element with this id
     return (
       <>
         {ReactDOM.createPortal(
