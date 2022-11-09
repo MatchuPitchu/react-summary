@@ -1,18 +1,19 @@
 # React Hooks
 
 - Rules of Hooks:
-  1. only call React Hooks a) in React Component Functions or b) in Custom Hooks
-  1. only call React Hooks at the Top Level, NOT in nested functions, NOT in any block statements
-  1. recommanded rule for useEffect: ALWAYS add everything you refer to inside to useEffect as a dependency except the state updating functions (-> setName ...) because they never change
+  1. only call a) in React Component Functions or b) in Custom Hooks
+  1. only call at the Top Level, NOT in nested functions, NOT in any block statements
+  1. recommanded rule for `useEffect`, `useCallback`, `useMemo`: ALWAYS add everything you refer to inside as a dependency (-> except e.g. state updating function (-> `setState`) because it never changes)
 
 ## useRef Hook
 
-- first time a component is rendered, React sets value of a ref variable to a real DOM element (-> NOT the virtual DOM of React, so you should not manipulate it, only React should) that is rendered based on a JSX element with a ref attribute and connection to the wished variable
-- useful when you only want to read a value and never plan on changing anything, then you don't need useState
+- first time a component is rendered, React sets value of a `ref` variable to a `real DOM` element (-> NOT the virtual DOM of React, so you should not manipulate it, only React should)
+  - that element is rendered based on a JSX element with a ref attribute and connection to the wished variable
+- useful when you only want to read a value and never plan on changing anything, then you don't need `useState`
 
-  ```JavaScript
+  ```JSX
   // Example with useRef instead of using useState
-  // BUT not a good use case, because inputs are now uncontrolled (-> with useState and two way binding they would be controlled) components
+  // BUT not a good use case, since uncontrolled inputs (-> with useState and two way binding they would be controlled)
   import { useRef } from 'react';
 
   const MyComponent = () => {
@@ -44,11 +45,11 @@
 ## Forward Refs Hook
 
 - allows to interact with a component imperatively in the real DOM (-> look at `useRef` Hook)
-- with `useImperativeHandle` and `forwardRef` you can expose functionalities from a React component to its parent component to then use your component in the parent component through refs and trigger certain functionalities
-- it's good for use case like focusing fields or scrolling, BUT in general it's better to avoid this because of manipulating directly the real DOM
-- example of reusable input component and focussing invalid input field with help of `useRef`, `forwardRef` and `useImperativeHandle`
+- with `useImperativeHandle` and `forwardRef` you can expose functionalities from a React component to its parent component in order to use your component in the parent component through refs and trigger certain functionalities
+- it's good for use case like `focusing fields` or `scrolling`, BUT in general it's better to avoid this because of manipulating directly the real DOM
+- `Example`: reusable input component and focussing invalid input field with help of `useRef`, `forwardRef` and `useImperativeHandle`
 
-  ```JavaScript
+  ```JSX
   // Login.js
   const Login = () => {
     // ... states and logic
@@ -100,7 +101,7 @@
   };
   ```
 
-  ```JavaScript
+  ```JSX
   // Input.js
   import { useRef, forwardRef, useImperativeHandle } from 'react';
 
@@ -121,7 +122,7 @@
       // first arg: ref from outside (from parent component)
       // second arg: anonymous callback fn
       useImperativeHandle(ref, () => {
-        // return a translation obj with all data that you would use from outside
+        // returns a translation obj with all data that you would use from outside
         return {
           // define externally available name (-> here 'focus') that points to focus function
           focus: focus,
@@ -160,7 +161,7 @@
 
   - dependencies: add all "things" (variables, functions) that are used in the effect function if those "things" could change because your component (or some parent component) re-rendered
 
-  ```JavaScript
+  ```JSX
     // Dummy example
     import { useState, useEffect } from 'react';
 
@@ -178,12 +179,12 @@
     };
   ```
 
-- Cleanup function: when you trigger an effect in useEffect (like timeout, intervall etc.) then you have to clean this effect in a return statement
+- `Cleanup function`: when you trigger an effect in `useEffect` (like timeout, intervall etc.) then you have to clean this effect in a return statement
 
-  - in example below, I debounce user input with setTimeout to trigger form validation only when user doesn't stroke a key for 500ms
+  - in example below, I debounce user input with setTimeout to trigger form validation only when user does NOT stroke a key for 500ms
   - but I wanna have only 1 ongoing timer at a time
-  - so I have to use built-in clearTimeout function with saved const timerId
-  - cleanup function is now executed always BEFORE useEffect runs the text time OR BEFORE the component is removed from the DOM (-> is unmounted)
+  - so I have to use built-in `clearTimeout` function with saved const timerId
+  - cleanup function is now executed always `BEFORE useEffect runs the text time` OR `BEFORE the component is removed from the DOM` (-> is unmounted)
 
   ```JavaScript
   useEffect(() => {
@@ -202,17 +203,17 @@
 - concept of useReducer:
 
   - `const [state, dispatchFn] = useReducer(reducerFn, initialState, initFn)`
-  - state: state snapshot used in the component re-render/re-evaluation cycle
-  - dispatchFn: function that can be used to dispatch a new `action` (e.g. trigger an update of the state)
-  - reducerFn: a function that is triggerd automatically once an action is dispatched (via `dispatchFn()`) - it receives the latest state snapshot and should return the new, updated state (`(prevState, action) => newState`)
-  - initialState (optional): optional you can set an initial state
-  - initFn: a function to set the inital state programmatically in case that the initial state is more complex (e.g. the result of an HTTP request)
+    - `state`: state snapshot used in the component re-render/re-evaluation cycle
+    - `dispatchFn`: function that can be used to dispatch a new `action` (e.g. trigger an update of the state)
+    - `reducerFn`: a function that is triggerd automatically once an action is dispatched (via `dispatchFn()`) - it receives the latest state snapshot and should return the new, updated state (`(prevState, action) => newState`)
+    - `initialState` (optional): optional you can set an initial state
+    - `initFn`: a function to set the inital state programmatically in case that the initial state is more complex (e.g. the result of an HTTP request)
 
 ### Example 1 with useReducer
 
 - function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
 
-```JavaScript
+```JSX
 import { useEffect, useReducer } from 'react';
 import classes from './Login.module.css';
 import Button from '../UI/Button/Button';
@@ -221,7 +222,7 @@ const emailReducer = (prevState, action) => {
   // condition defined based on action parameter and a related wished state update return
   switch (action.type) {
     case 'USER_INPUT':
-      return { value: action.val, isValid: action.val.includes('@') };
+      return { value: action.value, isValid: action.value.includes('@') };
     case 'INPUT_BLUR':
       // it is guaranteed that prevState parameter is the last state snapshot
       return { value: prevState.value, isValid: prevState.value.includes('@') };
@@ -239,9 +240,9 @@ const Login = ({ onLogin }) => {
   const { isValid: emailIsValid } = emailState; // destructuring with alias
 
   const emailHandler = ({ target }) => {
-    // dispatchFn of useReducer to pass an argument as an "action" (-> look at parameter of emailReducer fn);
+    // dispatchFn of useReducer to pass argument of "action" obj (-> look at parameter of emailReducer fn);
     // here I'm using an obj with type key that describes what happpens AND a payload (-> here a value the user entered)
-    dispatchEmail({ type: 'USER_INPUT', val: target.value });
+    dispatchEmail({ type: 'USER_INPUT', value: target.value });
   };
 
   const validateEmailHandler = () => {
@@ -265,8 +266,7 @@ const Login = ({ onLogin }) => {
           id='email'
           value={emailState.value}
           onChange={emailHandler}
-          // onBlur is activated when input loses focus
-          onBlur={validateEmailHandler}
+          onBlur={validateEmailHandler} // onBlur is activated when input loses focus
         />
       </div>
       <div className={classes.actions}>
@@ -301,20 +301,20 @@ const ToggleButton = () => {
 
 ## useState vs useReducer
 
-- use useReducer when using useState becomes cumbersome or you're getting a lot of bugs/unintended behaviors
-- useState
+- use `useReducer` when using `useState` becomes cumbersome or you're getting a lot of bugs/unintended behaviors
+- `useState`
   - main state management "tool"
   - great for independent simple pieces of state/data
   - great if state updates are easy and limited to a few kinds of updates (-> if you don't have lots of different cases that will change the state, if you don't have an obj as state)
-- useReducer
+- `useReducer`
   - great if you have more complex state updates (-> different cases, different actions that change the state) you can write a reducer fn that contains more complex state updating logic
   - should be considered if you have related pieces of state/data (i.e. form inputs that are related)
 
 ## Memoizing values and Good Practices with useCallback, useMemo and React.memo()
 
-> Article: <https://www.developerway.com/posts/how-to-use-memo-use-callback?utm_campaign=This%20Week%20In%20React&utm_medium=email&utm_source=Revue%20newsletter>
+> Article: <https://www.developerway.com/posts/how-to-use-memo-use-callback>
 
-- in a React component, primitive AND non-primitive values are re-created on every re-rendering
+- in a React component, `primitive` AND `non-primitive` values are re-created on every re-rendering
 - Problem: non-primitive values are always getting a new reference on every re-rendering
 - memoization between re-renders means, that React caches values during initial rendering and returns a reference to saved values during consecutive renders
 
@@ -328,17 +328,18 @@ console.log(a === c); // true
 
 // React specific example
 const Component = () => {
+  // without memoization, 'a' is always re-created with every render and triggers useEffect
   const a = { 'test': 1 };
 
   useEffect(() => {
-  }, [a]) // without memoization, 'a' is always re-created with every render and triggers useEffect
+  }, [a])
   // ...
 }
 ```
 
 - `useMemo` and `useCallback` are useful for re-rendering. During initial rendering, they are even harmful: React has to do additional work
 - Use case: memoize props values to prevent re-renders
-- Import to know about Component re-rendering:
+- Important to know about Component re-rendering:
 
   - a) when state or prop value changes
   - b) when a component re-renders itself, it also re-renders all of its children
@@ -363,7 +364,7 @@ const Component = () => {
 
 - Memoizing `exepnsive calculation`
 
-  - Example below: Without (!) memoization, with 6x CPU slowdown, sorting of this array with ~250 items takes less than 2ms. To compare, rendering this list - just native buttons with text - takes more than 20ms. 10 times more!
+  - `Example`: Without (!) memoization, with 6x CPU slowdown, sorting of example array with ~250 items takes less than 2ms. To compare, rendering this list - just native buttons with text - takes more than 20ms. 10 times more!
 
   ```JavaScript
   const List = ({ countries }) => {
@@ -379,7 +380,7 @@ const Component = () => {
   };
   ```
 
-  - Good Practice: Instead of memoizing sort function, memoize the actual most expensive calculation -> re-rendering and updating components:
+  - `Good Practice`: Instead of memoizing sort function, `memoize re-rendering and updating components` (-> the actual most expensive calculation):
 
   ```JavaScript
   const List = ({ countries }) => {
@@ -394,7 +395,7 @@ const Component = () => {
 
 ### useCallback Hook
 
-- stores a function in React internal storage across component execution / re-evaluation -> then this fn is NOT recreated with every execution
+- stores a function in React internal storage across component execution / re-evaluation -> then this fn is NOT recreated with every re-execution
 - advantage: fn keeps the same reference in the `stack memory` that refers to the object in the `heap memory`;
 
 - now you can e.g. use `export default React.memo(ChildComponentName)` in child component because you can compare if functions changed or not; if fn remains unchanged then no re-rendering of a certain child component
@@ -408,8 +409,8 @@ const Component = () => {
   - functions in JS are `closures` -> they close over the values that are available in there environment; so JS logs in all variables that are used in the fn (below: `enable`) and stores these variables for the fn definition
   - in dependency array: list all variables, functions etc. that could change, then in case memoized version of cb fn is recreated
 
-```JavaScript
-const App = () => {
+```JSX
+const App = ({ enable }) => {
   const [show, setShow] = useState(false);
 
   const toggleBtn = useCallback(() => {
@@ -429,17 +430,17 @@ const App = () => {
 
 ### useMemo Hook
 
-- while useCallback memoizes functions, useMemo memoizes other values (any kind of data that you wanna store)
+- while useCallback memoizes functions, useMemo memoizes the return of a callback fn (any kind of data that you wanna store, `primitive` and `non-primitive` values)
 - memoizes data to avoid re-calculation of performance intensive tasks
 - `useMemo(() => {}, [])`
 
   - first argument: cb fn that `returns` what you want to store/memoizes
   - second argument: array of dependencies to ensure that stored value is updated if value in array changes
-  - important like for `React.memo()`: NOT use it everywhere because it costs also performance and it needs space to store data
+  - `Notice`: like `React.memo()`, NOT use it everywhere because it costs also performance and it needs space to store data
 
-- Example 1) for `useMemo`, `useCallback` and `React.memo()`
+- `Example 1`: `useMemo`, `useCallback` and `React.memo()`
 
-  ```JavaScript
+  ```JSX
   // App.js
   const App = () => {
     const [listTitle, setListTitle] = useState('My List');
@@ -487,12 +488,12 @@ const App = () => {
   export default React.memo(DemoList);
   ```
 
-  - Example 2) for useMemo in combination with debounce fn from `lodash library`
+- `Example 2`: `useMemo` in combination with debounce fn from `lodash library`
 
   - to avoid that every key entry leads to a server request, use debounce fn that single request is fired only once when user stops typing for one second
-  - wrap debounce fn in useMemo Hook to prevent React from creating a new reference in the `stack memory` to the debounce fn in the `heap memory` on every rerender
+  - wrap debounce fn in useMemo Hook to prevent React from creating a new reference in the `stack` to the debounce fn in the `heap memory` on every re-render
 
-  ```JavaScript
+  ```JSX
   import { useMemo } from 'react';
   import { debounce } from 'lodash';
 
@@ -521,13 +522,14 @@ const App = () => {
 ## Context API & useContext Hook
 
 - `Context` is a component-wide state storage
-- performance: `Context` is not optimized for high-frequency state changes, that means, EVERY (!) component that uses `useContext()` will re-render when a state changes in the `Context`
+- performance: `Context` is not optimized for high-frequency state changes,
+  - that means, EVERY (!) component that uses `useContext()` will re-render when a state changes in the `Context`
 
 ### a) Basic Context Setup
 
-- a basic context where I can pass data and functions to other components
+- a basic context where you can pass data and functions to other components
 
-  ```JavaScript
+  ```JSX
   // AuthContext.js
   import { createContext } from 'react';
 
@@ -541,7 +543,7 @@ const App = () => {
 
 - provide context: wrap in JSX code all components that should be able to listen to the context
 
-  ```JavaScript
+  ```JSX
   // App.js
   import AuthContext from './context/AuthContext';
   // ...
@@ -572,7 +574,7 @@ const App = () => {
 
 ### b) Recommanded and more complex Context Setup: to pull out more logic out of specific components and create a separate context management component
 
-- hint: you can create a custom hook which returns context data object -> to avoid importing the Context in every other component file where you're using it
+- hint: you can create a `custom hook` which returns context data object -> to avoid importing the Context in every other component file where you're using it
 - context file:
 
   ```JavaScript
@@ -631,7 +633,7 @@ const App = () => {
 
 ### Provide Context: wrapp whole app into context provider component to make context accessible to all children components
 
-```JavaScript
+```JSX
 // index.js
 import ReactDOM from 'react-dom';
 import AuthContextProvider from './context/AuthContext';
@@ -648,7 +650,7 @@ ReactDOM.render(
 
 ### a + b) Consume (or Listen) to the Context with useContext
 
-```JavaScript
+```JSX
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -676,19 +678,19 @@ export default Navigation;
 
 ### Context vs Props
 
-- in short: props for configuration, context for state management accross components or the entire app
-- props
+- in short: `props for configuration`, `context for state management accross components` or the entire app
+- `props`
   - in most cases, use props to pass data to components, because props let you configure components and make them reusable
   - if you have smth that you will adapt often, like a button that you use in different situations and so you should be more flexible
-- context
+- `context`
   - if you have smth which you would forward to lots of components AND you are forwarding it to a component that does smth very specific or unique (-> like the navigation)
-  - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then Redux is option
+  - React Context is NOT optimized for high frequency changes (every second or multiple times every second) -> then `Redux` is an option
 - React Context shouldn't be used to replace ALL component communications and props
 - a component should still be configurable via props AND short "prop chains" might not need any replacement
 
 ## Custom Hooks
 
-- helpful to share logic across multiple components or in other words outsource stateful logic into re-usable functions
+- helpful to share logic across multiple components or in other words `outsource stateful logic into re-usable functions`
 - unlike normal functions, custom hooks can use other React hooks and React state
   - Important: all states used in custom hook will be attached to every component where the hook is used -> so a state update in the hook triggers a re-evaluation of the component
 - name of hook has to start with `use`
@@ -696,7 +698,7 @@ export default Navigation;
 
 ### Example 1: useCounter Hook to count up and down
 
-```JavaScript
+```JSX
 // useCounter.js
 import { useState, useEffect } from 'react';
 
@@ -783,7 +785,7 @@ const App = () => {
   const { isLoading, error, sendRequest: fetchTasks } = useHttp(); // here I can pass arg into my custom hook fn
 
   useEffect(() => {
-    const transformTasks = tasksObj => {
+    const transformTasks = (tasksObj) => {
       const loadedTasks = [];
       for (const taskKey in tasksObj) {
         loadedTasks.push({ id: taskKey, text: tasksObj[taskKey].text });
@@ -903,7 +905,7 @@ const SimpleInput = () => {
     valueChangeHandler: nameChangeHandler,
     inputBlurHandler: nameBlurHandler,
     reset: resetName,
-  } = useInput((name) => !!name.trim()); // pass anonymous arrow fn as param into custom hook -> there const value of hook is passed inside; !! converts variable to boolean
+  } = useInput((name) => !!name.trim()); // pass anonymous arrow fn as arg into custom hook -> there: const value of hook is passed inside; !! converts variable to boolean
 
   const {
     value: email,
