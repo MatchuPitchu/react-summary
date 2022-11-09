@@ -144,6 +144,11 @@ const Home = () => {
 ### Preparing Paths with getStaticPaths and Working with Fallback Pages
 
 - `getStaticPath` is needed if you are using `getStaticProps` in a dynamic page
+- `fallback` property in returned object tells Next.js if paths array contains all supported parameter values OR only some of them
+  - handy to pre-generate only some important pages, BUT not all possible pages
+  - `false`: if user enters anything that's NOT supported in paths array, 404 page would be shown
+  - `true`: Next.js immediately pre-generates empty page for user param input that's NOT contained in paths array AND then pull down the dynamically generated content -> you need to handle case that page does NOT have data yet
+  - `blocking`: Next.js will wait for the dynamically generated HTML for new paths that are NOT contained in paths array AND then will cache this for future requests -> so it only happens once per path.
 
 ```TSX
 // my-domain.de/:meetupId (-> param name is derived of folder name in Next.js: [meetupId] )
@@ -183,11 +188,7 @@ export const getStaticPaths: GetStaticPaths = () => {
   return {
     // define ALL supported parameters in URL
     paths,
-    // tells Next.js if paths array contains all supported parameter values OR only some of them
-    // handy to pre-generate only some important pages, BUT not all possible pages
-    // false: if user enters anything that's NOT supported in paths array, 404 page would be shown
-    // true: Next.js would try to generate dynamically a page for user param input that's NOT contained in paths array
-    fallback: true,
+    fallback: 'blocking',
   };
 };
 
@@ -336,3 +337,28 @@ export const getStaticProps: GetStaticProps = async () => {
 
 export default Home;
 ```
+
+## Adding Head Metadata to Pages
+
+- use `<Head>` component that can be imported from `next/head`
+- hard code oder dynamically generate your head content
+
+```TSX
+const Meetup: NextPage<Props> = ({ _id, image, alt, title, address, description }) => {
+  return (
+    <>
+      <Head>
+        <title>Dynamic HTML Title {title}</title>
+        <meta name='description' content={description} />
+        {/* ... */}
+      </Head>
+      <MeetupDetail image={image} alt={alt} title={title} address={address} description={description} />
+    </>
+  );
+};
+```
+
+## Deployment of Next.js App
+
+- Hosting Provider `Vercel` is optimized for Next.js -> `Vercel` deploys automatically for you
+- normal build steps: execute scripts `npm run build` (create production ready `.next` folder) -> `npm start` (start production server)
