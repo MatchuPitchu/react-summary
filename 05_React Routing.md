@@ -1,14 +1,14 @@
 # Multiple Pages in Single-Page App
 
-# What is Client-Side Routing?
+## What is Client-side Routing?
 
 - if URL path changes, visible content changes
 - traditional way: different HTML files are requested and loaded
-- when building complex user interfaces, we typically build `Single Page Applications (SPAs)`
-  - only 1 initial HTML request & response, after JavaScript take over
+- when building complex user interfaces, we typically build a `Single Page Application (SPA)`
+  - only 1 initial HTML request & response, afterwards JavaScript take over
   - Page (URL) changes are then handled by client-side (React) code -> changes visible content without fetching new HTML file
 
-# Using React-Router v6 (examples v5 look below)
+## Using React-Router v6 (examples v5 look below)
 
 [Documentation for upgrading from v5](https://reactrouter.com/docs/en/v6/upgrading/v5)
 
@@ -37,7 +37,7 @@
 - `Routes` component always have to wrap `Route` components -> order of Route components doesn't matter, algorithm takes the best matching path to render
 
   - v6:
-    - `exact` prop inside `Route` (v5) AND its behavior no longer exists -> in v6 Router looks always for exact matches
+    - `exact` prop inside `Route` (v5) AND its behavior no longer exists -> in v6: Router looks always for exact matches
     - if you want to imitate old behavior to render multiple `<Route>` components, then use `/*` (-> `<Route path='/products/*' />`); if URL path matches roots (here `/products`) then it's rendered
     - BUT notice in this context: internal algorithm of React Router was improved, that Router searches best fit for a path, so if 2 Routes are available `<Route path='/products/*' />` and `<Route path='/products/:productId' />` it would pick the most exact or explicitly declared path (-> here the 2nd one)
   - v5:
@@ -80,7 +80,7 @@ const App = () => {
 
 - Links and nested Routes have `relative paths` depending on the root path of the current component (-> you won't need custom path resolving with useRouteMatch hook anymore)
 
-  - relative path is defined without `/` whereas absolute path is defined with `/`
+  - relative path is defined `without /` whereas absolute path is defined with `/`
 
   ```JavaScript
   // relative path
@@ -91,7 +91,7 @@ const App = () => {
 
 - `nested routes`:
   - when using nested routes then at top level you have to add `/*` in path to tell React Router that the passed element is even displayed if there is no exact path match (-> since nested routes extend the whole path)
-  - BUT ATTENTION: only `routes with descendant routes` (defined in other components!) use a trailing `*` in their path to indicate they match deeply
+  - `Notice`: only `routes with descendant routes` (defined in other components!) use a trailing `*` in their path to indicate they match deeply
   - nested routes could be defined in the child component as with v5 OR defined directly in the root component wrapped into the root `<Route>`;
     - notice: nested route then still uses relative path;
     - advantage to have all routes in one place;
@@ -113,7 +113,7 @@ const App = () => {
           <Route path='/welcome/' element={<Welcome />}>
             <Route path='hello' element={<p>Welcome in the nested route</p>} />
           </Route>
-          {/* nested route defined in child component */}
+          {/* OPTION 2: nested route defined in child component */}
           {/* <Route path='/welcome/*' element={<Welcome />} /> */}
         </Routes>
       </main>
@@ -129,8 +129,9 @@ const Welcome = () => {
     <section>
       <h1>The Welcome Page</h1>
       <Link to='hello'>Link to nested Route</Link>
-      {/* nested route defined in child component */}
-      {/* <Routes>
+      {/* OPTION 2: nested route defined in child component */}
+      {/*
+      <Routes>
         <Route path='hello' element={<p>Welcome in the nested route</p>} />
       </Routes> */}
       <Outlet />
@@ -146,7 +147,7 @@ const Welcome = () => {
   navigate('/welcome', { replace: true });
   ```
 
-  - omit second arg if you wanna push path to browser history `navigate(-1)` instead of replacing -> navigates to previous or forward page (-x or x for xth page before or forward)
+  - omit second arg if you want to push path to browser history `navigate(-1)` instead of replacing -> navigates to previous or forward page (`-x` or `x` for `x-th` page before or forward)
   - `replace` is like a redirect and replaces current page (back btn is NOT working);
   - whereas `push` pushes new page on the stack of pages (back btn is possible)
   - pushing or replacing a page leads to re-evaluation of target component(s), even if target is same page
@@ -248,7 +249,7 @@ const Welcome = () => {
   };
   ```
 
-# Example for sending & getting data via HTTP with useHttp hook and own request fn library
+## Example for sending & getting data via HTTP with useHttp hook and own request fn library
 
 ```JavaScript
 // useHttp hook
@@ -418,7 +419,7 @@ const AllQuotes = () => {
 
 ```
 
-# Using React-Router v5 (for Updates v6 look above)
+## Using React-Router v5 (for Updates v6 look above)
 
 - `BrowserRouter` component: in `index.js` wrap App component to activate React Router
 - `Route` is a component with props that allows to define certain path and component that should be rendered; ALL paths that match e.g. `/test` are rendered and became active (-> also e.g. `/test/abc`)
