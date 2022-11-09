@@ -22,3 +22,8 @@
    - if applied only on invalid inputs, has the potential of providing more direct feedback
 
 - good practice: check if input field was touched AND if input loses focus then check if it's valid
+
+## Libraries for Forms in React
+
+> React Hook Form: <https://react-hook-form.com>
+> Formik: <https://formik.org>
