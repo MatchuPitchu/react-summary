@@ -419,7 +419,7 @@ const AllQuotes = () => {
 
 ```
 
-## Using React-Router v5 (for Updates v6 look above)
+## OUTDATED: Using React-Router v5 (for Updates v6 look above)
 
 - `BrowserRouter` component: in `index.js` wrap App component to activate React Router
 - `Route` is a component with props that allows to define certain path and component that should be rendered; ALL paths that match e.g. `/test` are rendered and became active (-> also e.g. `/test/abc`)
