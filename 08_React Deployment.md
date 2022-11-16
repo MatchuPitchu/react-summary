@@ -6,7 +6,7 @@
 
 ## Optimize Code
 
-- with React SPA you build only one big JS code bundle for entire website that every user needs to download when he's visiting website
+- with React SPA you build only one big JS code bundle for entire website that every user needs to download when visiting the page
 
 - `Lazy Loading`:
 
@@ -60,7 +60,7 @@
 
 - Notice: a React SPA is a `Static Website` -> that means it's only made by HTML, CSS & browser/client side JS code, NO server side code involved
 - to publish SPA, `Static Site Host` is needed -> google for static website hosting provider
-- Example Firebase:
+- `Example Firebase`:
   - create project
   - go to `Hosting` in sidebar
   - click on `Jetzt starten`
@@ -70,7 +70,7 @@
   - `File build/index.html already exists. Overwrite?`: no (because I wanna use my own build html file)
   - remove website from internet: `firebase hosting:disable` in CLI
 
-# Server-side Routing vs Client-side Routing and Configure Server
+## Server-side Routing vs Client-side Routing and Configure Server
 
 - Client is user using the browser:
   - sends request to server

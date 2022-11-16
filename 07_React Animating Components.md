@@ -1,18 +1,21 @@
 # Animating React Apps & Components
 
-# CSS Animations & why they are sometimes not enough
+## CSS Animations & why they are sometimes not enough
 
 - normal CSS animated elements stays on the DOM, you can only hide them, move them outside viewport or change opacity
 - solution could be `conditional rendering` for animations:
+
   - advantage: add/remove elements from DOM, not only hide them with css properties
   - problem: removing from DOM happens immediately -> user can't see close animation anymore
+
     ```JavaScript
     {modalIsOpen && <Modal show={modalIsOpen} closed={closeModal} />}
     {modalIsOpen && <Backdrop show={modalIsOpen} closed={closeModal} />}
     ```
+
   - solution: use third pary library `React Transition Group`
 
-# Animating React Components with third party libraries
+## Animating React Components with third party libraries
 
 - [React Transition Group](https://reactcommunity.org/react-transition-group/):
 
@@ -106,15 +109,15 @@
 
     - `CSSTransition` component: handles automatically css changes based on transition states;
       - does NOT use anonymous fn between tags, just enter JSX code
-      - add `classNames` prop to define which classes ard added to wrapped element (-> here div) depending on transition state
-      - option a)
-        - define `"trunk" css class` of your choice as a string (e.g. 'fade-slide') and fill the following classes with your wished styles/animations in a css file:
-        - 'trunk'-enter (before entering mode, remains only 1 for frame);
-        - 'trunk'-enter-active (entering mode);
-        - 'trunk'-exit (before exit mode);
-        - 'trunk'-exit-active (exiting mode, remains only 1 for frame);
-      - option b)
-        - define own titled css classes in an obj instead of using 'trunk' way
+      - add `classNames` prop to define which classes ard added to wrapped element (-> here `div`) depending on transition state
+      - `OPTION A`
+        - define `"trunk" css class` of your choice as a string (e.g. `fade-slide`) and fill the following classes with your wished styles/animations in a css file:
+        - `trunk`-enter (before entering mode, remains only 1 for frame);
+        - `trunk`-enter-active (entering mode);
+        - `trunk`-exit (before exit mode);
+        - `trunk`-exit-active (exiting mode, remains only 1 for frame);
+      - `OPTION B`
+        - define own titled css classes in an obj instead of using `trunk` way
 
     ```JavaScript
     // Example 3
@@ -150,9 +153,11 @@
     )
     ```
 
-    - `TransitionGroup` component to animate lists (-> groups of dynamic elements
-    - TransitionGroup a) is able to handle multiple items, b) determines when one element in list changes and c) sets automatically `in` prop on e.g. CSSTransition
-    - by default it renders a div, but you can define element with `component` prop (-> like `ul`)
+    - `TransitionGroup` component to animate lists (-> groups of dynamic elements)
+      1. is able to handle multiple items
+      1. determines when one element in list changes
+      1. sets automatically `in` prop on e.g. CSSTransition
+    - by default it renders `div`, but you can define element with `component` prop (-> like `ul`)
     - has to wrap `Transition` or `CSSTransition` component;
 
     ```JavaScript
@@ -211,6 +216,7 @@
     }
     ```
 
+- [React Framer Motion](https://www.framer.com/motion/)
 - [React Motion - Animation Library](https://github.com/chenglou/react-motion): tries to emulate real world physics when executing animations
   - e.g. perhaps look if newer library available
 - [React Move](https://react-move.js.org): nice complex animations like charts
