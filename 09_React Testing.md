@@ -302,7 +302,7 @@
   - overview roles <https://www.w3.org/TR/html-aria/#docconformance>
   - Hint: testing library shows all selectable roles if you provide a non-existing role in the rendered component's HTML `screen.getByRole('')`
 
-- `within()`: select first an element like e.g. a section, the use within to select only a child element of this section
+- `within()`: select first an element like e.g. a section, then use `within` to select only a child element of this section
 
   ```TypeScript
   import { render, screen, within } from "@testing-library/react";
@@ -312,18 +312,16 @@
   describe("Aria Message", () => {
     it("should put every message into the log to let the screen reader read the messages", () => {
       const message1 = "Message 1";
-      const message2 = "Message 2";
+
       render(
         <AriaLogProvider>
           <AriaMessage>{message1}</AriaMessage>
-          <AriaMessage>{message2}</AriaMessage>
         </AriaLogProvider>,
       );
 
       const logElement = screen.getByRole("log");
 
       expect(within(logElement).getByText(message1)).toBeInTheDocument();
-      expect(within(logElement).getByText(message2)).toBeInTheDocument();
     });
   });
   ```
@@ -333,42 +331,42 @@
   - add multiple interaction methods: <https://github.com/testing-library/user-event>
   - hint: use `clear` method -> when updating a text element with a userEvent, first use `userEvent.clear(element)` to be sure that only wished entry is inserted
 
-- `expect()` (-> Jest global fn starts assertion) with `matcher method` from Jest-DOM: e.g. `expect(linkElement).toBeInTheDocument()`
+- `expect()` (-> Jest global fn starts assertion) with `matcher method` from `jest-dom`: e.g. `expect(linkElement).toBeInTheDocument()`
 
 - `jest-dom`:
 
   - comes with create-react-app
   - `src/setupTest.js` imports it before each test, makes matchers available
-  - DOM-based matchers: e.g. `toBeVisible()`, `toBeInTheDocument()`, `toBeChecked()`
-  - general matchers (that can apply to any node code): `toBe()`, `toHaveLength()`
+  - `DOM-based matchers`: e.g. `toBeVisible()`, `toBeInTheDocument()`, `toBeChecked()`
+  - `general matchers` (that can apply to any node code): `toBe()`, `toHaveLength()`
   - list of `custom matchers`: <https://github.com/testing-library/jest-dom>
-    - toBeInTheDocument (most common)
-    - toBeNull (most common)
-    - toBeDisabled
-    - toBeEnabled
-    - toBeEmptyDOMElement
-    - toBeInvalid
-    - toBeRequired
-    - toBeValid
-    - toBeVisible
-    - toContainElement
-    - toContainHTML
-    - toHaveAccessibleDescription
-    - toHaveAccessibleName
-    - toHaveAttribute
-    - toHaveClass
-    - toHaveFocus
-    - toHaveFormValues
-    - toHaveStyle
-    - toHaveTextContent
-    - toHaveValue
-    - toHaveDisplayValue
-    - toBeChecked
-    - toBePartiallyChecked
-    - toHaveErrorMessage
-    - toHaveDescription
-    - toEqual (-> for non-primitive values for deep equality check)
-    - toBe (-> for primitive values for equality check)
+    - `toBeInTheDocument` (most common)
+    - `toBeNull` (most common)
+    - `toBeDisabled`
+    - `toBeEnabled`
+    - `toBeEmptyDOMElement`
+    - `toBeInvalid`
+    - `toBeRequired`
+    - `toBeValid`
+    - `toBeVisible`
+    - `toContainElement`
+    - `toContainHTML`
+    - `toHaveAccessibleDescription`
+    - `toHaveAccessibleName`
+    - `toHaveAttribute`
+    - `toHaveClass`
+    - `toHaveFocus`
+    - `toHaveFormValues`
+    - `toHaveStyle`
+    - `toHaveTextContent`
+    - `toHaveValue`
+    - `toHaveDisplayValue`
+    - `toBeChecked`
+    - `toBePartiallyChecked`
+    - `toHaveErrorMessage`
+    - `toHaveDescription`
+    - `toEqual` (-> for `non-primitive` values for deep equality check)
+    - `toBe` (-> for `primitive` values for equality check)
 
 ## Examples
 
@@ -456,7 +454,7 @@ describe('Greeting component', () => {
   - important to clear mock before each test: `yourMockFunctionName.mockClear()`
 
 ```TypeScript
-//  Example: mock onSubmit of TestComponent that includes the CustomNumberField component which should be tested
+// Example: mock onSubmit of TestComponent that includes the CustomNumberField component which should be tested
 interface TestFormValues {
   testField: string;
 }
@@ -472,7 +470,7 @@ describe.only("Custom Number Field", () => {
     const { handleSubmit, control } = useForm<TestFormValues>();
 
     return (
-      <form onSubmit={handleSubmit((value) => onSubmit(value))}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <CustomNumberField
           control={control}
           name="testField"
@@ -532,7 +530,7 @@ describe("Validation of form", () => {
 
 ### Mocking a specific function of a library
 
-- Example 1: for API that returns data, but you only need to test how UI behaves with returned values
+- `Example 1`: for API that returns data, but you only need to test how UI behaves with returned values
 
 ```TypeScript
 // Example 1
@@ -581,7 +579,7 @@ describe("Submit validation Monatsplaner", () => {
 });
 ```
 
-- Example 2: `React Portals` to avoid error that component can NOT be found in DOM; mock only `createPortal` fn
+- `Example 2`: `React Portals` to avoid error that component can NOT be found in DOM; mock only `createPortal` fn
 
 ```TypeScript
 // Example 2
@@ -595,7 +593,7 @@ jest.mock("react-dom", () => {
 });
 ```
 
-- Example 3: API fetches external data; test only UI and avoid fetching in tests
+- `Example 3`: API fetches external data; test only UI and avoid fetching in tests
   - Hint: better way is to use `Mock Service Worker` to simulate HTTP request
 
 ```TypeScript
@@ -657,15 +655,15 @@ describe("Rechner", () => {
   - OR inside the test, the fn gets called, but this doesn't matter for the test (-> e.g. a fn that calculates a total value but you're not tracking this value in your tests)
 - `solution`: use `jest.fn()`
 
-  ```JavaScript
-  render(<User updateTotal={jest.fn()}/>)
-  ```
+```JavaScript
+render(<User updateTotal={jest.fn()}/>)
+```
 
 ## Async Testing
 
 ### waitForElementToBeRemoved()
 
-- use `waitForElementToBeRemoved(() => ...) as assertion` when you're waiting asynchronously that an element disappears from screen AND nothing appears instead (-> like a hover effect for a popover)
+- use `waitForElementToBeRemoved(() => ...)` as assertion when you're waiting asynchronously that an element disappears from screen AND nothing appears instead (-> like a hover effect for a popover)
 
 ```JavaScript
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
@@ -693,23 +691,20 @@ test('popover appears on hovering', async () => {
 
 ### HTTP requests with Mocks
 
-- problem: during development, DON'T send real HTTP requests to server:
-  - HTTP requests cause a lot of traffic when you have a lot of tests;
+- `problem`: during development, DON'T send real HTTP requests to server:
+  - HTTP requests cause a lot of traffic when you have a lot of tests
   - POST/PUT requests would insert or change data in database
-- solution: replace browser built-in fn with `mock function` (-> dummy fn that overwrites built-in fn)
-  - only test your code (-> `fetch`, `localStorage` etc. are built into browser, you rely on them);
+- `solution`: replace browser built-in fn with `mock function` (-> dummy fn that overwrites built-in fn)
+  - only test your code (-> `fetch`, `localStorage` etc. are built into browser, you rely on them)
   - test code and output of your component
 
 #### Using Mock Service Worker
 
 - `Mock Service Worker` mimics response from server
-
   - `npm i msw`
   - create handlers
   - create test server: listens during tests, sends response, resets after each test
-
-- configure handlers with all wished HTTP requests of RestAPI
-  > <https://mswjs.io/docs/basics/response-resolver>
+- configure `handlers` with all wished HTTP requests of RestAPI: <https://mswjs.io/docs/basics/response-resolver>
 
 ```JavaScript
 // ./mocks/handlers.js
@@ -732,8 +727,7 @@ export const handlers = [
 ];
 ```
 
-- configure a request mocking server with the given request handlers
-  > <https://mswjs.io/docs/getting-started/integrate/node>
+- configure a `request mocking server` with the given request handlers: <https://mswjs.io/docs/getting-started/integrate/node>
 
 ```JavaScript
 // ./mocks/server.js
@@ -743,8 +737,7 @@ import { handlers } from './handlers';
 export const server = setupServer(...handlers);
 ```
 
-- add configuration of mock service worker to setupTests.js
-  > <https://mswjs.io/docs/getting-started/integrate/node>
+- add `configuration` of mock service worker to setupTests.js: <https://mswjs.io/docs/getting-started/integrate/node>
 
 ```JavaScript
 import { server } from './mocks/server';
@@ -757,7 +750,7 @@ afterAll(() => server.close());
 ```
 
 - test component that contains a HTTP request
-  - GET request happens in User component
+  - GET request happens in `User` component
   - with configuration in `setupTest.js`, `handlers.js` and `server.js` test runs component and mock service worker intercepts to the request and sends back handler response
 
 ```JavaScript
@@ -910,7 +903,7 @@ export { renderWithReduxAndContext as render }; // override render method
 - look which data of Context is needed in Component to execute your tests
 - create custom render that receives `providerProps` as second argument
 - create `const providerProps` in test in order to mock data and fns that are needed for tests
-- mock needed functions: `jest.fn()` replaces exactly the "real" function at a desired point and offers new test methods (e.g. toHaveBeenCalledWith)
+- mock needed functions: `jest.fn()` replaces exactly the "real" function at a desired point and offers new test methods (e.g. `toHaveBeenCalledWith`)
 
 ```JavaScript
 // CatchButton.tsx
@@ -1018,7 +1011,7 @@ describe('CatchButton component', () => {
 
 #### Option 2: Implement a test React Router
 
-```JavaScript
+```JSX
 // Routes defined in App.jsx to be tested
 const App = () => {
   return (
@@ -1142,7 +1135,7 @@ test('renders user page', () => {
 
 ### Testing with multiple Providers
 
-```JavaScript
+```JSX
 // testing-utils.jsx
 import { render } from '@testing-library/react';
 import { ContextProvider } from '../store/Context';
