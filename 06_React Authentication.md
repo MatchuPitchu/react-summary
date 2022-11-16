@@ -9,25 +9,29 @@
   1. server verifies credentials -> grants or denies access/permission,
   1. server sends NOT only "yes" or "no" back to client, since somebody could send fake "yes" to server to request protected data
   1. two approaches:
+
      - server-side sessions:
        - server stores unique identifier and sends same identifier to specific client
        - client sends identifier along with requests to protected resources
        - disadvantage: when you have SPA and backend served on different places or when backend API needs to stay flexible (e.g. like Google Maps API), then you don't want to store same identifier on the server -> `server should be stateless`, that's why tokens are then better
      - authentication tokens:
+
        - user sends credentials (e.g. mail, password) to server that compares data with database
        - if valide, server creates (but NOT stores) permission token (-> long `string` with encoded data that can be also decoded back into individual pieces of data)
        - tokens are typically created in [`JSON Web Token` (JWT)]('https://jwt.io/') Format: data is hashed into token with help of private key, only known by server
        - server sends token to client
        - client sends token along with requests to protected resources
 
-# Practice example with Firebase
+       ![](00_slides/01_JWT.PNG)
+
+## Practice example with Firebase
 
 [Firebase Auth-REST-API]('https://firebase.google.com/docs/reference/rest/auth')
 
 - create project -> go to `Authentication` -> click on `Los geht's` -> choose `Sign-in method` `Email/Password` -> go to `Users` where you can add manually new users
 - Firebase API key: click on gear icon beside `Project Overview` -> go to `Project settings`
 
-## Authentication Example code
+### Authentication Example code
 
 - create authentication context to store states inside -> with auth persistence & auto-logout
 
