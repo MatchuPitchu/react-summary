@@ -55,27 +55,27 @@
 1. Do I need to wrap the test into a Provider (Context, Theming, Redux) or in a Router?
    - if in your App, the Provider or Router is outside of your rendered component, you have to make it available in your test and wrap it around this rendered component
 1. In which file and directory should I write the respective tests?
-   - group tests for a component (-> unit tests)
-   - group them for a specific sequence like an order process (-> functional tests)
+   - group tests for a component (-> `unit tests`)
+   - group them for a specific sequence like an order process (-> `functional tests`)
 1. Which behavior in my App needs testing?
-1. Hot to test?
+1. Not to test?
    - What queries and events do I use?
 1. Is there anything asynchronous in my component?
    - use `async await`
 
 ## Tools & Setup
 
-> Jest and React Testing Library are already set up when using create-react-app
+> `Jest` and `React Testing Library` are already set up when using create-react-app
 
-1. [Jest]('https://jestjs.io/'):
+1. [Jest]('https://jestjs.io'):
 
    - a general JavaScript Testing Framework (-> not specific for React)
    - tool for test running -> finds and runs tests and determines whether tests pass or fail
 
-1. [React Testing Library]('https://testing-library.com/'):
+1. [React Testing Library]('https://testing-library.com'):
 
    - creates virtual DOM for "simulating" (-> rendering) the React app/components
-   - provides utilities for interacting with virtual DOM: searching (-> getBy\* etc.) and user actions
+   - provides utilities for interacting with virtual DOM: searching (-> `getBy\*` etc.) and user actions
    - allows testing without a browser
 
 1. ESLint Plugins for React Testing Library and Jest DOM:
