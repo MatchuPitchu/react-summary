@@ -1,18 +1,20 @@
+# TypeScript and React
+
 > More detailed information about TypeScript can be found in my TS summary repo
 
-# New React Project with TypeScript
+## New React Project with TypeScript
 
-> Information about React and TS: https://create-react-app.dev/docs/adding-typescript/
+> Information about React and TypeScript: <https://create-react-app.dev/docs/adding-typescript>
 
-> Official TS Documentation, Examples and Playground: https://www.typescriptlang.org/
+> Official TS Documentation, Examples and Playground: <https://www.typescriptlang.org>
 
-> React TypeScript Cheatsheet: https://github.com/typescript-cheatsheets/react#reacttypescript-cheatsheets
+> React TypeScript Cheatsheet: <https://github.com/typescript-cheatsheets/react#reacttypescript-cheatsheets>
 
 - `npx create-react-app . --template typescript` -> instead of `.` insert folder name
 - React is automatically compiling TS code to JS code
-- `@types/...`in package.json are type packages that add type annotations to React JS libraries
+- `@types/...` in `package.json` are type packages that add type annotations to React JS libraries
 
-# Practice Examples
+## Practice Examples
 
 - use a models folder with `ts` files (NOT `tsx`) to define data types used in your app
 
@@ -40,7 +42,12 @@
   - `generic` means here that different fn components have different props definitions
 
   ```TypeScript
-  const Todos: React.FC<{ items: Todo[]; removeTodo: (id: string) => void }> = ({
+  interface Props {
+    items: Todo[];
+    removeTodo: (id: string) => void
+  }
+
+  const Todos: React.FC<Props> = ({
     items,
     removeTodo,
   }) => {
@@ -84,92 +91,93 @@ const TodoItem: React.FC<{ text: string; removeTodo: () => void }> = ({ text, re
   - to find type name, search `mdn [DOM element]` and have a look at `DOM interface`
 - `e: React.FormEvent`: special type for form submission event; `MouseEvent` would it be in case of onClick event
 
-  ```TypeScript
-  // NewTodo.tsx
-  const NewTodo: React.FC = () => {
-    const { addTodo } = useContext(TodosContext);
-    const inputRef = useRef<HTMLInputElement>(null);
+```TypeScript
+// NewTodo.tsx
+const NewTodo: React.FC = () => {
+  const { addTodo } = useContext(TodosContext);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    const submitHandler = (e: React.FormEvent) => {
-      e.preventDefault();
-      // current? not necessary here, because submit fn is only executed when ref has a value;
-      // hypothically if element would not exist then value of enteredText would be undefined;
-      // use ! if you are sure that current can't be null here
-      const enteredText = inputRef.current!.value;
+  const submitHandler = (e: React.FormEvent) => {
+    e.preventDefault();
+    // current? not necessary here, because submit fn is only executed when ref has a value;
+    // hypothically if element would not exist then value of enteredText would be undefined;
+    // use ! if you are sure that current can't be null here
+    const enteredText = inputRef.current!.value;
 
-      if (enteredText.trim().length === 0) {
-        // throw error
-        return;
-      }
-      addTodo(enteredText);
-    };
-
-    return (
-      <form className={classes.form} onSubmit={submitHandler}>
-        {/* htmlFor establishes connection with content with the same id */}
-        <label htmlFor='text'>Todo text</label>
-        <input type='text' id='text' ref={inputRef} />
-        <button>Add Todo</button>
-      </form>
-    );
+    if (enteredText.trim().length === 0) {
+      // throw error
+      return;
+    }
+    addTodo(enteredText);
   };
-  ```
+
+  return (
+    <form className={classes.form} onSubmit={submitHandler}>
+      {/* htmlFor establishes connection with content with the same id */}
+      <label htmlFor='text'>Todo text</label>
+      <input type='text' id='text' ref={inputRef} />
+      <button>Add Todo</button>
+    </form>
+  );
+};
+```
 
 - type alias `type TodosObj`: to reuse type definition in multiple places
-- ```TypeScript
-  // Context.tsx
-  import React, { useState } from 'react';
-  import Todo from '../models/todo';
 
-  type TodosObj = {
-    items: Todo[];
-    addTodo: (text: string) => void;
-    removeTodo: (id: string) => void;
+```TypeScript
+// Context.tsx
+import React, { useState } from 'react';
+import Todo from '../models/todo';
+
+type TodosObj = {
+  items: Todo[];
+  addTodo: (text: string) => void;
+  removeTodo: (id: string) => void;
+};
+
+// specify generic type of argument of createContext fn;
+// TodosObj is type definition of arg obj
+export const TodosContext = React.createContext<TodosObj>({
+  // default value definition
+  items: [],
+  addTodo: () => {},
+  removeTodo: (id: string) => {},
+});
+
+// children is a default prop, so don't need to describe its type
+const TodosContextProvider: React.FC = ({ children }) => {
+  // useState is generic fn -> I can set type of data I wanna store inside
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  const addTodoHandler = (text: string) => {
+    const newTodo = new Todo(text);
+    setTodos((prev) => [newTodo, ...prev]);
   };
 
-  // specify generic type of argument of createContext fn;
-  // TodosObj is type definition of arg obj
-  export const TodosContext = React.createContext<TodosObj>({
-    // default value definition
-    items: [],
-    addTodo: () => {},
-    removeTodo: (id: string) => {},
-  });
-
-  // children is a default prop, so don't need to describe its type
-  const TodosContextProvider: React.FC = ({ children }) => {
-    // useState is generic fn -> I can set type of data I wanna store inside
-    const [todos, setTodos] = useState<Todo[]>([]);
-
-    const addTodoHandler = (text: string) => {
-      const newTodo = new Todo(text);
-      setTodos((prev) => [newTodo, ...prev]);
-    };
-
-    const removeTodoHandler = (id: string) => {
-      setTodos((prev) => prev.filter((todo) => todo.id !== id));
-    };
-
-    const contextValues: TodosObj = {
-      items: todos,
-      addTodo: addTodoHandler,
-      removeTodo: removeTodoHandler,
-    };
-
-    return <TodosContext.Provider value={contextValues}>{children}</TodosContext.Provider>;
+  const removeTodoHandler = (id: string) => {
+    setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
-  export default TodosContextProvider;
-  ```
+  const contextValues: TodosObj = {
+    items: todos,
+    addTodo: addTodoHandler,
+    removeTodo: removeTodoHandler,
+  };
 
-# tsconfig.json default settings in React
+  return <TodosContext.Provider value={contextValues}>{children}</TodosContext.Provider>;
+};
+
+export default TodosContextProvider;
+```
+
+## tsconfig.json default settings in React
 
 ```JSON
 {
   "compilerOptions": {
     "target": "es5",
     // included TS libraries
-    // -> influences which kind of types are know out of the box by your TS code
+    // -> influences which kind of types are known out of the box by your TS code
     "lib": [
       "dom", // default DOM types
       "dom.iterable",
