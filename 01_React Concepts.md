@@ -412,6 +412,12 @@ export default React.memo(Demo); // for 4) in App.js
     };
     ```
 
+### Flexible Design System Components With "as/is" Props
+
+> Article Design System Components: <https://www.lloydatkinson.net/posts/2022/design-system-component-as-is-props>
+
+- look at example in `03_example-design-system-components`
+
 ## Concept of "Composition" (-> "children props")
 
 - when you have components with some identical CSS rules, you can build a wrapper container with the extracted wished CSS rules that should apply in general on multiple components
