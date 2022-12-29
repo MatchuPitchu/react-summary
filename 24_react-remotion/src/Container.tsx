@@ -8,7 +8,7 @@ const style: CSSProperties = {
 	display: 'flex',
 	flexDirection: 'column',
 	backgroundColor: '#4a4a4a',
-	height: '100vh',
+	height: '100%',
 	padding: '2rem',
 	placeItems: 'center',
 	zIndex: -2,

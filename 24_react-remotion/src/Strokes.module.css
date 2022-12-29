@@ -10,29 +10,28 @@
 	stroke-width: 0.03;
 	stroke-linecap: round;
 	stroke: orange;
-	stroke-dasharray: 0.4 1.6;
 	transform-origin: center center;
-	animation: bganimation 20s linear infinite;
+	animation: background-animation 20s linear infinite;
 }
 
 .stroke-path--first {
-	transform: rotate(120deg);
+	transform: rotate(0deg);
 }
 
 .stroke-path--second {
-	transform: rotate(0deg);
+	transform: rotate(120deg);
 }
 
 .stroke-path--third {
 	transform: rotate(240deg);
 }
 
-@keyframes bganimation {
+@keyframes background-animation {
 	from {
 		stroke-dashoffset: 0;
 	}
 
 	to {
-		stroke-dashoffset: 1.5;
+		stroke-dashoffset: var(--stroke-length);
 	}
 }
