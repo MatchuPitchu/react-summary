@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, FC } from 'react';
 
 // https://www.remotion.dev/docs/noise-visualization
 import { noise3D } from '@remotion/noise';
@@ -18,11 +18,11 @@ const style: CSSProperties = {
 	position: 'absolute',
 };
 
-export const NoiseBackground = ({
+export const NoiseBackground: FC<Props> = ({
 	circleRadiusRange,
 	speed = 0.01,
 	maxOffset = 50,
-}: Props) => {
+}) => {
 	const frame = useCurrentFrame();
 	const { height, width } = useVideoConfig();
 

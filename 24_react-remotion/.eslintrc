@@ -1,7 +1,0 @@
-{
-	"extends": "@remotion",
-	"rules": {
-		"capitalized-comments": 0,
-		"no-unused-prop-types": 0
-	}
-}

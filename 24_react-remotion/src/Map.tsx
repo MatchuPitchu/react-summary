@@ -1,6 +1,7 @@
+import { FC } from 'react';
 import { AbsoluteFill } from 'remotion';
 
-export const Map = () => {
+export const Map: FC = () => {
 	return (
 		<AbsoluteFill
 			style={{

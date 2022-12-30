@@ -1,18 +1,20 @@
 import { FC } from 'react';
-import { Composition } from 'remotion';
-import { MyComposition } from './Composition';
+import { Composition, Folder } from 'remotion';
+import { Video } from './Video';
 
 export const RemotionRoot: FC = () => {
 	return (
 		<>
-			<Composition
-				id="VideoId"
-				component={MyComposition}
-				durationInFrames={120} // 120 / 30fps = 4sec
-				fps={30}
-				width={1920}
-				height={1080}
-			/>
+			<Folder name="folder-helps-to-structure-multiple-videos">
+				<Composition
+					id="VideoId"
+					component={Video}
+					durationInFrames={240} // 240 / 30fps = 8sec
+					fps={30}
+					width={1920}
+					height={1080}
+				/>
+			</Folder>
 		</>
 	);
 };

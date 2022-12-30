@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import { useCurrentFrame, interpolate, useVideoConfig, spring } from 'remotion';
 
 type Props = {
@@ -6,7 +7,7 @@ type Props = {
 	size: number;
 };
 
-export const RainDrop = ({ delay, x, size }: Props) => {
+export const RainDrop: FC<Props> = ({ delay, x, size }) => {
 	const { fps } = useVideoConfig();
 	const frame = useCurrentFrame();
 

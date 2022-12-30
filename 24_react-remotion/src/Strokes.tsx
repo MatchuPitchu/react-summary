@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { FC, useEffect, useRef } from 'react';
+import { interpolate, useCurrentFrame } from 'remotion';
 import styles from './Strokes.module.css';
 
-export const Strokes = () => {
+export const Strokes: FC = () => {
+	const frame = useCurrentFrame();
 	const svgElement = useRef<SVGSVGElement>(null);
 	const stroke = useRef<SVGPathElement>(null);
 	const strokeLength = stroke.current?.getTotalLength() || 2;
@@ -14,11 +16,16 @@ export const Strokes = () => {
 		);
 	}, [strokeLength]);
 
+	const opacity = interpolate(frame, [0, 60], [0, 1], {
+		extrapolateRight: 'clamp',
+	});
+
 	return (
 		<svg
 			ref={svgElement}
 			className={styles['strokes-container']}
 			viewBox="0 0 1 1"
+			style={{ opacity }}
 		>
 			<path
 				ref={stroke}
