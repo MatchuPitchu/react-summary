@@ -11,9 +11,10 @@ export const RainDrop: FC<Props> = ({ delay, x, size }) => {
 	const { fps } = useVideoConfig();
 	const frame = useCurrentFrame();
 
+	// spring() animation with it's default settings animates from 0 to 1
 	const drop = spring({
 		fps,
-		frame: frame - delay,
+		frame: frame - delay, // frame - x: delays animation by x frames
 		config: {
 			damping: 1000,
 		},

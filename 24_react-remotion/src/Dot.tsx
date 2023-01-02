@@ -28,13 +28,6 @@ export const Dot: FC = () => {
 	const frame = useCurrentFrame();
 	const { width } = useVideoConfig();
 
-	// spring() animation with it's default settings animates from 0 to 1
-	// const driver = spring({
-	// 	frame, // frame: frame - 50 would delay animation by 50 frames
-	// 	fps,
-	// 	durationInFrames,
-	// });
-
 	const angleMultiplier = interpolate(frame, [0, 120], [1, 2], {
 		extrapolateLeft: 'clamp',
 		extrapolateRight: 'clamp',
