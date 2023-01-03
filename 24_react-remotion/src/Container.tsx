@@ -1,6 +1,13 @@
 import { CSSProperties, ReactNode, FC } from 'react';
-import { Img, interpolateColors, staticFile, useCurrentFrame } from 'remotion';
+import {
+	AbsoluteFill,
+	Img,
+	interpolateColors,
+	staticFile,
+	useCurrentFrame,
+} from 'remotion';
 import { NoiseBackground } from './NoiseBackground';
+import styles from './Container.module.css';
 
 // get URL reference of asset
 const myImage = staticFile(`/background-skyline-berlin.svg`);
@@ -9,20 +16,11 @@ type Props = {
 	children: ReactNode;
 };
 
-const containerStyle: CSSProperties = {
-	display: 'flex',
-	flexDirection: 'column',
-	height: '100%',
-	width: '100%',
-	padding: '0',
-	placeItems: 'center',
-	zIndex: -2,
-};
-
 const backgroundImageStyle: CSSProperties = {
 	position: 'absolute',
 	left: '0',
-	bottom: '0',
+	bottom: '-10px',
+	zIndex: 1,
 };
 
 export const Container: FC<Props> = ({ children }) => {
@@ -35,7 +33,7 @@ export const Container: FC<Props> = ({ children }) => {
 	);
 
 	return (
-		<div style={{ ...containerStyle, backgroundColor }}>
+		<AbsoluteFill className={styles.container} style={{ backgroundColor }}>
 			<NoiseBackground
 				speed={0.01}
 				maxOffset={20}
@@ -43,6 +41,6 @@ export const Container: FC<Props> = ({ children }) => {
 			/>
 			<Img style={backgroundImageStyle} src={myImage} />
 			{children}
-		</div>
+		</AbsoluteFill>
 	);
 };

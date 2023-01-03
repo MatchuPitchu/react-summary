@@ -1,5 +1,5 @@
 import { FC, useMemo } from 'react';
-import { random, AbsoluteFill } from 'remotion';
+import { random } from 'remotion';
 import { RainDrop } from './RainDrop';
 
 export const Rain: FC = () => {
@@ -16,10 +16,10 @@ export const Rain: FC = () => {
 	}, []);
 
 	return (
-		<AbsoluteFill>
+		<>
 			{drops.map(({ x, delay, size }) => (
 				<RainDrop key={`${x}-${size}`} x={x} delay={delay} size={size} />
 			))}
-		</AbsoluteFill>
+		</>
 	);
 };
