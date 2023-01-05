@@ -1,0 +1,29 @@
+.timer {
+	color: #e5a62f;
+}
+
+.timer__circle {
+	/* --strokeLength: 1256.812744140625;
+	--strokeIncrement: 0;
+	--strokeCalc: 0; */
+	stroke: currentColor;
+	stroke-width: 25;
+	fill: transparent;
+	/* stroke-dasharray: var(
+		--strokeLength
+	); find out with JS: circle element getTotalLength method */
+	/* stroke-dashoffset: var(--strokeCalc); offset before first dash */
+	transition: stroke-dashoffset 0.3s ease;
+	/* animation: draw 3s ease infinite; */
+}
+
+/* animates whole circle */
+/* @keyframes draw {
+	to {
+		stroke-dashoffset: 1300.812744140625;
+	}
+} */
+
+.timer__text {
+	font-size: 45px;
+}
