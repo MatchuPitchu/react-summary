@@ -2,9 +2,10 @@
 
 > React Documentation: <https://reactjs.org/>
 > React Repo for creating new React App: <https://github.com/facebook/create-react-app>
-> Academind GitHub Repo of the course: <https://github.com/academind/react-complete-guide-code/tree/master>
+> Udemay Course `React - The Complete Guide` - Academind GitHub Repo of the course: <https://github.com/academind/react-complete-guide-code/tree/master>
+> Udemy Course `Complete React Developer in 2023`: <https://www.udemy.com/course/complete-react-developer-zero-to-mastery>
 
-- client-side JavaScript library for building reactive user interfaces
+- client-side `JavaScript` library for building reactive user interfaces
 - traditionally, in web apps, you click a link -> wait for a new page to load, you click a button -> wait for some action to complete
 - in React, you don't wait for new pages to load or actions to start
 - with JavaScript you can manipulate HTML structure (`DOM`) -> that allows to change what user sees without sending a request to the server and waiting for new fetched HTML page
