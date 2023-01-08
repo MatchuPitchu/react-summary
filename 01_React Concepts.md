@@ -259,6 +259,12 @@ export default React.memo(Demo); // for 4) in App.js
 
 ## Rerendering of Components
 
+> Detailled Article about re-rendering in React: <https://www.developerway.com/posts/react-re-renders-guide?utm_campaign=This%20Week%20In%20React&utm_medium=email&utm_source=Revue%20newsletter>
+
+### Re-renders reason: state changes
+
+![](./00_slides/02_rerendering-state-update.png)
+
 - every state update with `setState()` triggers a re-rendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
 - that means with a re-execution of this instance, `const title` is assigned to the value that was updated before
 
@@ -271,6 +277,102 @@ export default React.memo(Demo); // for 4) in App.js
     console.log(target);
   };
   ```
+
+### Re-renders reason: parent re-renders
+
+![](./00_slides/03_rerendering-parent-rerenders.png)
+
+### Re-renders reason: context changes
+
+![](./00_slides/04_rerendering-context-changes.png)
+
+### Re-renders reason: hooks changes
+
+- every single hook inside a component still belongs to the component, and the same rules for re-renders apply
+
+![](./00_slides/05_rerendering-hooks-change.png)
+
+### ⛔️ Re-renders reason: props changes (the big myth)
+
+- only when memoization techniques are used (`React.memo`, `useMemo`), then props change becomes important
+
+![](./00_slides/06_rerendering-props-change.png)
+
+### ✅ Preventing re-renders with composition: moving state down
+
+![](./00_slides/07_rerendering-prevent-with-composition.png)
+
+### ✅ Preventing re-renders with composition: children as props
+
+- pattern is similar to `moving state down`: it encapsulates state changes in a smaller component
+- difference: state is used on an element that wraps a slow portion of the render tree, so it can’t be extracted that easily
+- example would be `onScroll` or `onMouseMove` callbacks attached to the root element of a component
+
+![](./00_slides/08_rerendering-prevent-with-children-as-props.png)
+
+### ✅ Preventing re-renders with composition: components as props
+
+![](./00_slides/09_rerendering-prevent-with-components-as-props.png)
+
+### ✅ Preventing re-renders with React.memo
+
+![](./00_slides/10_rerendering-prevent-with-react-memo-1.png)
+
+- `React.memo: component with props`
+
+![](./00_slides/11_rerendering-prevent-with-react-memo-2.png)
+
+- `React.memo: components as props or children`: React.memo has to be applied to the elements passed as children/props. Memoizing the parent component will not work: children and props will be objects, so they will change with every re-render.
+
+![](./00_slides/12_rerendering-prevent-with-react-memo-3.png)
+
+### useMemo/useCallback
+
+- ⛔️ Antipattern `unnecessary useMemo/useCallback on props`: if a parent component re-renders, it will trigger re-render of a child component regardless of its props.
+
+![](./00_slides/13_rerendering-antipattern-useCallback-useMemo.png)
+
+- ✅ necessary useMemo/useCallback
+
+![](./00_slides/14_rerendering-necessary-useCallback-useMemo.png)
+
+- if a component uses `non-primitive value` as a `dependency in hooks` like useEffect, useMemo, useCallback, it should be memoized.
+
+![](./00_slides/15_rerendering-necessary-useCallback-useMemo-2.png)
+
+- ✅ useMemo for expensive calculations: typical use case for useMemo would be to memoize React elements; cost of pure JavaScript operations like sorting or filtering an array is usually negligible, compare to components updates.
+
+![](./00_slides/16_rerendering-necessary-useMemo-expensive-calculations.png)
+
+### Improving re-render performance of lists
+
+![](./00_slides/17_rerendering-react-memo-for-lists.png)
+
+### Preventing Context re-renders
+
+✅ `memoizing Provider value`
+
+- if Context Provider is placed not at the very root of the app, and there is a possibility it can re-render itself because of changes in its ancestors, its value should be memoized.
+
+![](./00_slides/18_rerendering-context-provider.png)
+
+✅ `splitting data and API`
+
+- if in Context there is a combination of data and API (getters and setters) they can be split into different Providers under the same component. That way, components that use API only won’t re-render when the data changes
+
+![](./00_slides/19_rerendering-context-provider-splitting.png)
+
+✅ `splitting data into chunks`
+
+- if Context manages a few independent data chunks, they can be split into smaller providers under the same provider. That way, only consumers of changed chunk will re-render.
+
+![](./00_slides/20_rerendering-context-provider-splitting-2.png)
+
+✅ `Context selectors`
+
+- There is no way to prevent a component that uses a portion of Context value from re-rendering, even if the used piece of data hasn’t changed, even with useMemo hook. Context selectors, however, could be faked with the use of higher-order components and React.memo.
+
+![](./00_slides/21_rerendering-context-selectors.png)
 
 ## Two-way binding
 
