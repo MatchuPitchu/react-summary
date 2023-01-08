@@ -15,17 +15,33 @@
 - with Vanilla JavaScript you have to define clear step-by-step instructions, i.e. decribe every single step of a functionality (-> `imperative approach`)
 - that reaches its limits at some point AND developer has to take care of all details and has to do repetitive tasks
 
-  ```JavaScript
-    const modalCancelAction = document.createElement('button');
-    modalCancelAction.textContent = 'Cancel';
-    modalCancelAction.className = 'btn btn--alt';
-    modalCancelAction.addEventListener('click', closeModalHandler);
+  ```javascript
+  const modalCancelAction = document.createElement('button');
+  modalCancelAction.textContent = 'Cancel';
+  modalCancelAction.className = 'btn btn--alt';
+  modalCancelAction.addEventListener('click', closeModalHandler);
   ```
 
 - in React basic steps are done by the library; the developer describes rather on a higher level the final result of what should be displayed on the screen, i.e. the desired target state(s)
 - React will figure out the actual JavaScript DOM instructions (-> `declarative approach`)
 - in React the code of one app is splitted in multiple small components that are responsible for one clear task -> so code stays maintainable and manageable
 - React library is doing the rendering and combining of the code
+
+## Initial Rendering of React DOM in index.ts from React v18
+
+- `StrictMode` double renders every component on initial mounting in dev mode
+
+```tsx
+import { createRoot } from 'react-dom/client';
+
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
 
 ## React: Virtual DOM & DOM Updates
 
@@ -41,7 +57,7 @@
   - a virtual comparison between previous and current state needs only few resources (-> happens in memory)
   - reaching out the `real DOM` for rendering in the browser is expansive from a performance perspective
 
-  ```JSX
+  ```jsx
   // prev evaluation result
   <div>
     <h1>Hello</h1>
@@ -75,21 +91,21 @@
   - by default `React.memo()` does shallow comparison of props and objects of props
   - to customize props comparison, use second argument to indicate an equality check function; `areEqual(prevProps, nextProps)` function must return true if `prevProps` and `nextProps` are equal.
 
-    ```JavaScript
+    ```javascript
     const arePropsEqual = (prevProps, nextProps) => {
       return prevProps.name === nextProps.name && prevProps.id === nextProps.id;
-    }
+    };
     React.memo(Component, arePropsEqual);
     ```
 
-```JSX
+```jsx
 // Examples - App.js
 const App = () => {
   const [show, setShow] = useState(false);
   const [enable, setEnable] = useState(false);
 
   const toggleBtn = useCallback(() => {
-    if (enable) setShow(prev => !prev);
+    if (enable) setShow((prev) => !prev);
   }, [enable]);
 
   const enableToggleBtn = useCallback(() => {
@@ -156,11 +172,11 @@ export default React.memo(Demo); // for 4) in App.js
 - since you can schedule multiple updates at the same time, use cb fn to update state if it depends on prev state (`setState(prev => prev + 1)`) to ensure that the latest state is used and NOT the last state when last the component was rendered
 - `state batching`: if you have multiple state updates lines of code after each other in a synchronous fn (without time delay, not asynchronous), React will batch those updates together into one scheduled state update
 
-  ```JavaScript
+  ```javascript
   const myFunc = (data) => {
     setNewState(data);
     setShowBtn(false);
-  }
+  };
   ```
 
 ## Building Single-Page Applications (SPAs) with React
@@ -177,11 +193,9 @@ export default React.memo(Demo); // for 4) in App.js
 - in React all user interfaces are made up of components that are mixed and matched according to the application's needs
 - component is just a JavaScript function
 
-  ```JSX
+  ```jsx
   const App = () => {
-    return (
-      <div>Hello</div>
-    )
+    return <div>Hello</div>;
   };
   ```
 
@@ -190,51 +204,41 @@ export default React.memo(Demo); // for 4) in App.js
   - then deeper components are nested inside of each other (e.g. `<Tasks />` -> `<Task />` -> ...)
 - passing data from parent to child component with `props` obj
 
-  ```JSX
+  ```jsx
   // inside parent component
-  <Task title='Do this' />
+  <Task title='Do this' />;
 
   // child component
   const Task = (props) => {
-    return <div>{props.title}</div>
-  }
+    return <div>{props.title}</div>;
+  };
   ```
 
 - JSX return of a component can only be one element, so React JSX requires one wrapper element
 
   - problem: with lots of nested components, you could end with lots of unnecessary `<div>`'s (or other elements) which slow down the rendering performance and add no semantic meaning or structure to the page but are only there because of React's/JSX requirement
 
-  ```JSX
-  return (
-    <div>
-      // inside you can add more elements
-    </div>
-  )
+  ```jsx
+  return <div>// inside you can add more elements</div>;
 
   // OPTION 1 - workaround: creating a helper wrapper component that returns only the children prop, i.e. what's between the wrapper in the component
   const Wrapper = ({ children }) => ({ children });
 
   // other component
-  return (
-    <Wrapper> /* more elements ... */ </Wrapper>
-  )
+  return <Wrapper> /* more elements ... */ </Wrapper>;
 
   // OPTION 2 - recommanded: using React.Fragment or shortcut <></> as empty wrapper component
   import { Fragment } from 'react';
 
-  return (
-    <Fragment> /* ... */ </Fragment>
-  )
+  return <Fragment> /* ... */ </Fragment>;
 
   // OR simply without importing
-  return (
-    <> /* ... */  </>
-  )
+  return <> /* ... */ </>;
   ```
 
 - passing `data from child to parent` component with function that's passed inside props obj
 
-  ```JSX
+  ```jsx
   // inside parent components
   const newInputHandler = (inputValue) => {
     console.log(inputValue);
@@ -258,21 +262,21 @@ export default React.memo(Demo); // for 4) in App.js
 - every state update with `setState()` triggers a re-rendering of the specific instance of this component (-> in a project could exist multiple instances of one component);
 - that means with a re-execution of this instance, `const title` is assigned to the value that was updated before
 
-  ```JavaScript
-    const [title, setTitle] = useState(t);
+  ```javascript
+  const [title, setTitle] = useState(t);
 
-    // often a convention to name fn with handle...
-    const handleClick = ({target}) => {
-      setTitle(target);
-      console.log(target);
-    };
+  // often a convention to name fn with handle...
+  const handleClick = ({ target }) => {
+    setTitle(target);
+    console.log(target);
+  };
   ```
 
 ## Two-way binding
 
 - that means that you fetch data (e.g. of a form) and save it in a state variable when an input changes or is submitted AND at the same time this input has a value attribute which is binded to the state variable
 
-  ```JSX
+  ```jsx
   const MyComponent = () => {
     // when you read a value of an input it's always a string (-> nums, dates ... are also read as strings)
     const [userInput, setUserInput] = useState('');
@@ -308,7 +312,7 @@ export default React.memo(Demo); // for 4) in App.js
 - use `className` instead of `class` HTML keyword to add classes in JSX
 - assign unique class or id names to target elements only in this component
 
-  ```JSX
+  ```jsx
   import './ExpenseItem.css';
 
   const ExpenseItem = () => {
@@ -327,7 +331,7 @@ export default React.memo(Demo); // for 4) in App.js
 
 - setting css classes dynamically: inline styles have the highest priority, so they overwrite all other css rules; therefore it's not recommanded, the better way is setting classes dynamically with template literal (`...`)
 
-  ```JSX
+  ```jsx
   return (
     <form onSubmit={formSubmitHandler}>
       <div className={`form-control ${!isValid ? 'invalid' : ''}`}>
@@ -338,7 +342,6 @@ export default React.memo(Demo); // for 4) in App.js
       <Button type='submit'>Add Goal</Button>
     </form>
   );
-
   ```
 
 - when you use specific css files to style elements in specific js files (-> e.g. task.js with task.css), then it's problematic that these css rules are in global scope and by mistake you could reuse them somewhere without wanting it
@@ -348,7 +351,7 @@ export default React.memo(Demo); // for 4) in App.js
     - creates unique versions of the styles of your css file, so they apply only to the wished component AND you avoid to have them in the global scope
     - it's already prefconfigured in React <https://create-react-app.dev/docs/adding-a-css-modules-stylesheet>
 
-    ```JSX
+    ```jsx
     // a) rename css file to Filename.module.css
     // b) use -> import styles from './Filename.module.css'
     // c) replace className string with styles obj and add your needed classes as a property
@@ -356,17 +359,13 @@ export default React.memo(Demo); // for 4) in App.js
     import styles from './Filename.module.css';
 
     const Button = ({ children }) => {
-      return (
-        <button className={`${styles.button} ${!isValid && styles['btn-invalid']}`}>
-          {children}
-        </button>
-      );
+      return <button className={`${styles.button} ${!isValid && styles['btn-invalid']}`}>{children}</button>;
     };
     ```
 
   - `OPTION 2`: styled components package <https://styled-components.com>
 
-    ```JSX
+    ```jsx
     // a) install npm package
     // b) import styled object
     // c) create component with method of wished HTML tag (button, div, p ...)
@@ -382,8 +381,8 @@ export default React.memo(Demo); // for 4) in App.js
       padding: 0.5rem 1.5rem;
       border: 1px solid #8b005d;
       /* Adapt the colors based on primary prop */
-      color: ${props => props.primary ? "white" : "palevioletred"};
-      background: ${props => props.primary ? "palevioletred" : "white"};
+      color: ${(props) => (props.primary ? 'white' : 'palevioletred')};
+      background: ${(props) => (props.primary ? 'palevioletred' : 'white')};
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.26);
       cursor: pointer;
 
@@ -401,7 +400,7 @@ export default React.memo(Demo); // for 4) in App.js
         border-color: #ac0e77;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.26);
       }
-    `
+    `;
 
     const MyComponent = () => {
       return (
@@ -423,7 +422,7 @@ export default React.memo(Demo); // for 4) in App.js
 
 - when you have components with some identical CSS rules, you can build a wrapper container with the extracted wished CSS rules that should apply in general on multiple components
 
-  ```JSX
+  ```jsx
   // Card.css
   .card {
     border-radius: 12px;
@@ -459,7 +458,7 @@ export default React.memo(Demo); // for 4) in App.js
 
 - wrapper components are also handy to extract more complexe JSX code (e.g. `Modal`, `Alert`, `Button`, `Notification`, `Sidebar`, `Layout` ) that you need in multiple components
 
-  ```JSX
+  ```jsx
   // Button wrapper component
   const Button = ({ type, onClick, children }) => {
     return (
@@ -476,12 +475,14 @@ export default React.memo(Demo); // for 4) in App.js
         <label>Course Goal</label>
         <input type='text' onChange={goalInputChangeHandler} />
       </div>
-      <Button type='submit' onClick={clickHandler}>Add Goal</Button>
+      <Button type='submit' onClick={clickHandler}>
+        Add Goal
+      </Button>
     </form>
   );
   ```
 
-  ```CSS
+  ```css
   /* General button styling */
   .button {
     font: inherit;
@@ -507,7 +508,7 @@ export default React.memo(Demo); // for 4) in App.js
 
 ## Javascript Syntax Extension (JSX)
 
-```JSX
+```jsx
 // JSX return
 return (
   <div>
@@ -536,19 +537,19 @@ const App = () => {
 
 - Example: deeply nested React Component `<MyModal />`
 
-  ```JSX
+  ```jsx
   return (
     <>
       <MyModal />
       <MyInputForm />
     </>
-  )
+  );
   ```
 
-  ```HTML
+  ```html
   <!-- -> in real DOM could look like this -->
   <section>
-    <h2>Some other content ... </h2>
+    <h2>Some other content ...</h2>
     <div class="my-modal">
       <h2>Modal Title</h2>
     </div>
@@ -564,17 +565,17 @@ const App = () => {
 
   - add div element(s) to index.html to hook into them later
 
-  ```HTML
-    <body>
-      <div id="backdrop-root"></div>
-      <div id="overlay-root"></div>
-      <div id="root"></div>
-    </body>
+  ```html
+  <body>
+    <div id="backdrop-root"></div>
+    <div id="overlay-root"></div>
+    <div id="root"></div>
+  </body>
   ```
 
   - import `ReactDOM` in component(s) that should be rendered somewhere else, create normal wished components, use `createPortal` method to move rendering of this component(s) to another place
 
-  ```JavaScript
+  ```javascript
   import ReactDOM from 'react-dom'; // import for createPortal method
   import Card from './Card';
   import Button from './Button';
@@ -608,10 +609,7 @@ const App = () => {
     // now it doesn't matter where - in which deep nested component - you are using Backdrop and Modal, it's always rendered attached to element with this id
     return (
       <>
-        {ReactDOM.createPortal(
-          <Backdrop onConfirm={onConfirm} />,
-          document.getElementById('backdrop-root')
-        )}
+        {ReactDOM.createPortal(<Backdrop onConfirm={onConfirm} />, document.getElementById('backdrop-root'))}
         {ReactDOM.createPortal(
           <ModalOverlay title={title} message={message} onConfirm={onConfirm} />,
           document.getElementById('overlay-root')

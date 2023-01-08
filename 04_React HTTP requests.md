@@ -13,7 +13,7 @@
 - [`Axios` library](https://axios-http.com/): is a simple promise based HTTP client for the browser and node.js
 - [`Firebase`]('https://firebase.google.com') is a service provided by Google to have a backend (with REST API and a database) without writing any code
 
-```JavaScript
+```javascript
 // Example for GET and POST request
 const App = () => {
   const [movies, setMovies] = useState([]);
@@ -41,7 +41,7 @@ const App = () => {
       const data = await res.json();
 
       // transform received data obj with map() into my wished format
-      const transformedMovies = data.results.map(movie => {
+      const transformedMovies = data.results.map((movie) => {
         return {
           id: movie.episode_id,
           title: movie.title,
@@ -63,7 +63,7 @@ const App = () => {
     fetchHandler();
   }, [fetchHandler]);
 
-  const addHandler = async movie => {
+  const addHandler = async (movie) => {
     setLoading(true);
     setError(null);
 
@@ -120,7 +120,7 @@ const App = () => {
 
   - OPTION 1: `ignore` stale responses
 
-    ```JavaScript
+    ```javascript
     const SearchResults = ({ query }) => {
       const [page, setPage] = useState(1);
       const params = new URLSearchParams({ query, page });
@@ -128,9 +128,9 @@ const App = () => {
 
       const handleNextPageClick = () => {
         setPage(page + 1);
-      }
+      };
       // ...
-    }
+    };
 
     const useData = (url) => {
       const [result, setResult] = useState(null);
@@ -145,21 +145,21 @@ const App = () => {
               setResult(data);
             }
           } catch (err) {
-            console.log(err.message)
+            console.log(err.message);
           }
-        }
+        };
         fetchData();
 
-        return () => ignore = true;
+        return () => (ignore = true);
       }, [url]);
 
       return result;
-    }
+    };
     ```
 
   - OPTION 2: abort an ongoing fetch request with `AbortController` <https://developer.mozilla.org/en-US/docs/Web/API/AbortController>
 
-    ```JavaScript
+    ```javascript
     const SearchResults = ({ query }) => {
       const [page, setPage] = useState(1);
       const params = new URLSearchParams({ query, page });
@@ -167,9 +167,9 @@ const App = () => {
 
       const handleNextPageClick = () => {
         setPage(page + 1);
-      }
+      };
       // ...
-    }
+    };
 
     const useData = (url) => {
       const [result, setResult] = useState(null);
@@ -184,14 +184,14 @@ const App = () => {
             const data = response.json();
             setResult(data);
           } catch (err) {
-            console.log(err.message)
+            console.log(err.message);
           }
-        }
+        };
         fetchData();
 
         return () => controller.abort();
       }, [url]);
 
       return result;
-    }
+    };
     ```

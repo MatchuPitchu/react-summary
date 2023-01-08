@@ -16,7 +16,7 @@
 
 - in more complex apps, managing `Context` can lead to deeply nested JSX code or huge `Context Provider` components
 
-  ```JSX
+  ```jsx
   // 1) if you want to separate concerns, then you could have deeply nested context components
   return (
     <AuthContextProvider>
@@ -28,10 +28,10 @@
         </UIInteractionContextProvider>
       </ThemeContextProvider>
     </AuthContextProvider>
-  )
+  );
   ```
 
-  ```JavaScript
+  ```javascript
   // 2) if you collect all different concerns in one file, becomes difficult to manage and maintain
   const AllContextProvider = () => {
     const [isAuth, setIsAuth] = useState(false);
@@ -63,7 +63,7 @@
 
 ### Basic Example of Redux without React
 
-```JavaScript
+```javascript
 import redux from 'redux';
 
 // reducer function:
@@ -105,11 +105,11 @@ store.dispatch({ type: 'decrement' }); // console.log result -> { counter: 0}
     - Important: `immutable update patterns` <https://redux.js.org/usage/structuring-reducers/immutable-update-patterns#immutable-update-patterns>
 - `action types`: with TypeScript, it's a good approach to use general `Enums`
 
-```JavaScript
+```javascript
 // store/index.js
 import { createStore } from 'redux';
 
-const initialState = { counter: 0, show: true }
+const initialState = { counter: 0, show: true };
 
 // reducer function
 const reducerFn = (state = initialState, action) => {
@@ -135,7 +135,7 @@ export const store = createStore(reducerFn);
   - wrapped components with all there childs now have access to redux
 - connect Provider with your specific redux store
 
-```JavaScript
+```javascript
 // index.js
 import { Provider } from 'react-redux';
 import { store } from './store/index';
@@ -167,7 +167,7 @@ ReactDOM.render(
           - 1. input selectors should return the `leaf node` (-> the bottom level of an object or array),
           - 2. input selector functions can take additional arguments, which would have to be passed in when calling your selector.
 
-            ```TypeScript
+            ```typescript
             // Example 1
             // DOES NOT MEMOIZE HERE, because the extra parameters is included in the memoization checks, so if you are passing in different arguments on every call, that effectively means the memoization becomes useless.
             const parameterized = createSelector(
@@ -192,27 +192,27 @@ ReactDOM.render(
 
         - 2 advantages: 1) the result of multiple input selectors is memoized until a concerning state was updated; 2) when you have performance intensive tasks, this doesn't have to be done again until the state changed
 
-        ```TypeScript
+        ```typescript
         // Example 2
         // https://react-redux.js.org/api/hooks
-        import { createSelector } from "@reduxjs/toolkit"
+        import { createSelector } from '@reduxjs/toolkit';
 
         const selectNumCompletedTodos = createSelector(
           (state: Rootstate) => state.todos,
           // return of first arg of createSelector is first parameter of snd arg ... and so on, return of snd arg could be first parameter of third arg ...
           (todos) => todos.filter((todo) => todo.completed).length
-        )
+        );
 
         // Component
         export const CompletedTodosCounter = () => {
-          const numCompletedTodos = useSelector(selectNumCompletedTodos)
-          return <div>{numCompletedTodos}</div>
-        }
+          const numCompletedTodos = useSelector(selectNumCompletedTodos);
+          return <div>{numCompletedTodos}</div>;
+        };
         ```
 
-        ```TypeScript
+        ```typescript
         // Example 3: more complex with multiple input selectors
-        import { createSelector } from "@reduxjs/toolkit"
+        import { createSelector } from '@reduxjs/toolkit';
 
         export interface SelectedPSBMonthIndices {
           selectableIndices: number[];
@@ -223,9 +223,7 @@ ReactDOM.render(
           (state: RootState) => state.monatsplaner.elternteile.ET1.months,
           (state: RootState) => state.monatsplaner.elternteile.remainingMonths.PSB,
           (months, remainingMonthsPSB): SelectedPSBMonthIndices => {
-            const currentPSBIndices = months.flatMap((month, index) =>
-              month.type === "PSB" ? [index] : [],
-            );
+            const currentPSBIndices = months.flatMap((month, index) => (month.type === 'PSB' ? [index] : []));
             if (currentPSBIndices.length === 0) {
               return {
                 selectableIndices: months.map((_, index) => index),
@@ -247,7 +245,7 @@ ReactDOM.render(
                 deselectableIndices: [lowestIndex, highestIndex],
               };
             }
-          },
+          }
         );
 
         // Component
@@ -256,7 +254,7 @@ ReactDOM.render(
           // Eta Reduction version
           const selectablePSBMonths = useAppSelector(getSelectablePSBMonthIndices);
           // ...
-        }
+        };
         ```
 
   - `useStore`: select whole store
@@ -265,39 +263,39 @@ ReactDOM.render(
   > <https://redux-toolkit.js.org/api/createAction>
   - a helper function to define a Redux action type and creator: `function createAction(type, prepareAction?)`
 
-```TypeScript
+```typescript
 // The usual way to define an action in Redux is to separately declare an action type constant and an action creator function for constructing actions of that type.
-const INCREMENT = 'counter/increment'
+const INCREMENT = 'counter/increment';
 
 const increment = (amount: number) => {
   return {
     type: INCREMENT,
     payload: amount,
-  }
-}
+  };
+};
 
 const action = increment(3); // { type: 'counter/increment', payload: 3 }
 ```
 
 - `createAction` helper combines these two declarations above into one.
 
-```TypeScript
-import { createAction } from '@reduxjs/toolkit'
+```typescript
+import { createAction } from '@reduxjs/toolkit';
 
-const increment = createAction<number | undefined>('counter/increment')
+const increment = createAction<number | undefined>('counter/increment');
 
 let action = increment(); // { type: 'counter/increment' }
 action = increment(3); // returns { type: 'counter/increment', payload: 3 }
 
 console.log(increment.toString()); // 'counter/increment'
-console.log(`The action type is: ${increment}`) // 'The action type is: counter/increment'
+console.log(`The action type is: ${increment}`); // 'The action type is: counter/increment'
 ```
 
 - generated action creators (-> like `increment()`) accept a single argument, which becomes action.payload
 - if you want to write additional logic to customize the creation of the payload value, createAction accepts an optional second argument: a "prepare callback" that will be used to construct the payload value.
 
-```TypeScript
-import { createAction, nanoid } from '@reduxjs/toolkit'
+```typescript
+import { createAction, nanoid } from '@reduxjs/toolkit';
 
 const prepare = (text: string) => ({
   payload: {
@@ -305,10 +303,10 @@ const prepare = (text: string) => ({
     id: nanoid(),
     createdAt: new Date().toISOString(),
   },
-})
+});
 
-const addTodo = createAction('todos/add', prepare)
-console.log(addTodo('Write more docs'))
+const addTodo = createAction('todos/add', prepare);
+console.log(addTodo('Write more docs'));
 /**
  * {
  *   type: 'todos/add',
@@ -323,21 +321,23 @@ console.log(addTodo('Write more docs'))
 
 - usage with `createReducer()`: because of their `toString()` override, action creators returned by `createAction()` can be used directly as keys for the case reducers passed to `createReducer()` or as `extraReducers` in `createSlice()`.
 
-```TypeScript
-import { createAction, createReducer } from '@reduxjs/toolkit'
+```typescript
+import { createAction, createReducer } from '@reduxjs/toolkit';
 
-const increment = createAction<number>('counter/increment')
+const increment = createAction<number>('counter/increment');
 
-  // Version 1
-const counterReducer = createReducer(state = { counter: 0 }, (builder) => {
-  builder.addCase(increment, (state, action) => state.counter + action.payload)
-})
+// Version 1
+const counterReducer = createReducer((state = { counter: 0 }), (builder) => {
+  builder.addCase(increment, (state, action) => state.counter + action.payload);
+});
 
 // Version 2
 const counterSlice = createSlice({
-  name: "counter",
+  name: 'counter',
   initialState: { counter: 0 },
-  reducers: { /*... */ },
+  reducers: {
+    /*... */
+  },
   extraReducers: (builder) => {
     builder.addCase(increment, (state, action) => {
       return state.counter + action.payload;
@@ -349,7 +349,7 @@ const counterSlice = createSlice({
 - retrieve `dispatch` fn with help of `useDispatch` hook
   - dispatch fn receives action object that can contain an action type property and a payload property
 
-```JavaScript
+```javascript
 // components/Counter.js
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -399,7 +399,7 @@ const Counter = () => {
 
 ### Basic Example of Redux in React with Redux Toolkit, multiple slices of global state and code splitting
 
-```JavaScript
+```javascript
 // store/counter.js
 // simplify redux using with createSlice (recommended) or createReducer fn
 import { createSlice } from '@reduxjs/toolkit';
@@ -432,7 +432,7 @@ export const counterActions = counterSlice.actions;
 export default counterSlice.reducer;
 ```
 
-```JavaScript
+```javascript
 // store/auth.js
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -456,7 +456,7 @@ export const authActions = authSlice.actions;
 export default authSlice.reducer;
 ```
 
-```TypeScript
+```typescript
 // store/index.js
 import { configureStore } from '@reduxjs/toolkit';
 import counterReducer from './counter';
@@ -464,8 +464,8 @@ import authReducer from './auth';
 
 // recommended: use combineReducers() of reduxjs/toolkit to create reducers obj with reducers of multiple slices, then you can insert this obj below
 const reducers = combineReducers({
- counter: counterSlice.reducer,
- auth: authSlice.reducer,
+  counter: counterSlice.reducer,
+  auth: authSlice.reducer,
 });
 
 const store = configureStore({
@@ -481,12 +481,12 @@ export default store;
 
 // TypeScript specific
 export type AppDispatch = typeof store.dispatch;
-export type RootState = ReturnType<typeof store.getState>
+export type RootState = ReturnType<typeof store.getState>;
 ```
 
 - dispatch action with `payload` with Redux Toolkit: payload is passed into reducer fn with a simple argument that is converter by Redux Toolkit to a `payload property`
 
-```JavaScript
+```javascript
 // components/Counter.js
 import { useSelector, useDispatch } from 'react-redux';
 import { counterActions } from '../store/counter';
@@ -517,7 +517,7 @@ const Counter = () => {
 };
 ```
 
-```JavaScript
+```javascript
 // components/Auth.js
 import { useDispatch } from 'react-redux';
 import { authActions } from '../store/auth';
@@ -576,7 +576,7 @@ const Auth = () => {
 
 ### Example of State Slices For Following Sections
 
-```JavaScript
+```javascript
 // store/cart-slice.js
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -633,7 +633,7 @@ export default cartSlice.reducer;
 - first dispatch actions in any component as you want to update global state in redux store
 - then watch updated state with `useEffect` and perform async tasks or side-effect
 
-```JavaScript
+```javascript
 // App.js
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -663,10 +663,7 @@ const App = () => {
         body: JSON.stringify(cart),
       };
       // firebase test backend: 'cart.json' creates new cart node in database and store data there
-      const res = await fetch(
-        'https://firebasedatabase.app/cart.json',
-        options
-      );
+      const res = await fetch('https://firebasedatabase.app/cart.json', options);
 
       if (!res.ok) throw new Error('Sending data failed.');
 
@@ -695,15 +692,10 @@ const App = () => {
   return (
     <>
       {notification && (
-        <Notification
-          status={notification.status}
-          title={notification.title}
-          message={notification.message}
-        />
+        <Notification status={notification.status} title={notification.title} message={notification.message} />
       )}
 
       {/* ... */}
-
     </>
   );
 };
@@ -719,7 +711,7 @@ const App = () => {
   - `Redux Toolkit` accepts as argument for `dispatch()` also action creators that returns another fn
   - Toolkit notices that and will execute that returned fn for you and gives you there automatically the `dispatch` parameter, so that you can dispatch actions in returned fn
 
-```JavaScript
+```javascript
 // App.js
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -745,21 +737,16 @@ const App = () => {
   return (
     <>
       {notification && (
-        <Notification
-          status={notification.status}
-          title={notification.title}
-          message={notification.message}
-        />
+        <Notification status={notification.status} title={notification.title} message={notification.message} />
       )}
 
       {/* ... */}
-
     </>
   );
 };
 ```
 
-```JavaScript
+```javascript
 // store/cart-actions.js
 import { uiActions } from './ui-slice';
 import { cartActions } from './cart-slice';
@@ -856,53 +843,44 @@ export const fetchCartData = () => {
 
   - `React Toolkit automatically generates and dispatches actions` initially and when Promise resolves: it generates promise lifecycle action types based on the action type prefix that you pass in, and returns a thunk action creator that will run the promise cb and dispatch the lifecycle actions based on the returned promise
 
-  ```TypeScript
-    pending: 'users/requestStatus/pending'
-    fulfilled: 'users/requestStatus/fulfilled'
-    rejected: 'users/requestStatus/rejected'
+  ```typescript
+  pending: 'users/requestStatus/pending';
+  fulfilled: 'users/requestStatus/fulfilled';
+  rejected: 'users/requestStatus/rejected';
   ```
 
 - by using `createAsyncThunk`, code in actions file becomes much shorter
 
-```JavaScript
+```javascript
 // store/cart-actions.js
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const sendCartData = createAsyncThunk(
-  'cart/sendData',
-  async (cart) => {
-    const options = {
-      method: 'POST',
-      body: JSON.stringify({ items: cart.items, totalQuantity: cart.totalQuantity }),
-    };
-    const res = await fetch(
-      'https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json',
-      options
-    );
-    if (!res.ok) throw new Error('Sending data failed.');
-  }
-);
+export const sendCartData = createAsyncThunk('cart/sendData', async (cart) => {
+  const options = {
+    method: 'POST',
+    body: JSON.stringify({ items: cart.items, totalQuantity: cart.totalQuantity }),
+  };
+  const res = await fetch('https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json', options);
+  if (!res.ok) throw new Error('Sending data failed.');
+});
 
-export const fetchCartData = createAsyncThunk(
-  'cart/fetchData',
-  async () => {
-    const res = await fetch('https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json');
-    if (!res.ok) throw new Error('Error while fetching data');
+export const fetchCartData = createAsyncThunk('cart/fetchData', async () => {
+  const res = await fetch('https://react-http-ba0a9-default-rtdb.europe-west1.firebasedatabase.app/cart.json');
+  if (!res.ok) throw new Error('Error while fetching data');
 
-    const data = await res.json();
-    return {
-      items: data.items || [], // Firebase does NOT store empty data, so items is undefined when app is opened with empty cart
-      totalQuantity: data.totalQuantity,
-    };
-  }
-);
+  const data = await res.json();
+  return {
+    items: data.items || [], // Firebase does NOT store empty data, so items is undefined when app is opened with empty cart
+    totalQuantity: data.totalQuantity,
+  };
+});
 ```
 
 - in `createSlice` methods you can use automatically created actions
 - `extraReducers` object: related methods have to be added in an `extraReducers object`, NOT in `reducers object`, since there a set of new actions would be created under the hood - and this work has already be done by `createAsyncThunk` above.
 - additional info: it would be no problem to use automatically generated actions, e.g. `fetchCartData.fulfilled` in `extraReducers` of multiple slices, like here in the cart slice and the ui slice (if needed).
 
-```JavaScript
+```javascript
 // store/cart-slice.js
 import { createSlice } from '@reduxjs/toolkit';
 import { fetchCartData } from './cart-actions';
@@ -935,7 +913,7 @@ export const cartActions = cartSlice.actions;
 export default cartSlice.reducer;
 ```
 
-```JavaScript
+```javascript
 // store/ui-slice.js
 import { createSlice } from '@reduxjs/toolkit';
 import { fetchCartData, sendCartData } from './cart-actions';
@@ -1004,7 +982,7 @@ export default uiSlice.reducer;
 
 #### Create an API Slice
 
-```TypeScript
+```typescript
 // Create an API Slice
 // store/cart-api-slice.ts
 // RTK Query: Create an API Slice
@@ -1066,17 +1044,13 @@ export const { useGetCartQuery, useUpdateCartMutation } = cartApi;
   - listener also receives a set of `async workflow functions` like `take`, `condition`, `pause`, `fork` and `unsubscribe`, which allow writing more complex async logic.
   - define listeners statically by calling `listenerMiddleware.startListening()` during setup, or add and remove it dynamically at runtime with special `dispatch(addListener())` and `dispatch(removeListener())` actions
 
-```TypeScript
-import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
+```typescript
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit';
 
-import todosReducer, {
-  todoAdded,
-  todoToggled,
-  todoDeleted,
-} from '../features/todos/todosSlice'
+import todosReducer, { todoAdded, todoToggled, todoDeleted } from '../features/todos/todosSlice';
 
 // Create the middleware instance and methods
-const listenerMiddleware = createListenerMiddleware()
+const listenerMiddleware = createListenerMiddleware();
 
 // Add one or more listener entries that look for specific actions.
 // They may contain any sync or async logic, similar to thunks.
@@ -1084,37 +1058,37 @@ listenerMiddleware.startListening({
   actionCreator: todoAdded,
   effect: async (action, listenerApi) => {
     // Run whatever additional side-effect-y logic you want here
-    console.log('Todo added: ', action.payload.text)
+    console.log('Todo added: ', action.payload.text);
 
     // Can cancel other running instances
-    listenerApi.cancelActiveListeners()
+    listenerApi.cancelActiveListeners();
 
     // Run async logic
-    const data = await fetchData()
+    const data = await fetchData();
 
     // Pause until action dispatched or state changed
     if (await listenerApi.condition(matchSomeAction)) {
       // Use the listener API methods to dispatch, get state,
       // unsubscribe the listener, start child tasks, and more
-      listenerApi.dispatch(todoAdded('Buy pet food'))
+      listenerApi.dispatch(todoAdded('Buy pet food'));
 
       // Spawn "child tasks" that can do more work and return results
       const task = listenerApi.fork(async (forkApi) => {
         // Can pause execution
-        await forkApi.delay(5)
+        await forkApi.delay(5);
         // Complete the child by returning a value
-        return 42
-      })
+        return 42;
+      });
 
-      const result = await task.result
+      const result = await task.result;
       // Unwrap the child result in the listener
       if (result.status === 'ok') {
         // Logs the `42` result value that was returned
-        console.log('Child succeeded: ', result.value)
+        console.log('Child succeeded: ', result.value);
       }
     }
   },
-})
+});
 
 const store = configureStore({
   reducer: {
@@ -1123,16 +1097,15 @@ const store = configureStore({
   // Add the listener middleware to the store.
   // NOTE: Since this can receive actions with functions inside,
   // it should GO BEFORE the serializability check middleware
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().prepend(listenerMiddleware.middleware),
-})
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddleware.middleware),
+});
 ```
 
 #### Configure the Store
 
 - `API slice` (-> here const `cartApi`) contains an auto-generated Redux slice reducer and a custom middleware that manages subscription lifetimes; add both to Redux store
 
-```TypeScript
+```typescript
 // store/index.ts
 import { configureStore } from '@reduxjs/toolkit';
 import uiSliceReducer from './ui-slice';
@@ -1166,7 +1139,7 @@ export type RootState = ReturnType<typeof store.getState>;
 - call auto-generated hook in component with any needed parameters
 - RTK Query automatically fetches data on mount, re-fetch when parameters change, provide `{ data, isFetching }` values in the result, and re-render the component as those values change
 
-```TSX
+```tsx
 import { useGetCartQuery, useUpdateCartMutation } from './store/cart-api-slice';
 
 const App = () => {

@@ -32,7 +32,7 @@
   - name file like `[SOME_NAME].tsx` to create dynamic path like `my-domain.de/news/:id`
   - to extract dynamic value, use `useRouter` hook and property `router.query.YOUR-DYNAMIC-FILENAME`
 
-  ```TSX
+  ```tsx
   import type { NextPage } from 'next';
   import { useRouter } from 'next/router';
 
@@ -51,13 +51,13 @@
   - prevents browser default of sending GET request to server
   - instead it loads new component (here: 'NextJs') and changes URL \*/}
 
-```TSX
+```tsx
 import type { NextPage } from 'next';
 import Link from 'next/link';
 
 const Nav: NextPage = () => {
-  return <Link href='/news/nextjs'>NextJS</Link>
-}
+  return <Link href='/news/nextjs'>NextJS</Link>;
+};
 ```
 
 ## Page Pre-Rendering
@@ -66,7 +66,7 @@ const Nav: NextPage = () => {
 - then `Page/App` is interactive and `useEffect` code with e.g. data fetching from server will be executed
 - `Problem`: this data is not visible in pre-rendered page
 
-```TSX
+```tsx
 const Home = () => {
   // V1: WITHOUT Pre-rendering: normal process to fetch additional data from server
   const [loadedMeetups, setLoadedMeetups] = useState<typeof DUMMY_MEETUPS>([]);
@@ -95,7 +95,7 @@ const Home = () => {
       - unlocks feature `Incremental Static Generation`
       - example: this page would be re-generated on server at least every x seconds if there are requests coming in -> re-generated pages replace old pages -> so data is never older than x seconds
 
-  ```TSX
+  ```tsx
   const Home: NextPage<Props> = ({ meetups }) => {
     return <MeetupList meetups={meetups} />;
   };
@@ -120,7 +120,7 @@ const Home = () => {
     - `getServerSideProps` runs NOT during build, but always on server after deployment
     - code NEVER runs on client side (like `getStaticProps`)
 
-  ```TSX
+  ```tsx
   const Home: NextPage<Props> = ({ meetups }) => {
     return <MeetupList meetups={meetups} />;
   };
@@ -150,7 +150,7 @@ const Home = () => {
   - `true`: Next.js immediately pre-generates empty page for user param input that's NOT contained in paths array AND then pull down the dynamically generated content -> you need to handle case that page does NOT have data yet
   - `blocking`: Next.js will wait for the dynamically generated HTML for new paths that are NOT contained in paths array AND then will cache this for future requests -> so it only happens once per path.
 
-```TSX
+```tsx
 // my-domain.de/:meetupId (-> param name is derived of folder name in Next.js: [meetupId] )
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import MeetupDetail from '../../components/meetups/MeetupDetail';
@@ -205,7 +205,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
   return {
     props: {
       id: meetupId,
-      image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/1024px-Stadtbild_M%C3%BCnchen.jpg',
+      image:
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/1024px-Stadtbild_M%C3%BCnchen.jpg',
       alt: 'First Meetup',
       title: 'First Meetup',
       address: 'Somme address 5, 12345 City',
@@ -223,7 +224,7 @@ export default Meetup;
 - all files inside this folder will be turned into API routes (-> endpoints that can be targeted by requests)
 - file names will be `path segments` in the URL
 
-```TypeScript
+```typescript
 // utils function to connect to database
 // install mongodb driver: npm i mongodb + create a mongodb cluster https://cloud.mongodb.com
 import { MongoClient } from 'mongodb'; // Next.js detects this and will NOT bundle it into client side build
@@ -239,7 +240,7 @@ export const connectDatabase = async () => {
 };
 ```
 
-```TypeScript
+```typescript
 // API route: /api/add-meetup
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from '../../utils/mongodb-connection';
@@ -267,7 +268,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 export default handler;
 ```
 
-```TSX
+```tsx
 // Example: POST request
 // my-domain.de/new-meetup
 import { NextPage } from 'next';
@@ -302,7 +303,7 @@ const NewMeetup: NextPage = () => {
 export default NewMeetup;
 ```
 
-```TSX
+```tsx
 // Example: GET request
 import type { GetStaticProps, NextPage } from 'next';
 import MeetupList from '../components/meetups/MeetupList';
@@ -343,7 +344,7 @@ export default Home;
 - use `<Head>` component that can be imported from `next/head`
 - hard code oder dynamically generate your head content
 
-```TSX
+```tsx
 const Meetup: NextPage<Props> = ({ _id, image, alt, title, address, description }) => {
   return (
     <>

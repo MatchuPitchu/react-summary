@@ -17,7 +17,7 @@
 
 - `BrowserRouter` component: in `index.js` wrap App component to activate React Router
 
-  ```JavaScript
+  ```javascript
   import { BrowserRouter as Router } from 'react-router-dom';
   // ... import statements
 
@@ -55,7 +55,7 @@
 
 - `Not Found 404` fallback page with wildcard `*` that matches every other incoming URL -> notice that `*` matches only all paths if they're not used by other `Route` components
 
-```JavaScript
+```javascript
 // App.js
 import { Routes, Route, Navigate } from 'react-router-dom';
 // ... import components
@@ -67,10 +67,10 @@ const App = () => {
       <main>
         <Routes>
           <Route path='/' element={<Navigate replace to='/test' />} />
-          <Route path='/test' element={ <Test />} />
+          <Route path='/test' element={<Test />} />
           <Route path='/products' element={<Products />} />
           <Route path='/products/:productId' element={<ProductDetail />} />
-          <Route path='*'  element={<NotFound />} />
+          <Route path='*' element={<NotFound />} />
         </Routes>
       </main>
     </>
@@ -82,7 +82,7 @@ const App = () => {
 
   - relative path is defined `without /` whereas absolute path is defined with `/`
 
-  ```JavaScript
+  ```javascript
   // relative path
   <Link to={`${id}`}>
   // absolute path
@@ -99,7 +99,7 @@ const App = () => {
   - nested routes are now relative paths, so only add extension of root path in child component
   - v5: for more flexible routing code for `nested routes`, in v5 you could use `useRouteMatch` hook (-> look below), no longer needed in v6
 
-```JavaScript
+```javascript
 // App.js
 import { Routes, Route, Navigate } from 'react-router-dom';
 // ... import components
@@ -142,7 +142,7 @@ const Welcome = () => {
 
 - programmatic navigation: redirection action is triggered by code, NOT by a click of user; use `useNavigate` (v6) hook (-> replaces `useHistory` (v5)) that allows to change the browser history
 
-  ```JavaScript
+  ```javascript
   const navigate = useNavigate();
   navigate('/welcome', { replace: true });
   ```
@@ -159,7 +159,7 @@ const Welcome = () => {
   - by passing anonymous fn with parameter obj navData that includes property isActive that is internally changed after click on NavLink
   - v5: there was specific prop called `activeClassName`
 
-  ```JavaScript
+  ```javascript
   import { NavLink } from 'react-router-dom';
   import classes from './Header.module.css';
 
@@ -189,7 +189,7 @@ const Welcome = () => {
 
   - using `useNavigate` and `useLocation` hooks: whereas `useNavigate` gives access to browser history obj, `useLocation` gives access to currently loaded page
 
-  ```JavaScript
+  ```javascript
   import { useNavigate, useLocation } from 'react-router-dom';
   import QuoteItem from './QuoteItem';
   import classes from './QuoteList.module.css';
@@ -235,9 +235,7 @@ const Welcome = () => {
     return (
       <>
         <div className={classes.sorting}>
-          <button onClick={changeSortingHandler}>
-            Sort {ascending ? 'Descending' : 'Ascending'}
-          </button>
+          <button onClick={changeSortingHandler}>Sort {ascending ? 'Descending' : 'Ascending'}</button>
         </div>
         <ul className={classes.list}>
           {sortedQuotes.map((quote) => (
@@ -251,7 +249,7 @@ const Welcome = () => {
 
 ## Example for sending & getting data via HTTP with useHttp hook and own request fn library
 
-```JavaScript
+```javascript
 // useHttp hook
 import { useReducer, useCallback } from 'react';
 
@@ -416,7 +414,6 @@ const AllQuotes = () => {
   if (status === 'complete' && loadedQuotes.length === 0) return <NoQuotesFound />;
   return <QuoteList quotes={loadedQuotes} />;
 };
-
 ```
 
 ## OUTDATED: Using React-Router v5 (for Updates v6 look above)
@@ -431,7 +428,7 @@ const AllQuotes = () => {
   - returns obj with key(s) of all dynamic placeholders used in URL path (can use multiple): `const { id } = useParams()`
 - `Not Found 404` fallback page with wildcard `*` that matches every other incoming URL -> should come last that it not consume one of the above paths
 
-  ```JavaScript
+  ```javascript
   import { BrowserRouter as Router } from 'react-router-dom';
   // ... import statements
 
@@ -481,7 +478,7 @@ const AllQuotes = () => {
   - whereas `push()` pushes new page on the stack of pages (back btn is possible)
   - pushing or replacing a page leads to re-evaluation of target component(s), even if target is same page
 
-  ```JavaScript
+  ```javascript
   import { useHistory } from 'react-router-dom';
 
   const Test = () => {
@@ -497,13 +494,12 @@ const AllQuotes = () => {
       </section>
     );
   };
-
   ```
 
 - `Link` component: allows to change path without refreshing whole page
 - `NavLink` component: sets css class on active anchor item that you can style active link differently
 
-  ```JavaScript
+  ```javascript
   import { NavLink } from 'react-router-dom';
   import classes from './Header.module.css';
 
@@ -529,7 +525,7 @@ const AllQuotes = () => {
   1. `when` can be `true` or `false` and enables or disables component;
   2. `message` is anonymous fn with parameter of location obj and a msg string in fn body
 
-  ```JavaScript
+  ```javascript
   import { useRef, useState } from 'react';
   import { Prompt } from 'react-router-dom';
 
@@ -569,7 +565,7 @@ const AllQuotes = () => {
 
   - using useHistory and useLocation hooks: whereas `useHistory` gives access to browser history obj, `useLocation` gives access to currently loaded page
 
-  ```JavaScript
+  ```javascript
   import { useHistory, useLocation } from 'react-router-dom';
   import QuoteItem from './QuoteItem';
   import classes from './QuoteList.module.css';
@@ -615,9 +611,7 @@ const AllQuotes = () => {
     return (
       <>
         <div className={classes.sorting}>
-          <button onClick={changeSortingHandler}>
-            Sort {ascending ? 'Descending' : 'Ascending'}
-          </button>
+          <button onClick={changeSortingHandler}>Sort {ascending ? 'Descending' : 'Ascending'}</button>
         </div>
         <ul className={classes.list}>
           {sortedQuotes.map((quote) => (
@@ -636,7 +630,7 @@ const AllQuotes = () => {
     - `url` - (string) matched portion of the URL. Useful for building nested `<Link>s`
   - b) Link is only visible when user is on exact path, after clicking on Link, it disappears
 
-  ```JavaScript
+  ```javascript
   import { Route, Link, useRouteMatch } from 'react-router-dom';
 
   const ChildComponent = () => {
@@ -645,9 +639,7 @@ const AllQuotes = () => {
     return (
       <>
         <Route path={match.path} exact>
-          <Link to={`${match.url}/comments`}>
-            Load Comments
-          </Link>
+          <Link to={`${match.url}/comments`}>Load Comments</Link>
         </Route>
         <Route path={`${match.path}/comments`}>
           <Comments />

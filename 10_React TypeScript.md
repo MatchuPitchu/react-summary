@@ -21,7 +21,7 @@
   - you can use `type`, `interface` or `class` definition
   - class name can be used like a type definition in a component
 
-  ```TypeScript
+  ```typescript
   // models/todo.ts
   class Todo {
     id: string;
@@ -41,21 +41,18 @@
   - `React.FC` is the generic type and I explicitly set only the concrete props type used in the respective component
   - `generic` means here that different fn components have different props definitions
 
-  ```TypeScript
+  ```typescript
   interface Props {
     items: Todo[];
-    removeTodo: (id: string) => void
+    removeTodo: (id: string) => void;
   }
 
-  const Todos: React.FC<Props> = ({
-    items,
-    removeTodo,
-  }) => {
+  const Todos: React.FC<Props> = ({ items, removeTodo }) => {
     // ... component
-  }
+  };
   ```
 
-```TypeScript
+```typescript
 // Todos.tsx
 const Todos: React.FC = () => {
   const { items, removeTodo } = useContext(TodosContext);
@@ -91,7 +88,7 @@ const TodoItem: React.FC<{ text: string; removeTodo: () => void }> = ({ text, re
   - to find type name, search `mdn [DOM element]` and have a look at `DOM interface`
 - `e: React.FormEvent`: special type for form submission event; `MouseEvent` would it be in case of onClick event
 
-```TypeScript
+```typescript
 // NewTodo.tsx
 const NewTodo: React.FC = () => {
   const { addTodo } = useContext(TodosContext);
@@ -124,7 +121,7 @@ const NewTodo: React.FC = () => {
 
 - type alias `type TodosObj`: to reuse type definition in multiple places
 
-```TypeScript
+```typescript
 // Context.tsx
 import React, { useState } from 'react';
 import Todo from '../models/todo';

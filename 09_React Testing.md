@@ -217,26 +217,25 @@
 
   - test loop with `it.each()`
 
-  ```TypeScript
+  ```typescript
   it.each([
-    [ /text1/i, "HasNoSelection" as const ],
-    [ /text2/i, "HasTakenMoreThanTheAvailableBEGMonths" as const ],
+    [/text1/i, 'HasNoSelection' as const],
+    [/text2/i, 'HasTakenMoreThanTheAvailableBEGMonths' as const],
     // ...
-  ])("should show text %p if validation returns %p", async (expectedText, errorCode) => {
-      render(<Monatsplaner />);
+  ])('should show text %p if validation returns %p', async (expectedText, errorCode) => {
+    render(<Monatsplaner />);
 
-      // mock implementation is shown somewhere else
-      mockValidateElternteile.mockReturnValue({
-        isValid: false,
-        errorCodes: [errorCode], // errorCodes is Array in this implementation
-      });
+    // mock implementation is shown somewhere else
+    mockValidateElternteile.mockReturnValue({
+      isValid: false,
+      errorCodes: [errorCode], // errorCodes is Array in this implementation
+    });
 
-      const submitButton = screen.getByRole("button", { name: /submit/i });
-      await userEvent.click(submitButton);
+    const submitButton = screen.getByRole('button', { name: /submit/i });
+    await userEvent.click(submitButton);
 
-      expect(screen.getByText(expectedText)).toBeInTheDocument();
-    },
-  );
+    expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
   ```
 
 - `test.only()` and `test.skip()`
@@ -282,18 +281,18 @@
 
     - example 1: `{ exact: false/true }`
 
-      ```JavaScript
+      ```javascript
       // without `exact: false`, `Hello World` wouldn't match `Hello World!`
-      screen.getByText('Hello World', { exact: false })
+      screen.getByText('Hello World', { exact: false });
       // true: default
       // false: casing doesn't matter and match occurs also for substrings
       ```
 
     - example 2: `{ name: /link text/i }`
 
-      ```JavaScript
+      ```javascript
       // find element with role 'link' and accessibility name
-      screen.getByRole('link', { name: /link text/i})
+      screen.getByRole('link', { name: /link text/i });
       ```
 
 - `role` of HTML element:
@@ -304,22 +303,22 @@
 
 - `within()`: select first an element like e.g. a section, then use `within` to select only a child element of this section
 
-  ```TypeScript
-  import { render, screen, within } from "@testing-library/react";
-  import { AriaMessage } from "./AriaMessage";
-  import { AriaLogProvider } from "./AriaLogProvider";
+  ```typescript
+  import { render, screen, within } from '@testing-library/react';
+  import { AriaMessage } from './AriaMessage';
+  import { AriaLogProvider } from './AriaLogProvider';
 
-  describe("Aria Message", () => {
-    it("should put every message into the log to let the screen reader read the messages", () => {
-      const message1 = "Message 1";
+  describe('Aria Message', () => {
+    it('should put every message into the log to let the screen reader read the messages', () => {
+      const message1 = 'Message 1';
 
       render(
         <AriaLogProvider>
           <AriaMessage>{message1}</AriaMessage>
-        </AriaLogProvider>,
+        </AriaLogProvider>
       );
 
-      const logElement = screen.getByRole("log");
+      const logElement = screen.getByRole('log');
 
       expect(within(logElement).getByText(message1)).toBeInTheDocument();
     });
@@ -370,7 +369,7 @@
 
 ## Examples
 
-```JavaScript
+```javascript
 // Example 1: App.spec.ts
 import { render, screen } from '@testing-library/react';
 import App from './App';
@@ -386,7 +385,7 @@ test('renders learn react link', () => {
 });
 ```
 
-```JavaScript
+```javascript
 // Example 2: Greeting.js
 import { useState } from 'react';
 import Output from './Output';
@@ -398,10 +397,7 @@ const Greeting = () => {
   return (
     <div>
       <h2>Hello World!</h2>
-      {!changedText
-        ? <Output>Good to see you</Output>
-        : <Output>Text changed</Output>
-      }
+      {!changedText ? <Output>Good to see you</Output> : <Output>Text changed</Output>}
       <button onClick={changeTextHandler}>Change Text</button>
     </div>
   );
@@ -453,7 +449,7 @@ describe('Greeting component', () => {
   - use it when you don't need a function to be realy executed in a test
   - important to clear mock before each test: `yourMockFunctionName.mockClear()`
 
-```TypeScript
+```typescript
 // Example: mock onSubmit of TestComponent that includes the CustomNumberField component which should be tested
 interface TestFormValues {
   testField: string;
@@ -463,7 +459,7 @@ interface Props {
   max?: number;
 }
 
-describe.only("Custom Number Field", () => {
+describe.only('Custom Number Field', () => {
   const onSubmit = jest.fn();
 
   const TestComponent: FC<Props> = ({ max }) => {
@@ -471,16 +467,8 @@ describe.only("Custom Number Field", () => {
 
     return (
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CustomNumberField
-          control={control}
-          name="testField"
-          label="Number Field Label"
-          max={max}
-        />
-        <Button
-          type="submit"
-          label="Submit"
-        />
+        <CustomNumberField control={control} name='testField' label='Number Field Label' max={max} />
+        <Button type='submit' label='Submit' />
       </form>
     );
   };
@@ -489,11 +477,11 @@ describe.only("Custom Number Field", () => {
     onSubmit.mockClear(); // clear mock before each test
   });
 
-  it("should not allow an empty field", async () => {
+  it('should not allow an empty field', async () => {
     render(<TestComponent />);
-    const submitButton = screen.getByRole("button", { name: "Submit" });
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
     await userEvent.click(submitButton);
-    const error = screen.getByText("Dieses Feld ist erforderlich");
+    const error = screen.getByText('Dieses Feld ist erforderlich');
     expect(error).toBeInTheDocument();
   });
 });
@@ -506,11 +494,11 @@ describe.only("Custom Number Field", () => {
   - mock `navigate()` of `useNavigate` hook with `jest.fn()`
   - before each test, clear the mock and define that `useNavigate` returns the `navigate` mock
 
-```TypeScript
-import { useNavigate } from "react-router-dom"; // import needed because it's used in beforeEach()
-jest.mock("react-router");
+```typescript
+import { useNavigate } from 'react-router-dom'; // import needed because it's used in beforeEach()
+jest.mock('react-router');
 
-describe("Validation of form", () => {
+describe('Validation of form', () => {
   let navigate = jest.fn();
 
   beforeEach(() => {
@@ -518,11 +506,11 @@ describe("Validation of form", () => {
     (useNavigate as jest.Mock).mockReturnValue(navigate);
   });
 
-  it("should ...", async () => {
+  it('should ...', async () => {
     render(<ComponentWithNextPageButton />);
 
     await userEvent.click(nextPageBtn);
-    const error = screen.queryByText("Dieses Feld ist erforderlich");
+    const error = screen.queryByText('Dieses Feld ist erforderlich');
     expect(error).toBeInTheDocument();
   });
 });
@@ -532,59 +520,53 @@ describe("Validation of form", () => {
 
 - `Example 1`: for API that returns data, but you only need to test how UI behaves with returned values
 
-```TypeScript
+```typescript
 // Example 1
-import { validateElternteile, ValidationResult } from "@egr/monatsplaner-app";
+import { validateElternteile, ValidationResult } from '@egr/monatsplaner-app';
 
-jest.mock("@egr/monatsplaner-app", () => {
-  const original = jest.requireActual("@egr/monatsplaner-app");
+jest.mock('@egr/monatsplaner-app', () => {
+  const original = jest.requireActual('@egr/monatsplaner-app');
   return {
     ...original,
     validateElternteile: jest.fn(),
   };
 });
 
-describe("Submit validation Monatsplaner", () => {
+describe('Submit validation Monatsplaner', () => {
   const mockValidateElternteile = validateElternteile as jest.Mock<ValidationResult>;
 
   beforeEach(() => mockValidateElternteile.mockClear());
 
   it.each([
-    [
-      /mindestens ein Elternteil muss Elterngeld beantragen/i,
-      "HasNoSelection" as const,
-    ],
+    [/mindestens ein Elternteil muss Elterngeld beantragen/i, 'HasNoSelection' as const],
     [
       /reduzieren Sie auf die verfügbare Anzahl von BasisElterngeld-Monaten/i,
-      "HasTakenMoreThanTheAvailableBEGMonths" as const,
+      'HasTakenMoreThanTheAvailableBEGMonths' as const,
     ],
     // ...
-  ])(
-    "should show error message %p if validation returns error code %p",
-    async (expectedText, errorCode) => {
-      render(<Monatsplaner />, { preloadedState }); // preloaded state Redux; configured in test-utils.ts
+  ])('should show error message %p if validation returns error code %p', async (expectedText, errorCode) => {
+    render(<Monatsplaner />, { preloadedState }); // preloaded state Redux; configured in test-utils.ts
 
-      mockValidateElternteile.mockReturnValue({
-        isValid: false,
-        errorCodes: [errorCode], // errorCodes is Array in this implementation
-      });
+    mockValidateElternteile.mockReturnValue({
+      isValid: false,
+      errorCodes: [errorCode], // errorCodes is Array in this implementation
+    });
 
-      const submitButton = screen.getByRole("button", { name: /Elterngeld beantragen/i });
-      await userEvent.click(submitButton);
+    const submitButton = screen.getByRole('button', { name: /Elterngeld beantragen/i });
+    await userEvent.click(submitButton);
 
-      expect(screen.getByText(expectedText)).toBeInTheDocument();
-      expect(navigate).not.toHaveBeenCalled(); // navigate was also mocked (NOT shown here)
-    },
-  );
+    expect(screen.getByText(expectedText)).toBeInTheDocument();
+    expect(navigate).not.toHaveBeenCalled(); // navigate was also mocked (NOT shown here)
+  });
 });
 ```
 
 - `Example 2`: `React Portals` to avoid error that component can NOT be found in DOM; mock only `createPortal` fn
 
-```TypeScript
+```typescript
 // Example 2
-jest.mock("react-dom", () => {
-  const actual = jest.requireActual("react-dom");
+jest.mock('react-dom', () => {
+  const actual = jest.requireActual('react-dom');
 
   return {
     ...actual,
@@ -596,12 +578,12 @@ jest.mock("react-dom", () => {
 - `Example 3`: API fetches external data; test only UI and avoid fetching in tests
   - Hint: better way is to use `Mock Service Worker` to simulate HTTP request
 
-```TypeScript
+```typescript
 // Example 3
-import { EgrCalculation } from "../../../globals/js/calculations/egr-calculation";  // import needed because it's used in beforeEach()
-jest.mock("../../../globals/js/calculations/egr-calculation");
+import { EgrCalculation } from '../../../globals/js/calculations/egr-calculation'; // import needed because it's used in beforeEach()
+jest.mock('../../../globals/js/calculations/egr-calculation');
 
-describe("Rechner", () => {
+describe('Rechner', () => {
   let simulationErgebnis: ElternGeldSimulationErgebnis;
   const mockEgrSimulation = { simulate: jest.fn() };
 
@@ -617,25 +599,27 @@ describe("Rechner", () => {
     };
     mockEgrSimulation.simulate.mockClear();
     mockEgrSimulation.simulate.mockImplementation(
-      async () => simulationErgebnis, // mock return value of async simulate()
+      async () => simulationErgebnis // mock return value of async simulate()
     );
     // mock what happens when EgrCalculation class is instantiated: only fn that is needed in test component (mockEgrSimulation.simulate()) is mocked here
     (EgrCalculation as unknown as jest.Mock).mockImplementation(() => mockEgrSimulation);
   });
 
-  it("should calculate and display the Elterngeld", async () => {
-    const state: Partial<RootState> = { /*...*/ };
+  it('should calculate and display the Elterngeld', async () => {
+    const state: Partial<RootState> = {
+      /*...*/
+    };
     const store = configureStore({ preloadedState: state, reducer: reducers });
 
     render(<Rechner />, { store });
     // ...
 
-    await userEvent.click(screen.getByText("Elterngeld berechnen"));
+    await userEvent.click(screen.getByText('Elterngeld berechnen'));
 
-    await screen.findByLabelText("Elterngeld berechnen Ergebnis");
+    await screen.findByLabelText('Elterngeld berechnen Ergebnis');
     expect(mockEgrSimulation.simulate).toHaveBeenCalled();
     expect(store.getState().stepRechner.ET1.elterngeldResult).toEqual<ElterngeldRowsResult>({
-      state: "success",
+      state: 'success',
       data: [
         {
           vonLebensMonat: 1,
@@ -655,8 +639,8 @@ describe("Rechner", () => {
   - OR inside the test, the fn gets called, but this doesn't matter for the test (-> e.g. a fn that calculates a total value but you're not tracking this value in your tests)
 - `solution`: use `jest.fn()`
 
-```JavaScript
-render(<User updateTotal={jest.fn()}/>)
+```javascript
+render(<User updateTotal={jest.fn()} />);
 ```
 
 ## Async Testing
@@ -665,7 +649,7 @@ render(<User updateTotal={jest.fn()}/>)
 
 - use `waitForElementToBeRemoved(() => ...)` as assertion when you're waiting asynchronously that an element disappears from screen AND nothing appears instead (-> like a hover effect for a popover)
 
-```JavaScript
+```javascript
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -706,7 +690,7 @@ test('popover appears on hovering', async () => {
   - create test server: listens during tests, sends response, resets after each test
 - configure `handlers` with all wished HTTP requests of RestAPI: <https://mswjs.io/docs/basics/response-resolver>
 
-```JavaScript
+```javascript
 // ./mocks/handlers.js
 import { rest } from 'msw';
 
@@ -729,7 +713,7 @@ export const handlers = [
 
 - configure a `request mocking server` with the given request handlers: <https://mswjs.io/docs/getting-started/integrate/node>
 
-```JavaScript
+```javascript
 // ./mocks/server.js
 import { setupServer } from 'msw/node';
 import { handlers } from './handlers';
@@ -739,7 +723,7 @@ export const server = setupServer(...handlers);
 
 - add `configuration` of mock service worker to setupTests.js: <https://mswjs.io/docs/getting-started/integrate/node>
 
-```JavaScript
+```javascript
 import { server } from './mocks/server';
 // establish API mocking before all tests
 beforeAll(() => server.listen());
@@ -753,7 +737,7 @@ afterAll(() => server.close());
   - GET request happens in `User` component
   - with configuration in `setupTest.js`, `handlers.js` and `server.js` test runs component and mock service worker intercepts to the request and sends back handler response
 
-```JavaScript
+```javascript
 describe('User component', () => {
   test('displays image for each scoop option from server', async () => {
     render(<Users />);
@@ -762,7 +746,7 @@ describe('User component', () => {
     expect(userAvatars).toHaveLength(2);
 
     // confirm alt text of images (create array of alt texts)
-    const altTexts = userAvatars.map(item => item.alt);
+    const altTexts = userAvatars.map((item) => item.alt);
     // arrays + objects use toEqual() while nums + string use toBe()
     expect(altTexts).toEqual(['matchu avatar', 'pitchu avatar']);
   });
@@ -775,7 +759,7 @@ describe('User component', () => {
 
 - `await waitFor(() => {}, options)`: if you need to wait until all of your mock server promises are resolved;
 
-```JavaScript
+```javascript
 import { render, screen, waitFor } from '@testing-library/react';
 import Users from '../Users';
 import { server } from '../../../mocks/server';
@@ -804,7 +788,7 @@ describe('Users component', () => {
   - create `browser.js`
   - include server start in `index.js`
 
-```JavaScript
+```javascript
 // create browser.js
 import { setupWorker } from 'msw';
 import { handlers } from './handlers'; // your preconfigured mock handlers
@@ -823,7 +807,7 @@ worker.start();
 
 - inside of render method, use wrapper property in options object to add needed `ContextProvider`, `Router`, `Redux Provider` or `Theming Provider`
 
-```JavaScript
+```javascript
 render(<Example />, { wrapper: ContextProvider });
 ```
 
@@ -833,15 +817,14 @@ render(<Example />, { wrapper: ContextProvider });
 
 - create a proper `testing-utils` file
 
-```JavaScript
+```javascript
 // test-utils.jsx
 import { render } from '@testing-library/react';
 import { ContextProvider } from '../store/Context';
 
 // ui: standard name to refer to JSX
 // options: obj like the default render method has
-const renderWithContext = (ui, options) =>
-  render(ui, { wrapper: ContextProvider, ...options });
+const renderWithContext = (ui, options) => render(ui, { wrapper: ContextProvider, ...options });
 
 export * from '@testing-library/react'; // re-export everything from this file
 export { renderWithContext as render }; // override render method
@@ -849,15 +832,15 @@ export { renderWithContext as render }; // override render method
 
 - Example with `AriaLogProvider`, `ToastProvider` (both are Contexts) and Redux Store
 
-```TypeScript
+```typescript
 // test-utils.tsx
-import { FC, ReactElement } from "react";
-import { render, RenderOptions } from "@testing-library/react";
-import { configureStore, Store } from "@reduxjs/toolkit";
-import { Provider } from "react-redux";
-import { reducers, RootState } from "../redux/index";
-import { AriaLogProvider } from "../components/atoms";
-import { ToastProvider } from "../components/atoms/toast";
+import { FC, ReactElement } from 'react';
+import { render, RenderOptions } from '@testing-library/react';
+import { configureStore, Store } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
+import { reducers, RootState } from '../redux/index';
+import { AriaLogProvider } from '../components/atoms';
+import { ToastProvider } from '../components/atoms/toast';
 
 interface RenderOptionsWithRedux extends RenderOptions {
   preloadedState?: Partial<RootState>;
@@ -884,15 +867,13 @@ const renderWithReduxAndContext = (
     preloadedState,
     store = configureStore({ reducer: reducers, preloadedState }),
     ...renderOptions
-  }: RenderOptionsWithRedux = {},
+  }: RenderOptionsWithRedux = {}
 ) => {
-  const Wrapper: FC = ({ children }) => (
-    <TestWrapper store={store}>{children}</TestWrapper>
-  );
+  const Wrapper: FC = ({ children }) => <TestWrapper store={store}>{children}</TestWrapper>;
   return render(ui, { wrapper: Wrapper, ...renderOptions });
 };
 
-export * from "@testing-library/react"; // re-export everything
+export * from '@testing-library/react'; // re-export everything
 export { renderWithReduxAndContext as render }; // override render method
 ```
 
@@ -905,7 +886,7 @@ export { renderWithReduxAndContext as render }; // override render method
 - create `const providerProps` in test in order to mock data and fns that are needed for tests
 - mock needed functions: `jest.fn()` replaces exactly the "real" function at a desired point and offers new test methods (e.g. `toHaveBeenCalledWith`)
 
-```JavaScript
+```javascript
 // CatchButton.tsx
 import { useContext } from 'react';
 import { PokeContext } from '../../store/Context';
@@ -928,23 +909,20 @@ const CatchButton: React.FC = () => {
 };
 ```
 
-```JavaScript
+```javascript
 // testing-utils.jsx
 import { render } from '@testing-library/react';
 import { PokeContext } from '../store/Context';
 
 const customRender = (ui, { providerProps, ...renderOptions }) => {
-  return render(
-    <PokeContext.Provider {...providerProps}>{ui}</PokeContext.Provider>,
-    renderOptions
-  );
+  return render(<PokeContext.Provider {...providerProps}>{ui}</PokeContext.Provider>, renderOptions);
 };
 
 export * from '@testing-library/react';
 export { customRender as render };
 ```
 
-```JavaScript
+```javascript
 // CatchButton.spec.tsx
 import { render, screen } from '../../../__test-utils__/testing-utils';
 import userEvent from '@testing-library/user-event';
@@ -1011,14 +989,14 @@ describe('CatchButton component', () => {
 
 #### Option 2: Implement a test React Router
 
-```JSX
+```jsx
 // Routes defined in App.jsx to be tested
 const App = () => {
   return (
     <>
       <nav>
-        <Link to="/">Home</Link>
-        <Link to="/users">Menus</Link>
+        <Link to='/'>Home</Link>
+        <Link to='/users'>Menus</Link>
       </nav>
       <main>
         <Routes>
@@ -1029,14 +1007,14 @@ const App = () => {
       </main>
     </>
   );
-}
+};
 
 // Users.jsx
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from 'react-router-dom';
 
 const userData = {
-  matchu: { name: "Mat Chu", address: "12 Main Street" },
-  pitchu: { name: "Pit Chu", address: "34 First Street" },
+  matchu: { name: 'Mat Chu', address: '12 Main Street' },
+  pitchu: { name: 'Pit Chu', address: '34 First Street' },
 };
 
 const Users = () => {
@@ -1048,14 +1026,14 @@ const Users = () => {
   if (!id) {
     return (
       <ul>
-      {Object.entries(userData).map(([urlParam, data]) => {
-        return (
-          <li key={urlParam}>
-            <Link to={`/users/${urlParam}`}>{data.name}</Link>
-          </li>
-        );
-      })}
-    </ul>
+        {Object.entries(userData).map(([urlParam, data]) => {
+          return (
+            <li key={urlParam}>
+              <Link to={`/users/${urlParam}`}>{data.name}</Link>
+            </li>
+          );
+        })}
+      </ul>
     );
   }
   // if id URL parameter -> show information about user
@@ -1066,17 +1044,17 @@ const Users = () => {
       <p>{data.address}</p>
     </div>
   );
-}
+};
 ```
 
 - test below causes error because you're using `useParams` without Router provider
 
-```JavaScript
+```javascript
 // Users.spec.tsx
-import { render } from "@testing-library/react";
-import Users from "./Users";
+import { render } from '@testing-library/react';
+import Users from './Users';
 
-test("renders without error", () => {
+test('renders without error', () => {
   render(<Users />);
 });
 ```
@@ -1085,7 +1063,7 @@ test("renders without error", () => {
   - `Memory` means it stores routes in memory, as opposed to using a browser
   - React Router docs recommend `MemoryRouter` for testing -> other option see here: <https://v5.reactrouter.com/web/guides/testing>
 
-```JavaScript
+```javascript
 // test-utils.jsx
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -1096,11 +1074,7 @@ const initialRoutes = options?.initialRoutes ? options.initialRoutes : ['/'];
 // pass initial routes inside of component;
 // if more than one route, pass array
 const MemoryRouterWithInitialRoutes = ({ children, initialRoutes }) => {
-  return (
-    <MemoryRouter initialEntries={initialRoutes}>
-      {children}
-    </MemoryRouter>
-  )
+  return <MemoryRouter initialEntries={initialRoutes}>{children}</MemoryRouter>;
 };
 
 // create customRender that wraps UI in a memory Router
@@ -1109,9 +1083,9 @@ const customRender = (ui, options) => {
     wrapper: (args) =>
       MemoryRouterWithInitialRoutes({
         ...args,
-        initialRoutes
-    }),
-    ...options
+        initialRoutes,
+      }),
+    ...options,
   });
 };
 export * from '@testing-library/react';
@@ -1120,7 +1094,7 @@ export { customRender as render };
 
 - now you can use `import { render } from './test-utils.jsx'` in `Users.spec.tsx`
 
-```JavaScript
+```javascript
 // Users.spec.tsx
 import { render, screen } from './test-utils.jsx';
 import App from './App';
@@ -1128,33 +1102,30 @@ import App from './App';
 test('renders user page', () => {
   // render App in test since it includes "Routes" wrapper component which is important to match routes
   render(<App />, { initialRoutes: ['/users/matchu'] });
-  const header = screen.getByRole('heading', { name: /matchu/i })
+  const header = screen.getByRole('heading', { name: /matchu/i });
   expect(header).toBeInTheDocument();
-})
+});
 ```
 
 ### Testing with multiple Providers
 
-```JSX
+```jsx
 // testing-utils.jsx
 import { render } from '@testing-library/react';
 import { ContextProvider } from '../store/Context';
 import { MemoryRouter } from 'react-router-dom';
 
-const Providers = ({children, initialRoutes }) => {
+const Providers = ({ children, initialRoutes }) => {
   return (
     <ContextProvider>
-      <MemoryRouter initalEntries={initialRoutes}>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter initalEntries={initialRoutes}>{children}</MemoryRouter>
     </ContextProvider>
-  )
+  );
 };
 
 // ui: standard name to refer to JSX
 // options: obj like the default render method has it
-const renderWithContextAndRouter = (ui, options) =>
-  render(ui, { wrapper: Providers, ...options });
+const renderWithContextAndRouter = (ui, options) => render(ui, { wrapper: Providers, ...options });
 
 export * from '@testing-library/react';
 export { renderWithContextAndRouter as render };
@@ -1168,10 +1139,10 @@ export { renderWithContextAndRouter as render };
     - <https://github.com/facebook/react/issues>
     - <https://github.com/facebook/react/issues/11565#issuecomment-573517172>
 
-```JavaScript
+```javascript
 // setupTests.ts
-import { ReactNode } from "react";
-import "@testing-library/jest-dom";
+import { ReactNode } from 'react';
+import '@testing-library/jest-dom';
 
 jest.mock('react-dom', () => {
   const original = jest.requireActual('react-dom');
@@ -1201,53 +1172,53 @@ jest.mock('react-dom', () => {
 
 - destructure what you need from `render`, because it returns a collection of utilities; don't use `wrapper` as the variable name for the return value from `render`
 
-  ```JavaScript
+  ```javascript
   // ❌
-  const wrapper = render(<Example prop="1" />)
-  wrapper.rerender(<Example prop="2" />)
+  const wrapper = render(<Example prop='1' />);
+  wrapper.rerender(<Example prop='2' />);
 
   // ✅
-  const {rerender} = render(<Example prop="1" />)
-  rerender(<Example prop="2" />)
+  const { rerender } = render(<Example prop='1' />);
+  rerender(<Example prop='2' />);
   ```
 
 - don't use `cleanup` -> because cleanup happens automatically
 
-  ```JavaScript
+  ```javascript
   // ❌
-  import {render, screen, cleanup} from '@testing-library/react'
-  afterEach(cleanup)
+  import { render, screen, cleanup } from '@testing-library/react';
+  afterEach(cleanup);
 
   // ✅
-  import {render, screen} from '@testing-library/react'
+  import { render, screen } from '@testing-library/react';
   ```
 
 - use `screen` for querying and debugging
 
-  ```JavaScript
+  ```javascript
   // ❌
-  const {getByRole} = render(<Example />)
-  const errorMessageNode = getByRole('alert')
+  const { getByRole } = render(<Example />);
+  const errorMessageNode = getByRole('alert');
 
   // ✅
-  render(<Example />)
-  const errorMessageNode = screen.getByRole('alert')
+  render(<Example />);
+  const errorMessageNode = screen.getByRole('alert');
   ```
 
 - install and use `@testing-library/jest-dom` for the right assertion -> because error messages that I get are much better
 
-  ```JavaScript
-  const button = screen.getByRole('button', {name: /disabled button/i})
+  ```javascript
+  const button = screen.getByRole('button', { name: /disabled button/i });
 
   // ❌
-  expect(button.disabled).toBe(true)
+  expect(button.disabled).toBe(true);
   // error message:
   //  expect(received).toBe(expected) // Object.is equality
   //  Expected: true
   //  Received: false
 
   // ✅
-  expect(button).toBeDisabled()
+  expect(button).toBeDisabled();
   // error message:
   //   Received element is not disabled:
   //     <button />
@@ -1255,73 +1226,73 @@ jest.mock('react-dom', () => {
 
 - learn when `act` is necessary, don't wrap things in `act` unnecessarily -> e.g. `render` and `fireEvent` are already wrapped in `act`
 
-  ```JavaScript
+  ```javascript
   // ❌
   act(() => {
-    render(<Example />)
-  })
+    render(<Example />);
+  });
 
-  const input = screen.getByRole('textbox', {name: /choose a fruit/i})
+  const input = screen.getByRole('textbox', { name: /choose a fruit/i });
   act(() => {
-    fireEvent.keyDown(input, {key: 'ArrowDown'})
-  })
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+  });
 
   // ✅
-  render(<Example />)
-  const input = screen.getByRole('textbox', {name: /choose a fruit/i})
-  fireEvent.keyDown(input, {key: 'ArrowDown'})
+  render(<Example />);
+  const input = screen.getByRole('textbox', { name: /choose a fruit/i });
+  fireEvent.keyDown(input, { key: 'ArrowDown' });
   ```
 
 - use the right query; look at <https://testing-library.com/docs/queries/about/#priority>
 
-  ```JavaScript
+  ```javascript
   // ❌
   // assuming you've got this DOM to work with:
   // <label>Username</label><input data-testid="username" />
-  screen.getByTestId('username')
+  screen.getByTestId('username');
 
   // ✅
   // change the DOM to be accessible by associating the label and setting the type
   // <label for="username">Username</label><input id="username" type="text" />
-  screen.getByRole('textbox', {name: /username/i})
+  screen.getByRole('textbox', { name: /username/i });
   ```
 
   - don't use `container` to query elements
 
-    ```JavaScript
+    ```javascript
     // ❌
-    const {container} = render(<Example />)
-    const button = container.querySelector('.btn-primary')
-    expect(button).toHaveTextContent(/click me/i)
+    const { container } = render(<Example />);
+    const button = container.querySelector('.btn-primary');
+    expect(button).toHaveTextContent(/click me/i);
 
     // ✅
-    render(<Example />)
-    screen.getByRole('button', {name: /click me/i})
+    render(<Example />);
+    screen.getByRole('button', { name: /click me/i });
     ```
 
   - query by the actual text rather than using test IDs etc.
 
-    ```JavaScript
+    ```javascript
     // ❌
-    screen.getByTestId('submit-button')
+    screen.getByTestId('submit-button');
 
     // ✅
-    screen.getByRole('button', {name: /submit/i})
+    screen.getByRole('button', { name: /submit/i });
     ```
 
   - use `*ByRole` most of the time -> the `name` option allows you to query elements by their `Accessible Name`, it works even if element has text content split up by different elements
 
-    ```JavaScript
+    ```javascript
     // assuming we've got this DOM structure to work with
     // <button><span>Hello</span> <span>World</span></button>
 
-    screen.getByText(/hello world/i)
+    screen.getByText(/hello world/i);
     // ❌ fails with the following error:
     // Unable to find an element with the text: /hello world/i. This could be
     // because the text is broken up by multiple elements. In this case, you can
     // provide a function for your text matcher to make your matcher more flexible.
 
-    screen.getByRole('button', {name: /hello world/i})
+    screen.getByRole('button', { name: /hello world/i });
     // ✅ works!
     ```
 
@@ -1329,90 +1300,88 @@ jest.mock('react-dom', () => {
 
   - hint: to make `inputs` accessible via a `role`, specify `type` attribute
 
-  ```JavaScript
+  ```javascript
   // ❌
-  render(<button role="button">Click me</button>)
+  render(<button role='button'>Click me</button>);
 
   // ✅
-  render(<button>Click me</button>)
+  render(<button>Click me</button>);
   ```
 
 - Use `@testing-library/user-event` over `fireEvent` where possible -> `userEvent` is built on top of `fireEvent`
 
   - example: `fireEvent.change` triggers a single change event on input. However the `type` method triggers `keyDown`, `keyPress` and `keyUp` events for each character as well
 
-  ```JavaScript
+  ```javascript
   // ❌
-  fireEvent.change(input, {target: {value: 'hello world'}})
+  fireEvent.change(input, { target: { value: 'hello world' } });
 
   // ✅
-  userEvent.type(input, 'hello world')
+  userEvent.type(input, 'hello world');
   ```
 
 - Use `query*` variants only for asserting that element cannot found
 
-  ```JavaScript
+  ```javascript
   // ❌
-  expect(screen.queryByRole('alert')).toBeInTheDocument()
+  expect(screen.queryByRole('alert')).toBeInTheDocument();
 
   // ✅
-  expect(screen.getByRole('alert')).toBeInTheDocument()
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.getByRole('alert')).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   ```
 
 - use `find*` any time you want to query for something that should be available async -> `find*` queries use `waitFor` under the hood
 
-  ```JavaScript
+  ```javascript
   // ❌
-  const submitButton = await waitFor(() =>
-    screen.getByRole('button', {name: /submit/i}),
-  )
+  const submitButton = await waitFor(() => screen.getByRole('button', { name: /submit/i }));
 
   // ✅
-  const submitButton = await screen.findByRole('button', {name: /submit/i})
+  const submitButton = await screen.findByRole('button', { name: /submit/i });
   ```
 
 - wait for a specific assertion inside `waitFor` and only put one assertion in a callback -> purpose of `waitFor` is to allow you to wait for a specific thing to happen that has a non-deterministic amount of time between the action you performed and the assertion passing
 
-  ```JavaScript
+  ```javascript
   // ❌
-  await waitFor(() => {})
-  expect(window.fetch).toHaveBeenCalledWith('foo')
-  expect(window.fetch).toHaveBeenCalledTimes(1)
+  await waitFor(() => {});
+  expect(window.fetch).toHaveBeenCalledWith('foo');
+  expect(window.fetch).toHaveBeenCalledTimes(1);
 
   // ❌
   await waitFor(() => {
-    expect(window.fetch).toHaveBeenCalledWith('foo')
-    expect(window.fetch).toHaveBeenCalledTimes(1)
-  })
+    expect(window.fetch).toHaveBeenCalledWith('foo');
+    expect(window.fetch).toHaveBeenCalledTimes(1);
+  });
 
   // ✅
-  await waitFor(() => expect(window.fetch).toHaveBeenCalledWith('foo'))
-  expect(window.fetch).toHaveBeenCalledTimes(1)
+  await waitFor(() => expect(window.fetch).toHaveBeenCalledWith('foo'));
+  expect(window.fetch).toHaveBeenCalledTimes(1);
   ```
 
 - put side-effects outside `waitFor` callbacks -> reserve callback for assertions only
 
-  ```JavaScript
+  ```javascript
   // ❌
   await waitFor(() => {
-    fireEvent.keyDown(input, {key: 'ArrowDown'})
-    expect(screen.getAllByRole('listitem')).toHaveLength(3)
-  })
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+  });
 
   // ✅
-  fireEvent.keyDown(input, {key: 'ArrowDown'})
+  fireEvent.keyDown(input, { key: 'ArrowDown' });
   await waitFor(() => {
-    expect(screen.getAllByRole('listitem')).toHaveLength(3)
-  })
+    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+  });
   ```
 
 - If you want to assert that something exists, make that assertion explicit and don't skip assertion
 
-  ```JavaScript
+  ```javascript
   // ❌
-  screen.getByRole('alert', {name: /error/i})
+  screen.getByRole('alert', { name: /error/i });
 
   // ✅
-  expect(screen.getByRole('alert', {name: /error/i})).toBeInTheDocument()
+  expect(screen.getByRole('alert', { name: /error/i })).toBeInTheDocument();
   ```

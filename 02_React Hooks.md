@@ -11,7 +11,7 @@
   - that element is rendered based on a JSX element with a ref attribute and connection to the wished variable
 - useful when you only want to read a value and never plan on changing anything, then you don't need `useState`
 
-  ```JSX
+  ```jsx
   // Example with useRef instead of using useState
   // BUT not a good use case, since uncontrolled inputs (-> with useState and two way binding they would be controlled)
   import { useRef } from 'react';
@@ -25,7 +25,7 @@
       console.log('Username: ' + name);
       // reset input field -> normally DON'T manipulate real DOM, but here for resetting input fields it's admissible
       elRef.current.value = '';
-    }
+    };
 
     return (
       <form onSubmit={submitData}>
@@ -38,8 +38,8 @@
         />
         <button type='submit'>OK</button>
       </form>
-    )
-  }
+    );
+  };
   ```
 
 ## Forward Refs Hook
@@ -49,7 +49,7 @@
 - it's good for use case like `focusing fields` or `scrolling`, BUT in general it's better to avoid this because of manipulating directly the real DOM
 - `Example`: reusable input component and focussing invalid input field with help of `useRef`, `forwardRef` and `useImperativeHandle`
 
-  ```JSX
+  ```jsx
   // Login.js
   const Login = () => {
     // ... states and logic
@@ -101,53 +101,40 @@
   };
   ```
 
-  ```JSX
+  ```jsx
   // Input.js
   import { useRef, forwardRef, useImperativeHandle } from 'react';
 
   // beside props there is a second rarely used available parameter 'ref' for the case that a ref is set for this component from outside (-> look at parent component);
   // to make it possible that a ref is passed to this component, wrap component into React.forwardRef method;
   // forwardRef returns a React component that is capable of being bound to a ref
-  const Input = forwardRef(
-    ({ isValid, id, label, type, value, onChange, onBlur }, ref) => {
-      const inputRef = useRef();
+  const Input = forwardRef(({ isValid, id, label, type, value, onChange, onBlur }, ref) => {
+    const inputRef = useRef();
 
-      // 1. ref in same component
-      const focus = () => {
-        // available on input DOM obj when you're using ref in same component
-        inputRef.current.focus();
+    // 1. ref in same component
+    const focus = () => {
+      // available on input DOM obj when you're using ref in same component
+      inputRef.current.focus();
+    };
+
+    // 2. ref in parent component: you can only use things of the ref that are exposed in return of useImperativeHandle Hook;
+    // first arg: ref from outside (from parent component)
+    // second arg: anonymous callback fn
+    useImperativeHandle(ref, () => {
+      // returns a translation obj with all data that you would use from outside
+      return {
+        // define externally available name (-> here 'focus') that points to focus function
+        focus: focus,
       };
+    });
 
-      // 2. ref in parent component: you can only use things of the ref that are exposed in return of useImperativeHandle Hook;
-      // first arg: ref from outside (from parent component)
-      // second arg: anonymous callback fn
-      useImperativeHandle(ref, () => {
-        // returns a translation obj with all data that you would use from outside
-        return {
-          // define externally available name (-> here 'focus') that points to focus function
-          focus: focus,
-        };
-      });
-
-      return (
-        <div
-          className={`${classes.control} ${
-            isValid === false ? classes.invalid : ''
-          }`}
-        >
-          <label htmlFor={id}>{label}</label>
-          <input
-            ref={inputRef}
-            type={type}
-            id={id}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-          />
-        </div>
-      );
-    }
-  );
+    return (
+      <div className={`${classes.control} ${isValid === false ? classes.invalid : ''}`}>
+        <label htmlFor={id}>{label}</label>
+        <input ref={inputRef} type={type} id={id} value={value} onChange={onChange} onBlur={onBlur} />
+      </div>
+    );
+  });
   ```
 
 ## useEffect Hook for "side effects"
@@ -161,22 +148,22 @@
 
   - dependencies: add all "things" (variables, functions) that are used in the effect function if those "things" could change because your component (or some parent component) re-rendered
 
-  ```JSX
-    // Dummy example
-    import { useState, useEffect } from 'react';
+  ```jsx
+  // Dummy example
+  import { useState, useEffect } from 'react';
 
-    let myTimer;
+  let myTimer;
 
-    const MyComponent = ({timerDuration}) => {
-      const [timerIsActive, setTimerIsActive] = useState(false);
+  const MyComponent = ({ timerDuration }) => {
+    const [timerIsActive, setTimerIsActive] = useState(false);
 
-      useEffect(() => {
-        if (!timerIsActive) {
-          setTimerIsActive(true);
-          myTimer = setTimeout(() => setTimerIsActive(false), timerDuration);
-        }
-      }, [timerIsActive, timerDuration]);
-    };
+    useEffect(() => {
+      if (!timerIsActive) {
+        setTimerIsActive(true);
+        myTimer = setTimeout(() => setTimerIsActive(false), timerDuration);
+      }
+    }, [timerIsActive, timerDuration]);
+  };
   ```
 
 - `Cleanup function`: when you trigger an effect in `useEffect` (like timeout, intervall etc.) then you have to clean this effect in a return statement
@@ -186,7 +173,7 @@
   - so I have to use built-in `clearTimeout` function with saved const timerId
   - cleanup function is now executed always `BEFORE useEffect runs the text time` OR `BEFORE the component is removed from the DOM` (-> is unmounted)
 
-  ```JavaScript
+  ```javascript
   useEffect(() => {
     const timerId = setTimeout(() => {
       setFormIsValid(enteredEmail.includes('@') && enteredPassword.trim().length > 6);
@@ -213,7 +200,7 @@
 
 - function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
 
-```JSX
+```jsx
 import { useEffect, useReducer } from 'react';
 import classes from './Login.module.css';
 import Button from '../UI/Button/Button';
@@ -270,33 +257,33 @@ const Login = ({ onLogin }) => {
         />
       </div>
       <div className={classes.actions}>
-        <Button type='submit' className={classes.btn} >
+        <Button type='submit' className={classes.btn}>
           Login
         </Button>
       </div>
     </form>
   );
-}
+};
 ```
 
 ### Example 2: useReducer instead of useState for toggling
 
-```JavaScript
+```javascript
 // OPTION 1: useState
 const ToggleButton = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleState = () => setIsOpen(prevIsOpen => !prevIsOpen);
+  const toggleState = () => setIsOpen((prevIsOpen) => !prevIsOpen);
 
   return <button onClick={toggleState}>{String(isOpen)}</button>;
-}
+};
 
 // OPTION 2: useReducer
 const ToggleButton = () => {
-  const [isOpen, toggleState] = useReducer(prevIsOpen => !prevIsOpen, false);
+  const [isOpen, toggleState] = useReducer((prevIsOpen) => !prevIsOpen, false);
 
   return <button onClick={toggleState}>{String(isOpen)}</button>;
-}
+};
 ```
 
 ## useState vs useReducer
@@ -318,9 +305,9 @@ const ToggleButton = () => {
 - Problem: non-primitive values are always getting a new reference on every re-rendering
 - memoization between re-renders means, that React caches values during initial rendering and returns a reference to saved values during consecutive renders
 
-```JavaScript
-const a = { 'test': 1 };
-const b = { 'test': 1 };
+```javascript
+const a = { test: 1 };
+const b = { test: 1 };
 console.log(a === b); // false
 
 const c = a; // 'c' is a reference to 'a'
@@ -329,12 +316,11 @@ console.log(a === c); // true
 // React specific example
 const Component = () => {
   // without memoization, 'a' is always re-created with every render and triggers useEffect
-  const a = { 'test': 1 };
+  const a = { test: 1 };
 
-  useEffect(() => {
-  }, [a])
+  useEffect(() => {}, [a]);
   // ...
-}
+};
 ```
 
 - `useMemo` and `useCallback` are useful for re-rendering. During initial rendering, they are even harmful: React has to do additional work
@@ -345,14 +331,14 @@ const Component = () => {
   - b) when a component re-renders itself, it also re-renders all of its children
   - Conclusion: memoizing props on a component makes only sense, when every single prop and the component itself (with `React.memo()`) are memoized.
 
-  ```JavaScript
+  ```javascript
   const PageMemoized = React.memo(Page); // memoized Page component
 
   const App = () => {
     const [state, setState] = useState(1);
 
     const onClick = useCallback(() => {
-        // some code
+      // some code
     }, []);
 
     return (
@@ -366,7 +352,7 @@ const Component = () => {
 
   - `Example`: Without (!) memoization, with 6x CPU slowdown, sorting of example array with ~250 items takes less than 2ms. To compare, rendering this list - just native buttons with text - takes more than 20ms. 10 times more!
 
-  ```JavaScript
+  ```javascript
   const List = ({ countries }) => {
     const sortedCountries = orderBy(countries, 'name', sort);
 
@@ -382,7 +368,7 @@ const Component = () => {
 
   - `Good Practice`: Instead of memoizing sort function, `memoize re-rendering and updating components` (-> the actual most expensive calculation):
 
-  ```JavaScript
+  ```javascript
   const List = ({ countries }) => {
     const content = useMemo(() => {
       const sortedCountries = orderBy(countries, 'name', sort);
@@ -409,12 +395,12 @@ const Component = () => {
   - functions in JS are `closures` -> they close over the values that are available in there environment; so JS logs in all variables that are used in the fn (below: `enable`) and stores these variables for the fn definition
   - in dependency array: list all variables, functions etc. that could change, then in case memoized version of cb fn is recreated
 
-```JSX
+```jsx
 const App = ({ enable }) => {
   const [show, setShow] = useState(false);
 
   const toggleBtn = useCallback(() => {
-    if (enable) setShow(prev => !prev);
+    if (enable) setShow((prev) => !prev);
   }, [enable]);
 
   return (
@@ -440,7 +426,7 @@ const App = ({ enable }) => {
 
 - `Example 1`: `useMemo`, `useCallback` and `React.memo()`
 
-  ```JSX
+  ```jsx
   // App.js
   const App = () => {
     const [listTitle, setListTitle] = useState('My List');
@@ -477,7 +463,7 @@ const App = ({ enable }) => {
       <div className={classes.list}>
         <h2>{title}</h2>
         <ul>
-          {sortedList.map(item => (
+          {sortedList.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
@@ -493,7 +479,7 @@ const App = ({ enable }) => {
   - to avoid that every key entry leads to a server request, use debounce fn that single request is fired only once when user stops typing for one second
   - wrap debounce fn in useMemo Hook to prevent React from creating a new reference in the `stack` to the debounce fn in the `heap memory` on every re-render
 
-  ```JSX
+  ```jsx
   import { useMemo } from 'react';
   import { debounce } from 'lodash';
 
@@ -516,7 +502,7 @@ const App = ({ enable }) => {
         value={value}
       />
     );
-  }
+  };
   ```
 
 ## Context API & useContext Hook
@@ -529,7 +515,7 @@ const App = ({ enable }) => {
 
 - a basic context where you can pass data and functions to other components
 
-  ```JSX
+  ```jsx
   // AuthContext.js
   import { createContext } from 'react';
 
@@ -543,7 +529,7 @@ const App = ({ enable }) => {
 
 - provide context: wrap in JSX code all components that should be able to listen to the context
 
-  ```JSX
+  ```jsx
   // App.js
   import AuthContext from './context/AuthContext';
   // ...
@@ -559,17 +545,17 @@ const App = ({ enable }) => {
         // all variables and functions listed here are available in all children components
         value={{
           isLoggedIn, // shorthand to "isLoggedIn: isLoggedIn", etc.
-          logoutHandler
+          logoutHandler,
         }}
       >
-        <MyComponent/>
+        <MyComponent />
         <main>
           <AnotherComponent />
           <Home />
         </main>
       </AuthContext.Provider>
     );
-  }
+  };
   ```
 
 ### b) Recommanded and more complex Context Setup: to pull out more logic out of specific components and create a separate context management component
@@ -577,7 +563,7 @@ const App = ({ enable }) => {
 - hint: you can create a `custom hook` which returns context data object -> to avoid importing the Context in every other component file where you're using it
 - context file:
 
-  ```JavaScript
+  ```javascript
   // AuthContext.js
   import { useState, useEffect, createContext } from 'react';
 
@@ -633,7 +619,7 @@ const App = ({ enable }) => {
 
 ### Provide Context: wrapp whole app into context provider component to make context accessible to all children components
 
-```JSX
+```jsx
 // index.js
 import ReactDOM from 'react-dom';
 import AuthContextProvider from './context/AuthContext';
@@ -650,7 +636,7 @@ ReactDOM.render(
 
 ### a + b) Consume (or Listen) to the Context with useContext
 
-```JSX
+```jsx
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -698,7 +684,7 @@ export default Navigation;
 
 ### Example 1: useCounter Hook to count up and down
 
-```JSX
+```jsx
 // useCounter.js
 import { useState, useEffect } from 'react';
 
@@ -710,9 +696,7 @@ const useCounter = (forwards = true) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      forwards
-        ? setCounter(prevCounter => prevCounter + 1)
-        : setCounter(prevCounter => prevCounter - 1);
+      forwards ? setCounter((prevCounter) => prevCounter + 1) : setCounter((prevCounter) => prevCounter - 1);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -731,7 +715,7 @@ const ForwardCounter = () => {
 
 ### Example 2: useHttp Hook to bundle logic for HTTP requests
 
-```JavaScript
+```javascript
 // useHttp.js
 import { useState, useCallback } from 'react';
 
@@ -794,10 +778,7 @@ const App = () => {
     };
 
     // pass obj for request configuration into fetchTasks fn that is the sendRequest fn in useHttp hook
-    fetchTasks(
-      { url: 'https://some-firebase-url.app/tasks.json' },
-      transformTasks
-    );
+    fetchTasks({ url: 'https://some-firebase-url.app/tasks.json' }, transformTasks);
 
     // without fetchTasks() wrapped into useCallback in useHttp hook,
     // this dependency array would create infinite loop:
@@ -809,7 +790,7 @@ const App = () => {
     // -> therefore useEffect here will run again
   }, [fetchTasks]);
 
-  const taskAddHandler = task => setTasks(prevTasks => [...prevTasks, task]);
+  const taskAddHandler = (task) => setTasks((prevTasks) => [...prevTasks, task]);
 
   return (
     <>
@@ -833,7 +814,7 @@ const NewTask = ({ onAddTask }) => {
     onAddTask(createdTask);
   };
 
-  const enterTaskHandler = async taskText => {
+  const enterTaskHandler = async (taskText) => {
     // renamed sendRequest fn of useHttp hook
     sendTaskRequest(
       {
@@ -860,7 +841,7 @@ const NewTask = ({ onAddTask }) => {
 
 ### Example 3: useInput Hook to bundle logic for value states and handlers for input fields of form
 
-```JavaScript
+```javascript
 // useInput.js
 import { useState } from 'react';
 
@@ -947,24 +928,12 @@ const SimpleInput = () => {
     <form onSubmit={submitHandler}>
       <div className={nameInputClasses}>
         <label htmlFor='name'>Your Name</label>
-        <input
-          type='text'
-          id='name'
-          value={name}
-          onChange={nameChangeHandler}
-          onBlur={nameBlurHandler}
-        />
+        <input type='text' id='name' value={name} onChange={nameChangeHandler} onBlur={nameBlurHandler} />
         {nameInvalid && <p className='error-text'>Name field is empty</p>}
       </div>
       <div className={emailInputClasses}>
         <label htmlFor='email'>Your E-Mail</label>
-        <input
-          type='email'
-          id='email'
-          value={email}
-          onChange={emailChangeHandler}
-          onBlur={emailBlurHandler}
-        />
+        <input type='email' id='email' value={email} onChange={emailChangeHandler} onBlur={emailBlurHandler} />
         {emailInvalid && <p className='error-text'>E-Mail is invalid</p>}
       </div>
       <div className='form-actions'>

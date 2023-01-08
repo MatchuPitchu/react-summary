@@ -6,9 +6,9 @@
 - The `log role` is used to identify an element that creates a live region.
 - Using JavaScript, it is possible to dynamically change parts of a page without requiring the entire page to reload. `ARIA live regions` rovide a way to programmatically expose dynamic content changes in a way that can be announced by assistive technologies.
 
-```TSX
+```tsx
 // 1) Create Context: AriaLogProvider.tsx
-import { createContext, FC, useCallback, useContext, useState } from "react";
+import { createContext, FC, useCallback, useContext, useState } from 'react';
 
 type RemoveMessageFn = () => void;
 
@@ -24,15 +24,12 @@ export const AriaLogProvider: FC = ({ children }) => {
   const addMessage = useCallback((message: string) => {
     setMessages((existing) => [message, ...existing]);
 
-    return () =>
-      setMessages((existing) =>
-        existing.filter((otherMessage) => otherMessage !== message),
-      );
+    return () => setMessages((existing) => existing.filter((otherMessage) => otherMessage !== message));
   }, []);
 
   return (
     <AriaLogContext.Provider value={{ addMessage }}>
-      <div role="log" className="aria-log">
+      <div role='log' className='aria-log'>
         {messages.map((message) => (
           <p key={message}>{message}</p>
         ))}
@@ -54,7 +51,7 @@ export const useAriaLog = () => {
 };
 ```
 
-```SCSS
+```scss
 // 2) Make aria-message-log only available to screen readers
 .aria-log {
   position: absolute;
@@ -69,10 +66,10 @@ export const useAriaLog = () => {
 }
 ```
 
-```TSX
+```tsx
 // 3) Create AriaMessage Component
-import { useEffect, VFC } from "react";
-import { useAriaLog } from "./AriaLogProvider";
+import { useEffect, VFC } from 'react';
+import { useAriaLog } from './AriaLogProvider';
 
 interface AriaMessageProps {
   children: string;
@@ -88,12 +85,12 @@ export const AriaMessage: VFC<AriaMessageProps> = ({ children: message }) => {
 };
 ```
 
-```TSX
+```tsx
 // 4) Example of implementation in Page Component
-import { FC } from "react";
-import { AriaMessage } from "../../atoms";
-import { Page } from "../../../utils/pages";
-import { Sidebar } from "../../organisms/sidebar";
+import { FC } from 'react';
+import { AriaMessage } from '../../atoms';
+import { Page } from '../../../utils/pages';
+import { Sidebar } from '../../organisms/sidebar';
 
 interface PageProps {
   page: Page;
@@ -101,13 +98,13 @@ interface PageProps {
 
 export const Page: FC<PageProps> = ({ page, children }) => {
   return (
-    <div className="page">
-      <div className="page__sidebar">
+    <div className='page'>
+      <div className='page__sidebar'>
         <Sidebar currentPage={page} />
       </div>
-      <h2 className="page__title">Elterngeldrechner mit Planer</h2>
+      <h2 className='page__title'>Elterngeldrechner mit Planer</h2>
       <AriaMessage>{page.text}</AriaMessage>
-      <div className="page__content">{children}</div>
+      <div className='page__content'>{children}</div>
     </div>
   );
 };
@@ -121,21 +118,17 @@ export type Pages = Record<string, Page>;
 
 export const pages: Pages = {
   home: {
-    text: "Home",
-    route: "/",
+    text: 'Home',
+    route: '/',
   },
   // ...
-}
+};
 
 const Home = () => {
   // ...
 
-  return (
-    <Page page={pages.home}>
-      {/* ... */}
-    </Page>
-  );
-}
+  return <Page page={pages.home}>{/* ... */}</Page>;
+};
 ```
 
 ## ARIA Attributes in JSX Elements
@@ -143,42 +136,29 @@ const Home = () => {
 - `aria-label` is important, when content of HTML element is not self-explanatory; `aria-label` explicitly tells what the button will do
 - `aria-controls` identifies an element whose content is controlled by the current element: here `name` is form field whose value is changed by a button click
 
-```TSX
-<button
-  className="counter__button"
-  type="button"
-  onClick={onDecrease}
-  aria-label="verringern"
-  aria-controls={name}
->
-  <Icon name="minus" size={20} />
+```tsx
+<button className='counter__button' type='button' onClick={onDecrease} aria-label='verringern' aria-controls={name}>
+  <Icon name='minus' size={20} />
 </button>
 ```
 
 - define `aria-label` for sections to select easily elements in tests
 
-```TSX
+```tsx
 interface Props {
   elternteil: ElternteilType;
   elternteilName: string;
 }
 
-export const EinkommenFormElternteil: VFC<Props> = ({
-  elternteil,
-  elternteilName,
-}) => {
+export const EinkommenFormElternteil: VFC<Props> = ({ elternteil, elternteilName }) => {
   // ...
 
-  return (
-    <section aria-label={elternteilName}>
-    {/* ... */ }
-    </section>
-  )
+  return <section aria-label={elternteilName}>{/* ... */}</section>;
 };
 
 // ...spec.tsx
-describe("Einkommens Page", () => {
-  const getElternteil1Section = () => screen.getByLabelText("Elternteil 1");
+describe('Einkommens Page', () => {
+  const getElternteil1Section = () => screen.getByLabelText('Elternteil 1');
   // ...
 });
 ```
@@ -187,31 +167,19 @@ describe("Einkommens Page", () => {
 
 - `aria-roledescription` attribute defines a human-readable description for the role of an element
 
-```TSX
-import { AriaAttributes, FC } from "react";
+```tsx
+import { AriaAttributes, FC } from 'react';
 
 interface FormFieldGroupProps extends AriaAttributes {
   headline?: string;
   description?: string;
 }
 
-export const FormFieldGroup: FC<FormFieldGroupProps> = ({
-  headline,
-  description,
-  children,
-  ...aria
-}) => {
+export const FormFieldGroup: FC<FormFieldGroupProps> = ({ headline, description, children, ...aria }) => {
   return (
-    <section
-      aria-label={headline}
-      aria-roledescription={description}
-      className="form-field-group"
-      {...aria}
-    >
+    <section aria-label={headline} aria-roledescription={description} className='form-field-group' {...aria}>
       {headline && <h3>{headline}</h3>}
-      {description && (
-        <p className="form-field-group__description">{description}</p>
-      )}
+      {description && <p className='form-field-group__description'>{description}</p>}
       {children}
     </section>
   );
@@ -223,10 +191,10 @@ export const FormFieldGroup: FC<FormFieldGroupProps> = ({
 - `aria-invalid` attribute `true`/`false` indicates that input value is invalid
 - `aria-describedby` attribute shows where a description is connected to this element
 
-```TSX
-import { FieldErrors, FieldValues, Path, UseFormRegister, get, FieldError, RegisterOptions } from "react-hook-form";
-import { Description } from "../../atoms";
-import classNames from "classnames";
+```tsx
+import { FieldErrors, FieldValues, Path, UseFormRegister, get, FieldError, RegisterOptions } from 'react-hook-form';
+import { Description } from '../../atoms';
+import classNames from 'classnames';
 
 interface Props<TFieldValues extends FieldValues> {
   register: UseFormRegister<TFieldValues>;
@@ -244,29 +212,29 @@ export const CustomCheckbox = <TFieldValues extends FieldValues>({
   errors,
 }: Props<TFieldValues>) => {
   let hasError = false;
-  let errorMessage = "";
-  if (typeof errors === "boolean") {
+  let errorMessage = '';
+  if (typeof errors === 'boolean') {
     hasError = errors;
   } else {
     const error: FieldError | undefined = get(errors, name);
     if (error) {
       hasError = !!error;
-      errorMessage = error.message || "";
+      errorMessage = error.message || '';
     }
   }
 
   return (
-    <div className="custom-checkbox">
+    <div className='custom-checkbox'>
       <input
         {...register(name, registerOptions)}
-        type="checkbox"
-        className={classNames("custom-checkbox__input", hasError && "custom-checkbox__input--error")}
+        type='checkbox'
+        className={classNames('custom-checkbox__input', hasError && 'custom-checkbox__input--error')}
         id={name}
         aria-invalid={hasError}
         aria-describedby={errorMessage && `${name}-error`} // connection to id in <Description />
       />
       <label
-        className={classNames("custom-checkbox__label", hasError && "custom-checkbox__label--error")}
+        className={classNames('custom-checkbox__label', hasError && 'custom-checkbox__label--error')}
         htmlFor={name}
       >
         {label}
@@ -286,29 +254,19 @@ export const CustomCheckbox = <TFieldValues extends FieldValues>({
 - `aria-hidden` attribute `true`/`false` indicates that element and all childs are NOT visible
 - `aria-placeholder` attribute defines a short hint (word, short phrase) intended to help with data entry when a form control has no value
 
-```TSX
-import classNames from "classnames";
-import {
-  FieldPath,
-  FieldValues,
-  useController,
-  UseControllerProps,
-} from "react-hook-form";
-import { IMask, IMaskInput } from "react-imask";
-import nsp from "../../../globals/js/namespace";
-import { Description } from "../../atoms";
+```tsx
+import classNames from 'classnames';
+import { FieldPath, FieldValues, useController, UseControllerProps } from 'react-hook-form';
+import { IMask, IMaskInput } from 'react-imask';
+import nsp from '../../../globals/js/namespace';
+import { Description } from '../../atoms';
 
-interface CustomDateProps<
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
-> extends UseControllerProps<TFieldValues, TName> {
+interface CustomDateProps<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>
+  extends UseControllerProps<TFieldValues, TName> {
   label: string;
 }
 
-export const CustomDate = <
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
->({
+export const CustomDate = <TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
   control,
   rules,
   name,
@@ -320,21 +278,19 @@ export const CustomDate = <
   } = useController({ control, rules, name });
 
   return (
-    <div className={nsp("custom-date")}>
-      <label className={nsp("custom-date__label")} htmlFor={name}>
+    <div className={nsp('custom-date')}>
+      <label className={nsp('custom-date__label')} htmlFor={name}>
         {label}
       </label>
-      <div
-        className={classNames(
-          nsp("custom-date__field"),
-          error && nsp("custom-date__field--error"),
-        )}
-      >
-        <span className={nsp("custom-date__placeholder")} aria-hidden={true} /* here hidden since aria-placeholder takes over */>
+      <div className={classNames(nsp('custom-date__field'), error && nsp('custom-date__field--error'))}>
+        <span
+          className={nsp('custom-date__placeholder')}
+          aria-hidden={true} /* here hidden since aria-placeholder takes over */
+        >
           TT.MM.JJJJ
         </span>
         <IMaskInput
-          className={nsp("custom-date__input")}
+          className={nsp('custom-date__input')}
           name={name}
           id={name}
           inputRef={ref}
@@ -345,21 +301,21 @@ export const CustomDate = <
           blocks={{
             d: {
               mask: IMask.MaskedRange,
-              placeholderChar: "_",
+              placeholderChar: '_',
               from: 1,
               to: 31,
               maxLength: 2,
             },
             m: {
               mask: IMask.MaskedRange,
-              placeholderChar: "_",
+              placeholderChar: '_',
               from: 1,
               to: 12,
               maxLength: 2,
             },
             Y: {
               mask: IMask.MaskedRange,
-              placeholderChar: "_",
+              placeholderChar: '_',
               from: 1900,
               to: 2999,
               maxLength: 4,
@@ -367,8 +323,8 @@ export const CustomDate = <
           }}
           onAccept={(value) => onChange(value as string)}
           onBlur={onBlur}
-          placeholder="__.__.___"
-          aria-placeholder="Eingabeformat Tag Monat Jahr zum Beispiel 12.05.2022"
+          placeholder='__.__.___'
+          aria-placeholder='Eingabeformat Tag Monat Jahr zum Beispiel 12.05.2022'
           aria-invalid={!!error}
           aria-describedby={error && `${name}-error`}
         />

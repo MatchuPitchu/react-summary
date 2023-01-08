@@ -8,9 +8,13 @@
   - advantage: add/remove elements from DOM, not only hide them with css properties
   - problem: removing from DOM happens immediately -> user can't see close animation anymore
 
-    ```JavaScript
-    {modalIsOpen && <Modal show={modalIsOpen} closed={closeModal} />}
-    {modalIsOpen && <Backdrop show={modalIsOpen} closed={closeModal} />}
+    ```javascript
+    {
+      modalIsOpen && <Modal show={modalIsOpen} closed={closeModal} />;
+    }
+    {
+      modalIsOpen && <Backdrop show={modalIsOpen} closed={closeModal} />;
+    }
     ```
 
   - solution: use third pary library `React Transition Group`
@@ -31,7 +35,7 @@
     - `transition events`: cb functions that occur when certain events happen -> use it to time animations based on these events
     - between Transition tags is returned an anonymous fn with parameter of transition state; now, component can be manipulated based on state
 
-    ```JavaScript
+    ```javascript
     // Example 1
     // import default Component of React Transition Group Package
     import Transition from 'react-transition-group/Transition';
@@ -74,12 +78,12 @@
           </Transition>
         </>
       );
-    }
+    };
     ```
 
     - define `different timeouts` for `enter` (-> adding element) and `exit` (-> removing) transition -> it's adding and removing from DOM if `mountOnEnter` and `unmountOnExit` is defined, otherwise only switch of states depending on css styles
 
-    ```JavaScript
+    ```javascript
     // Example 2
     const animationTiming = {
       enter: 400,
@@ -91,20 +95,16 @@
         {(state) => {
           // use passed transition states to define when specific classes
           // with animations start execution of animations
-          const classes = `Modal ${
-            state === 'entering' ? 'ModalOpen' : state === 'exiting' ? 'ModalClosed' : null
-          }`;
+          const classes = `Modal ${state === 'entering' ? 'ModalOpen' : state === 'exiting' ? 'ModalClosed' : null}`;
 
           return (
             <div className={classes}>
-              <button onClick={closed}>
-                Dismiss
-              </button>
+              <button onClick={closed}>Dismiss</button>
             </div>
           );
         }}
       </Transition>
-    )
+    );
     ```
 
     - `CSSTransition` component: handles automatically css changes based on transition states;
@@ -119,7 +119,7 @@
       - `OPTION B`
         - define own titled css classes in an obj instead of using `trunk` way
 
-    ```JavaScript
+    ```javascript
     // Example 3
     import CSSTransition from 'react-transition-group/CSSTransition';
 
@@ -145,12 +145,10 @@
         }}
       >
         <div className='Modal'>
-          <button onClick={closed}>
-            Dismiss
-          </button>
+          <button onClick={closed}>Dismiss</button>
         </div>
       </CSSTransition>
-    )
+    );
     ```
 
     - `TransitionGroup` component to animate lists (-> groups of dynamic elements)
@@ -160,7 +158,7 @@
     - by default it renders `div`, but you can define element with `component` prop (-> like `ul`)
     - has to wrap `Transition` or `CSSTransition` component;
 
-    ```JavaScript
+    ```javascript
     // Example 4
     import TransitionGroup from 'react-transition-group/TransitionGroup';
     // ...
@@ -172,7 +170,7 @@
 
       const removeItemHandler = (selectedIndex) => {
         setItems((prev) => prev.filter((_, index) => index !== selectedIndex));
-      }
+      };
 
       const listItems = items.map((item, i) => (
         <CSSTransition key={i} classNames='fade' timeout={300}>
@@ -184,9 +182,7 @@
 
       return (
         <div>
-          <button onClick={addItemHandler}>
-            Add Item
-          </button>
+          <button onClick={addItemHandler}>Add Item</button>
           <TransitionGroup component='ul' className='List'>
             {listItems}
           </TransitionGroup>
@@ -195,7 +191,7 @@
     };
     ```
 
-    ```CSS
+    ```css
     /* CSS example for Example 4 */
     .fade-enter {
       opacity: 0;

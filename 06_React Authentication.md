@@ -35,7 +35,7 @@
 
 - create authentication context to store states inside -> with auth persistence & auto-logout
 
-  ```JavaScript
+  ```javascript
   // AuthContext.js
   import { createContext, useState, useEffect, useCallback } from 'react';
   // globally available variable in this file
@@ -102,7 +102,7 @@
 
 - implementing user authentication: Create Account and Login
 
-  ```JavaScript
+  ```javascript
   // AuthForm.js
   import { useState, useRef, useContext } from 'react';
   import { useNavigate } from 'react-router-dom';
@@ -198,7 +198,7 @@
 
 - protect routes conditionally and redirect user on starting page if he types in a non existing path
 
-  ```JavaScript
+  ```javascript
   // App.js
   const App = () => {
     const { isLoggedIn } = useContext(AuthContext);
@@ -207,10 +207,7 @@
       <Routes>
         <Route path='/' element={<HomePage />} />
         {!isLoggedIn && <Route path='/auth' element={<AuthPage />} />}
-        <Route
-          path='/profile'
-          element={isLoggedIn ? <UserProfile /> : <Navigate replace to='/' />}
-        />
+        <Route path='/profile' element={isLoggedIn ? <UserProfile /> : <Navigate replace to='/' />} />
         <Route path='*' element={<Navigate replace to='/' />} />
       </Routes>
     );

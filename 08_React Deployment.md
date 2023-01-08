@@ -21,7 +21,7 @@
     - Problem: download code chunk could take some ms
     - Solution: for meantime you need to define a fallback with `Suspense` component wrapped around `Route(s)` -> fallback is shown when download takes a little bit longer
 
-  ```JavaScript
+  ```javascript
   import { lazy, Suspense } from 'react';
   import { Route, Routes } from 'react-router-dom';
   import LoadingSpinner from './components/UI/LoadingSpinner';
@@ -32,19 +32,19 @@
 
   const App = () => {
     return (
-        <Suspense
-          fallback={
-            <div className='centered'>
-              <LoadingSpinner />
-            </div>
-          }
-        >
-          <Routes>
-            <Route path='/quotes' element={<AllQuotes />} />
-            <Route path='/new-quote' element={<NewQuote />} />
-            <Route path='*' element={<NotFound />} />
-          </Routes>
-        </Suspense>
+      <Suspense
+        fallback={
+          <div className='centered'>
+            <LoadingSpinner />
+          </div>
+        }
+      >
+        <Routes>
+          <Route path='/quotes' element={<AllQuotes />} />
+          <Route path='/new-quote' element={<NewQuote />} />
+          <Route path='*' element={<NotFound />} />
+        </Routes>
+      </Suspense>
     );
   };
   ```
