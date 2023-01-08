@@ -1,0 +1,32 @@
+{
+	"env": {
+		"browser": true,
+		"es2021": true
+	},
+	// plugins inserts plugins in this configuration file -> you can use them in "rules" below
+	"plugins": ["react", "@typescript-eslint"],
+	// extends predefines rules
+	"extends": ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended"],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaFeatures": {
+			"jsx": true
+		},
+		"ecmaVersion": "latest",
+		"sourceType": "module",
+		"project": "./tsconfig.eslint.json" // TypeScript config file
+	},
+	"overrides": [],
+	"rules": {
+		"@typescript-eslint/no-unused-vars": "warn",
+		"unused-imports/no-unused-imports": "warn",
+		"react/jsx-props-no-spreading": "warn",
+		"no-shadow": "warn",
+		"no-console": "warn",
+		"no-lonely-if": "warn",
+		"no-nested-ternary": "warn",
+		"no-duplicate-imports": "error",
+		"eqeqeq": "error",
+		"func-names": "warn"
+	}
+}
