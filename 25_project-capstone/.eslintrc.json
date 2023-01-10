@@ -4,29 +4,58 @@
 		"es2021": true
 	},
 	// plugins inserts plugins in this configuration file -> you can use them in "rules" below
-	"plugins": ["react", "@typescript-eslint"],
+	"plugins": ["react", "@typescript-eslint", "unused-imports"],
 	// extends predefines rules
-	"extends": ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended"],
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:react/recommended",
+		"plugin:import/typescript",
+		"plugin:react/jsx-runtime",
+		"plugin:react-hooks/recommended",
+		"plugin:prettier/recommended" // prettier should be at the end
+	],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"ecmaFeatures": {
 			"jsx": true
 		},
+		"tsconfigRootDir": "./",
 		"ecmaVersion": "latest",
-		"sourceType": "module",
-		"project": "./tsconfig.eslint.json" // TypeScript config file
+		"sourceType": "module"
 	},
-	"overrides": [],
+	// rules: https://eslint.org/docs/latest/rules/
 	"rules": {
 		"@typescript-eslint/no-unused-vars": "warn",
 		"unused-imports/no-unused-imports": "warn",
 		"react/jsx-props-no-spreading": "warn",
-		"no-shadow": "warn",
+		"accessor-pairs": "warn",
+		"capitalized-comments": "warn",
+		"default-case": "warn",
+		"default-case-last": "error",
+		"dot-notation": "warn",
+		"eqeqeq": "error",
+		"no-eq-null": "error",
+		"func-style": ["error", "expression"],
+		"max-depth": ["warn", 3],
+		"max-nested-callbacks": ["warn", 3],
+		"multiline-comment-style": ["warn", "separate-lines"],
 		"no-console": "warn",
+		"no-duplicate-imports": "error",
+		"no-else-return": ["error", { "allowElseIf": false }],
 		"no-lonely-if": "warn",
 		"no-nested-ternary": "warn",
-		"no-duplicate-imports": "error",
-		"eqeqeq": "error",
-		"func-names": "warn"
+		"no-shadow": "warn",
+		"no-template-curly-in-string": "warn",
+		"no-unreachable-loop": "warn",
+		"no-use-before-define": "warn",
+		"no-useless-rename": "error",
+		"no-var": "error",
+		"prefer-arrow-callback": "error",
+		"prefer-const": "error",
+		"prefer-object-spread": "error",
+		"prefer-rest-params": "error",
+		"prefer-template": "error",
+		"require-await": "error"
 	}
 }
