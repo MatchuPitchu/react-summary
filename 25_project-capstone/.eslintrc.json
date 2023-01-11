@@ -3,9 +3,9 @@
 		"browser": true,
 		"es2021": true
 	},
-	// plugins inserts plugins in this configuration file -> you can use them in "rules" below
-	"plugins": ["react", "@typescript-eslint", "unused-imports"],
-	// extends predefines rules
+	// inserts plugins installed via npm and make them available in this file -> you can use them in "rules" section
+	"plugins": ["react", "@typescript-eslint", "unused-imports", "import"],
+	// extend configuration with predefined rules
 	"extends": [
 		"eslint:recommended",
 		"plugin:@typescript-eslint/recommended",
@@ -20,32 +20,60 @@
 		"ecmaFeatures": {
 			"jsx": true
 		},
-		"tsconfigRootDir": "./",
 		"ecmaVersion": "latest",
+		"tsconfigRootDir": "./", // connection to  TypeScript config file
 		"sourceType": "module"
 	},
 	// rules: https://eslint.org/docs/latest/rules/
 	"rules": {
+		"no-unused-vars": "off", // base rule must be disabled as it can report incorrect errors
 		"@typescript-eslint/no-unused-vars": "warn",
+		"@typescript-eslint/consistent-type-imports": [
+			"error",
+			{
+				"prefer": "type-imports"
+			}
+		], // automatically detects if imported module is type or not and formats if needed
 		"unused-imports/no-unused-imports": "warn",
 		"react/jsx-props-no-spreading": "warn",
+		"react/self-closing-comp": [
+			"error",
+			{
+				"component": true,
+				"html": true
+			}
+		],
 		"accessor-pairs": "warn",
-		"capitalized-comments": "warn",
+		"capitalized-comments": "off",
 		"default-case": "warn",
 		"default-case-last": "error",
 		"dot-notation": "warn",
 		"eqeqeq": "error",
-		"no-eq-null": "error",
 		"func-style": ["error", "expression"],
+		"import/order": [
+			"error",
+			{
+				"groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
+				"pathGroups": [
+					{
+						"pattern": "@/**/**",
+						"group": "parent",
+						"position": "before"
+					}
+				],
+				"alphabetize": { "order": "asc" }
+			}
+		],
+		"import/no-duplicates": "error",
 		"max-depth": ["warn", 3],
 		"max-nested-callbacks": ["warn", 3],
 		"multiline-comment-style": ["warn", "separate-lines"],
 		"no-console": "warn",
-		"no-duplicate-imports": "error",
 		"no-else-return": ["error", { "allowElseIf": false }],
+		"no-eq-null": "error",
 		"no-lonely-if": "warn",
 		"no-nested-ternary": "warn",
-		"no-shadow": "warn",
+		"no-shadow": "off",
 		"no-template-curly-in-string": "warn",
 		"no-unreachable-loop": "warn",
 		"no-use-before-define": "warn",
