@@ -323,6 +323,38 @@ const Component = () => {
 };
 ```
 
+- basic example of how `memoization` works in general
+
+```javascript
+// V1: not memoized/cached
+const addTo1 = (n) => {
+  // ... imagine expensive calculation
+  return n + 1;
+};
+// function would run completly 3 times
+addTo1(10);
+addTo1(10);
+addTo1(10);
+
+// V1: memoized/cached
+const cache = {
+  // after first run with n = 10; when fn re-runs with same n, cached value is taken
+  // 10: 11;
+};
+const memoizedAddTo1 = (n) => {
+  if (n in cache) {
+    return cache[n];
+  } else {
+    cache[n] = n + 1;
+    return cache[n];
+  }
+};
+
+memoizedAddTo1(10);
+memoizedAddTo1(10);
+memoizedAddTo1(10);
+```
+
 - `useMemo` and `useCallback` are useful for re-rendering. During initial rendering, they are even harmful: React has to do additional work
 - Use case: memoize props values to prevent re-renders
 - Important to know about Component re-rendering:
