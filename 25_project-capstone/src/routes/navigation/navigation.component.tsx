@@ -10,11 +10,14 @@ export const Navigation = () => {
 				<Link className="logo" to="/">
 					<Logo className="logo__svg" />
 				</Link>
-				<ul className="navigation__links-container">
+				<div className="navigation__links-container">
 					<Link className="navigation__link" to="/shop">
 						Shop
 					</Link>
-				</ul>
+					<Link className="navigation__link" to="/sign-in">
+						Sign In
+					</Link>
+				</div>
 			</nav>
 			{/* Outlet contains content of nested route components (-> App.tsx) */}
 			<Outlet />
