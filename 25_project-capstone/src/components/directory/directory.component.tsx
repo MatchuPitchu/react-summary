@@ -1,5 +1,5 @@
-import type { ICategory } from '@/App';
 import { CategoryItem } from '@/components/category-item/category-item.component';
+import type { ICategory } from '@/routes/home/home.component';
 import './directory.styles.scss';
 
 interface IDirectoryProps {
