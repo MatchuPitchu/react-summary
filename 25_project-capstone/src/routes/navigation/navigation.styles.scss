@@ -1,0 +1,18 @@
+.navigation {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 70px;
+	margin: 0 10px;
+
+	.navigation__links-container {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+
+		.navigation__link {
+			padding: 10px 15px;
+			cursor: pointer;
+		}
+	}
+}

@@ -21,7 +21,7 @@
 			"@/*": ["./*"]
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "svg.d.ts"],
 	"references": [{ "path": "./tsconfig.node.json" }],
 	"types": ["vitest/globals", "node", "@testing-library/jest-dom"]
 }
