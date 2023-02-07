@@ -1,7 +1,6 @@
 # React
 
-> React Documentation: <https://reactjs.org/>
-> React Repo for creating new React App: <https://github.com/facebook/create-react-app>
+> React Documentation: <https://beta.reactjs.org>
 > Udemay Course `React - The Complete Guide` - Academind GitHub Repo of the course: <https://github.com/academind/react-complete-guide-code/tree/master>
 > Udemy Course `Complete React Developer in 2023`: <https://www.udemy.com/course/complete-react-developer-zero-to-mastery>
 

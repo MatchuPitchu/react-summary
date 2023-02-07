@@ -139,6 +139,8 @@
 
 ## useEffect Hook for "side effects"
 
+> How and when to use `useEffect`: <https://beta.reactjs.org/reference/react/useEffect>
+
 - it's for tasks that must happen outside of the normal component evaluation and render cycle, especially since they might block or delay rendering (e.g. HTTP requests)
 - examples for side effects: store data in browser storage, send HTTP requests to backend servers, set and manage timers etc.
 - side effects cannot go directly as normal function into the component function because
@@ -196,6 +198,9 @@
     - `initialState` (optional): optional you can set an initial state
     - `initFn`: a function to set the inital state programmatically in case that the initial state is more complex (e.g. the result of an HTTP request)
 
+- notice: `NEVER mutate state object` directly in your reducer function
+  - `useImmerReducer` is an alternative hook that allows to directly mutate the state object; under the hood it create an immutable copy using `Proxies` in JavaScript (<https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy>)
+
 ### Example 1 with useReducer
 
 - function expression (`const emailReducer`) outside of component because inside of reducer fn I don't need any data that is generated inside of the component fn
@@ -212,7 +217,7 @@ const emailReducer = (prevState, action) => {
       return { value: action.value, isValid: action.value.includes('@') };
     case 'INPUT_BLUR':
       // it is guaranteed that prevState parameter is the last state snapshot
-      return { value: prevState.value, isValid: prevState.value.includes('@') };
+      return { ...prevState };
     default:
       return { value: '', isValid: false };
   }
@@ -283,6 +288,105 @@ const ToggleButton = () => {
   const [isOpen, toggleState] = useReducer((prevIsOpen) => !prevIsOpen, false);
 
   return <button onClick={toggleState}>{String(isOpen)}</button>;
+};
+```
+
+### Example 3: useReducer instead of multiple useState for Calendar Inputs
+
+- useReducer includes a `reducer` function that helps to control state transitions
+
+```jsx
+// V1: multiple useState
+import { useState } from 'react';
+
+const EditCalendarEvent = () => {
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState();
+  const [attendees, setAttendees] = useState([]);
+
+  return (
+    <>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} />
+      {/* ... */}
+    </>
+  );
+};
+
+// V2: useReducer
+const eventReducer = (prev, next) => {
+  // validate, transform in a central place the next state
+  const newEvent = { ...prev, ...next };
+
+  // ensure that start dae is never after end date
+  if (newEvent.startDate > newEvent.endDate) {
+    newEvent.endDate = newEvent.startDate;
+  }
+
+  // ensure title has never more than 100 characters
+  if (newEvent.title.length > 100) {
+    newEvent.title = newEvent.title.substring(0, 100);
+  }
+
+  return newEvent;
+};
+
+const initialState = {
+  title: '',
+  description: '',
+  attedees: [],
+};
+
+const EditCalendarEvent = () => {
+  const [event, updateEvent] = useReducer(eventReducer, initialState);
+
+  return (
+    <>
+      <input value={event.title} onChange={(e) => updateEvent({ title: e.target.value })} />
+      {/* ... */}
+    </>
+  );
+};
+```
+
+### Example 4: useReducer to set a count limit
+
+```jsx
+const LIMIT = 10;
+
+const Counter = () => {
+  const [count, incrementCount] = useReducer((prev) => Math.min(prev + 1, LIMIT), 0);
+
+  return (
+    <button onClick={incrementCount}>
+      {count}/{LIMIT}
+    </button>
+  );
+};
+```
+
+### Example 5: useReducer used in Context to use update function in deep child components
+
+```jsx
+const TodosDispatch = createContext(null);
+
+const TodosDispatchProvider = ({ children }) => {
+  // Note: dispatch fn (-> updateTods) does NOT change between re-renders
+  const [todos, updateTodos] = useReducer(todosReducer);
+
+  return <TodosDispatch.Provider value={updateTodos}>{children}</TodosDispatch.Provider>;
+};
+
+const DeepChild = (props) => {
+  const updateTodos = useContext(TodosDispatch);
+
+  const handleClick = () => {
+    updateTodos({ type: 'add', text: 'foo' });
+  };
+
+  return <button onClick={handleClick}>Add todo</button>;
 };
 ```
 
