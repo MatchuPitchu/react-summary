@@ -309,6 +309,50 @@ export default React.memo(Demo); // for 4) in App.js
 
 ![](./00_slides/08_rerendering-prevent-with-children-as-props.png)
 
+```tsx
+import { useState } from 'react';
+
+const App = () => {
+  return (
+    <MouseTracker>
+      <LongList />
+    </MouseTracker>
+  );
+};
+
+const MouseTracker = ({ children }) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const onMouseMove = ({ clientX: x, clientY: y }) => {
+    setPosition({ x, y });
+  };
+
+  return (
+    <div onMouseMove={onMouseMove}>
+      <header>
+        <p>
+          Mouse position: x {position.x}, y {position.y}
+        </p>
+      </header>
+      {/* children prop comes from parent component; when state is updated in MouseTracker, parent does NOT re-render,
+      so LongList as children is not recreated and keeps its referential identity between re-renders of MouseTracker
+      if state of parent is updated, everything will re-render */}
+      {children}
+    </div>
+  );
+};
+
+const LongList = () => {
+  return (
+    <div>
+      {[...Array(10000).keys()].map((i) => {
+        return <p key={i}>Item {i + 1}</p>;
+      })}
+    </div>
+  );
+};
+```
+
 ### ✅ Preventing re-renders with composition: components as props
 
 ![](./00_slides/09_rerendering-prevent-with-components-as-props.png)
