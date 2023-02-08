@@ -1079,3 +1079,25 @@ const SimpleInput = () => {
   );
 };
 ```
+
+### Example 4: useStateWithPrevious hook to keep track of prev value
+
+```jsx
+const useStateWithPrevious = (initialValue) => {
+  const reducer = (state, currentValue) => ({
+    value: currentValue,
+    previousValue: state.value,
+  });
+
+  const [{ value, previousValue }, setValue] = useReducer(reducer, {
+    value: initialValue,
+  });
+
+  return [value, previousValue, setValue];
+};
+
+const App = () => {
+  const [name, previousName, setName] = useStateWithPrevious('foo');
+  // ...
+};
+```
