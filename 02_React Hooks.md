@@ -1101,3 +1101,44 @@ const App = () => {
   // ...
 };
 ```
+
+### Example: useReducer instead of useState to update a state object
+
+```tsx
+type Person = Record<'firstName' | 'lastName', string>;
+
+const data: Person = {
+  firstName: '',
+  lastName: '',
+};
+
+const inputReducer = (prevState: Person, update: Partial<Person>) => ({
+  ...prevState,
+  ...update,
+});
+
+export const Home = () => {
+  const [person1, setPerson] = useState(data);
+  const [person2, setFields] = useReducer(inputReducer, data);
+
+  const handleChange = ({ target: { name, value } }: ChangeEvent<HTMLInputElement>) => {
+    // V1: conventional setState with spread syntax
+    setPerson({
+      ...person1,
+      [name]: value,
+    });
+
+    // V2: use reducer function
+    setFields({
+      [name]: value,
+    });
+  };
+
+  return (
+    <>
+      <input type='text' name='firstName' value={person2.firstName} onChange={handleChange} />
+      <input type='text' name='lastName' value={person2.lastName} onChange={handleChange} />
+    </>
+  );
+};
+```
