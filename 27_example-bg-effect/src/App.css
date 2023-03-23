@@ -1,0 +1,42 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: #242424;
+  background-color: rgba(255, 255, 255, 0.87);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.background-vector {
+  overflow: visible;
+  min-width: 90vw;
+  height: 600px;
+  background-image: url('assets/background-image.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  opacity: 0.2;
+  scale: 0.5;
+  transition: opacity, scale 2s;
+}
+
+.background-vector.active {
+  opacity: 0.4;
+  scale: 1;
+}
