@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import './App.css';
 import { useIntersectionObserver } from './hooks/useIntersectionObserver';
 
@@ -15,6 +15,8 @@ const normalizeMousePosition = (value: number, axis: 'x' | 'y') => {
 };
 
 const HEIGHT = 600;
+
+// Example is based on: https://www.adiutabyte.de/karriere
 
 const App = () => {
   const boxRef = useRef<HTMLDivElement>(null);
