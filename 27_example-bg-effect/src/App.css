@@ -26,17 +26,17 @@ body {
   overflow: visible;
   min-width: 90vw;
   height: 600px;
-  background-image: url('assets/background-image.svg');
   background-size: cover;
   background-repeat: no-repeat;
   transform-style: preserve-3d;
+  transform: translate3d(0px, 0px, 0px);
   will-change: transform, opacity;
-  opacity: 0.2;
-  scale: 0.5;
-  transition: opacity, scale 2s;
+  opacity: 0;
+  scale: 0;
+  transition: transform 0s, opacity 2s, scale 2s;
 }
 
 .background-vector.active {
-  opacity: 0.4;
+  opacity: 0.2;
   scale: 1;
 }
